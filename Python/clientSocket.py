@@ -519,7 +519,7 @@ class TCPServer(asyncore.dispatcher):
             msg['To'] = ",".join(toaddr)
             msg['Subject'] = "Daily challenge stats"
             #body - userStats
-            body = json.dumps(stats.userStats)
+            body = stats.dumpUserStatsToJSON()
             msg.attach(MIMEText(body, 'plain'))
             #body - opcodesStats
             body = '\n\n' + json.dumps(stats.opcodesCount)
