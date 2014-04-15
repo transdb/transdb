@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>700A0BF3-90BA-41B1-86B2-99019D9C16C3</string>
+	<key>IDESourceControlProjectName</key>
+	<string>TransDB</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>45C38E51-BE0A-4179-A373-9C4EE9724BEE</key>
+		<string>http://system.geewa.com:8088/svn/base/trunk/TransStorageServer</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>trunk/TransDB/TransDB.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>45C38E51-BE0A-4179-A373-9C4EE9724BEE</key>
+		<string>../../../..</string>
+	</dict>
+	<key>IDESourceControlProjectRepositoryRootDictionary</key>
+	<dict>
+		<key>45C38E51-BE0A-4179-A373-9C4EE9724BEE</key>
+		<string>http://system.geewa.com:8088/svn/base</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>http://system.geewa.com:8088/svn/base/trunk/TransStorageServer/trunk/TransDB/TransDB.xcodeproj</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>45C38E51-BE0A-4179-A373-9C4EE9724BEE</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.subversion</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>45C38E51-BE0A-4179-A373-9C4EE9724BEE</string>
+			<key>IDESourceControlWCCName</key>
+			<string>TransStorageServer</string>
+		</dict>
+	</array>
+</dict>
+</plist>
