@@ -5,39 +5,39 @@
 	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
 	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
-	<string>700A0BF3-90BA-41B1-86B2-99019D9C16C3</string>
+	<string>A0770F66-4457-448E-94F1-75705C27FD6B</string>
 	<key>IDESourceControlProjectName</key>
 	<string>TransDB</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>45C38E51-BE0A-4179-A373-9C4EE9724BEE</key>
-		<string>http://system.geewa.com:8088/svn/base/trunk/TransStorageServer</string>
+		<key>4FC53F23-6F55-4C73-976C-B711F49979A8</key>
+		<string>https://hyperv02.vps4u.cz:8443/svn/TransStorageServer</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
 	<string>trunk/TransDB/TransDB.xcodeproj/project.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>45C38E51-BE0A-4179-A373-9C4EE9724BEE</key>
+		<key>4FC53F23-6F55-4C73-976C-B711F49979A8</key>
 		<string>../../../..</string>
 	</dict>
 	<key>IDESourceControlProjectRepositoryRootDictionary</key>
 	<dict>
-		<key>45C38E51-BE0A-4179-A373-9C4EE9724BEE</key>
-		<string>http://system.geewa.com:8088/svn/base</string>
+		<key>4FC53F23-6F55-4C73-976C-B711F49979A8</key>
+		<string>https://hyperv02.vps4u.cz:8443/svn/TransStorageServer</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
-	<string>http://system.geewa.com:8088/svn/base/trunk/TransStorageServer/trunk/TransDB/TransDB.xcodeproj</string>
+	<string>https://hyperv02.vps4u.cz:8443/svn/TransStorageServer/trunk/TransDB/TransDB.xcodeproj</string>
 	<key>IDESourceControlProjectVersion</key>
 	<integer>110</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>45C38E51-BE0A-4179-A373-9C4EE9724BEE</string>
+	<string>4FC53F23-6F55-4C73-976C-B711F49979A8</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.subversion</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>45C38E51-BE0A-4179-A373-9C4EE9724BEE</string>
+			<string>4FC53F23-6F55-4C73-976C-B711F49979A8</string>
 			<key>IDESourceControlWCCName</key>
 			<string>TransStorageServer</string>
 		</dict>
