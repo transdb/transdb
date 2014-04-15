@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>TransDB - Web Access - $title</title>
+
+    <link rel="stylesheet" href="style.css" type="text/css">
+    <style>
+    body {
+        margin-top: 60px;
+    }
+    </style>
+
+</head>
+
+<body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/">TransDB</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse navbar-ex1-collapse">
+                <ul class="nav navbar-nav">
+                    <li><a href="/">Overview</a>
+                    </li>
+                    <li><a href="/config">Configuration</a>
+                    </li>
+                    <li><a href="/fragment">File Fragmentation</a>
+                    </li>
+                    <li><a href="/log">Log</a>
+                    </li>
+                    <li><a href="/editor">Editor</a>
+                    </li>
+                    <li><a href="/dailyChallenge">Daily Challenge</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <div class="container">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">Data file size</label>
+                        <div class="col-sm-10">
+                            <p class="form-control-static">$datasize</p>
+                        </div>
+                        <label class="col-sm-2 control-label">Amount of freespace groups/blocks</label>
+                        <div class="col-sm-10">
+                            <p class="form-control-static">$block_count</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                $blocks
+            </div>
+        </div>
+    </div>
+    <!-- /.container -->
+
+</body>
+
+</html>
