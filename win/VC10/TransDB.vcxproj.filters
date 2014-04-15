@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\src\console\Block.cpp" />
+    <ClCompile Include="..\..\src\console\BlockManager.cpp" />
+    <ClCompile Include="..\..\src\console\ClientSocket.cpp" />
+    <ClCompile Include="..\..\src\console\Launcher.cpp" />
+    <ClCompile Include="..\..\src\console\main.cpp" />
+    <ClCompile Include="..\..\src\console\StdAfx.cpp" />
+    <ClCompile Include="..\..\src\console\Storage.cpp" />
+    <ClCompile Include="..\..\src\console\DiskWriter.cpp" />
+    <ClCompile Include="..\..\src\console\ClientSocketHolder.cpp" />
+    <ClCompile Include="..\..\src\console\IndexBlock.cpp" />
+    <ClCompile Include="..\..\src\console\LRUCache.cpp" />
+    <ClCompile Include="..\..\src\console\ServiceWin32.cpp" />
+    <ClCompile Include="..\..\src\console\ConfigWatcher.cpp" />
+    <ClCompile Include="..\..\src\console\Common.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\console\Block.h" />
+    <ClInclude Include="..\..\src\console\BlockManager.h" />
+    <ClInclude Include="..\..\src\console\ClientSocket.h" />
+    <ClInclude Include="..\..\src\console\Launcher.h" />
+    <ClInclude Include="..\..\src\console\StdAfx.h" />
+    <ClInclude Include="..\..\src\console\Storage.h" />
+    <ClInclude Include="..\..\src\console\DiskWriter.h" />
+    <ClInclude Include="..\..\src\console\ClientSocketHolder.h" />
+    <ClInclude Include="..\..\src\console\IndexBlock.h" />
+    <ClInclude Include="..\..\src\console\LRUCache.h" />
+    <ClInclude Include="..\..\src\console\ServiceWin32.h" />
+    <ClInclude Include="..\..\src\console\ConfigWatcher.h" />
+    <ClInclude Include="..\..\src\console\Common.h" />
+  </ItemGroup>
+</Project>
