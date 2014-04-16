@@ -313,7 +313,7 @@ class TCPHandler(asyncore.dispatcher_with_send):
         self.sock = sock
         self.crypt = crypto.Crypt()
         #set socket timeout
-        commom.set_keepalive_linux(self.sock)
+        common.set_keepalive_linux(self.sock)
     
     def handle_read(self):
         """ Handle socket read event """
