@@ -267,7 +267,6 @@ def client_socket_run(stop_event, listenHost, listenPort):
             asyncore.loop(timeout=pollTimeout, count=1, use_poll=True)
             #every XX secods
             if lastTick < time.time():
-                server.checkSocketActivity()
                 server.TickForDailyChallenge()
                 server.saveDailyChallengeOpcodeStats()
                 lastTick = time.time() + pollTimeout
