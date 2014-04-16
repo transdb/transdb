@@ -313,7 +313,7 @@ class TCPHandler(asyncore.dispatcher_with_send):
         self.sock = sock
         self.crypt = crypto.Crypt()
         #set socket timeout
-        common.set_keepalive_linux(self.sock)
+        common.set_keepalive_linux(self.sock, after_idle_sec=30, interval_sec=15, max_fails=2)
     
     def handle_read(self):
         """ Handle socket read event """
@@ -437,7 +437,7 @@ class TCPHandler(asyncore.dispatcher_with_send):
                 cfunctions.Log_Warning("TCPHandler.handle_read: Unknown opcode: " + str(opcode))
         
         #ignore
-        except RuntimeError as e:
+        except (RuntimeError, socket.error) as e:
             pass
     
         except Exception as e:
