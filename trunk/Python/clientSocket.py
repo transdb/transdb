@@ -364,24 +364,32 @@ class TCPHandler(asyncore.dispatcher_with_send):
                 structSize = struct.calcsize("<HQI")
                 gameID, userID, score = struct.unpack_from("<HQI", data)
                 userName = data[structSize:-1]
-
-                #stats
-                stats.UpdatePlayedGames(userID, userName)
                 
-                #create or update user
-                user = AddUserToLeaderBoard(gameID, userID, userName, score)
-                
-                #get user position and count of users
-                leadeboardDict = GetLeaderBoardDict(gameID)
-                keys = sorted(leadeboardDict.keys(), reverse=True)
-                userPosition = keys.index(user.score) + 1
-                usersCount = len(keys)
-                
-                #send ok to client
-                packet = packets.ClientPacket(S_MSG_ADD_TO_LEADEBOARD, self.crypt)
-                packet.data = struct.pack("<II", userPosition, usersCount)
-                packetData = packet.createPacket()
-                self.send(packetData)
+                #check data from client - ignore bad data
+                if gameID == 0 or userID == 0:
+                    #send dummy data to client
+                    packet = packets.ClientPacket(S_MSG_ADD_TO_LEADEBOARD, self.crypt)
+                    packet.data = struct.pack("<II", 0, 0)
+                    packetData = packet.createPacket()
+                    self.send(packetData)
+                else:
+                    #stats
+                    stats.UpdatePlayedGames(userID, userName)
+                    
+                    #create or update user
+                    user = AddUserToLeaderBoard(gameID, userID, userName, score)
+                    
+                    #get user position and count of users
+                    leadeboardDict = GetLeaderBoardDict(gameID)
+                    keys = sorted(leadeboardDict.keys(), reverse=True)
+                    userPosition = keys.index(user.score) + 1
+                    usersCount = len(keys)
+                    
+                    #send ok to client
+                    packet = packets.ClientPacket(S_MSG_ADD_TO_LEADEBOARD, self.crypt)
+                    packet.data = struct.pack("<II", userPosition, usersCount)
+                    packetData = packet.createPacket()
+                    self.send(packetData)
             
             #leaderboard
             elif opcode == C_MSG_GET_LEADERBOARD:
