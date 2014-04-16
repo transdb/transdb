@@ -547,9 +547,6 @@ class TCPServer(asyncore.dispatcher):
             #reset stats
             self.ResetDailyChallengeStats()
             
-            #reload from DB we want to edit it in DB and make it apply next day
-            loadDailyChallengeActiveLevels()
-            
             #reload challenges and prepare new one
             if len(dailyChallengeActiveLevels) != 0:
                 #save last active daily challenge level
@@ -579,6 +576,9 @@ class TCPServer(asyncore.dispatcher):
                 GetLeaderBoardDict(activeLevel)
                 gameIDsDict[activeLevel] = leadeboardDict
                 
+                #reload from DB we want to edit it in DB and make it apply next day
+                loadDailyChallengeActiveLevels()
+                
                 #remove 1st one and save to db
                 dailyChallengeActiveLevels.pop(0)
                 saveDailyChallengeActiveLevels()
@@ -586,7 +586,11 @@ class TCPServer(asyncore.dispatcher):
             #load levels + shuffle and save to DB
             if len(dailyChallengeActiveLevels) == 0:
                 resetDailyChallengeActiveLevels()
-        
+    
+            #delete data from new active level - there can be old data
+            activeLevel = int(dailyChallengeActiveLevels[0])
+            transDB.deleteData(activeLevel, 0)
+    
         except Exception as e:
             cfunctions.Log_Error("TCPServer.ResetDailyChallenge: " + str(e))
     
