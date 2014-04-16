@@ -311,21 +311,16 @@ class TCPHandler(asyncore.dispatcher_with_send):
         asyncore.dispatcher_with_send.__init__(self, sock)
         self.holder = holder
         self.sock = sock
-        self.lastActivity = time.time()
         self.crypt = crypto.Crypt()
-    
-    def handle_close(self):
-        self.holder.removeSocket(self.sock)
-        self.close()
+        #set socket timeout
+        commom.set_keepalive_linux(self.sock)
     
     def handle_read(self):
+        """ Handle socket read event """
         try:
             global remainingTime
             global dailyChallengeActiveLevels
             global lastDailyChallengeActiveLevel
-            
-            #update last socket activity
-            self.lastActivity = time.time()
             
             packetHeader = ''
             #wait for header
@@ -352,7 +347,7 @@ class TCPHandler(asyncore.dispatcher_with_send):
             dataCrc32 = zlib.crc32(data) & 0xffffffff
             if dataCrc32 != crc32:
                 cfunctions.Log_Warning("TCPHandler.handle_read: Crc32 does not match disconnecting socket.")
-                self.handle_close()
+                self.close()
                 return
         
             #counter
@@ -456,7 +451,6 @@ class TCPServer(asyncore.dispatcher):
         self.set_reuse_addr()
         self.bind((host, port))
         self.listen(128)
-        self.clientSocketDict = {}
         #set if use timeinterval or daily timer
         global remainingTime
         global useTimeInterval
@@ -468,30 +462,14 @@ class TCPServer(asyncore.dispatcher):
             self.dailyChallengeTicked = int(time.time())
     
     def handle_accept(self):
+        """ Handle socket accept """
         try:
             pair = self.accept()
             if pair is not None:
                 sock, addr = pair
                 handler = TCPHandler(sock, self)
-                self.clientSocketDict[sock] = handler
         except Exception as e:
             cfunctions.Log_Error("TCPServer.handle_accept: " + str(e))
-    
-    def removeSocket(self, sock):
-        try:
-            self.clientSocketDict.pop(sock, None)
-        except Exception as e:
-            cfunctions.Log_Error("TCPServer.removeSocket: " + str(e))
-    
-    def checkSocketActivity(self):
-        try:
-            #check fo socket inactivity and close socket
-            timeStamp = time.time()
-            for sock, handler in self.clientSocketDict.items():
-                if (handler.lastActivity + 120) < timeStamp:
-                    handler.handle_close()
-        except Exception as e:
-            cfunctions.Log_Error("TCPServer.checkSocketActivity: " + str(e))
     
     def calcRemainingTimeFromDayHour(self, dayHour):
         """ return remaning time which remaing to dayHour """
