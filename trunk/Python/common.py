@@ -26,3 +26,16 @@ def set_keepalive_linux(sock, after_idle_sec=1, interval_sec=3, max_fails=5):
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, max_fails)
     except Exception as e:
         cfunctions.Log_Error("set_keepalive_linux: " + str(e))
+
+def set_keepalive_osx(sock, after_idle_sec=1, interval_sec=3, max_fails=5):
+    try:
+        """Set TCP keepalive on an open socket.
+            
+            sends a keepalive ping once every 3 seconds (interval_sec)
+            """
+        # scraped from /usr/include, not exported by python's socket module
+        TCP_KEEPALIVE = 0x10
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+        sock.setsockopt(socket.IPPROTO_TCP, TCP_KEEPALIVE, interval_sec)
+    except Exception as e:
+        cfunctions.Log_Error("set_keepalive_osx: " + str(e))
