@@ -18,7 +18,7 @@ class Crypt:
                 self.m_recv_i += 1;
                 self.m_recv_j = returnData[t];
                 returnData[t] = x;
-            return returnData
+            return str(returnData)
         except Exception as e:
             cfunctions.Log_Error("Crypt.DecryptRecv: " + str(e))
     
@@ -29,6 +29,6 @@ class Crypt:
                 self.m_send_i %= self.m_keyLen;
                 returnData[t] = self.m_send_j = ((returnData[t] ^ self.m_cryptKey[self.m_send_i]) + self.m_send_j) % 256;
                 self.m_send_i += 1;
-            return returnData
+            return str(returnData)
         except Exception as e:
             cfunctions.Log_Error("Crypt.EncryptSend: " + str(e))
