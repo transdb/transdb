@@ -442,7 +442,7 @@ class TCPHandler(asyncore.dispatcher_with_send):
             if e.errno == errno.ETIMEDOUT:
                 self.handle_close()
             else:
-                raise
+                cfunctions.Log_Error("TCPHandler.handle_read: " + str(e))
                 
         except RuntimeError as e:
             pass
