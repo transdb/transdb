@@ -10,7 +10,7 @@ class TransDBPacket:
     
     def createPacket(self):
         packet = struct.pack('<IH', len(self.data), self.opcode)
-        packet += self.data
+        packet += str(self.data)
         return packet
 
 class ClientPacket:
@@ -25,11 +25,11 @@ class ClientPacket:
             #calc crc as unsigned
             crc32 = zlib.crc32(self.data) & 0xffffffff
             #create packet header
-            packet = struct.pack('<IHI', len(self.data), self.opcode, crc32)
+            packetHeader = struct.pack('<IHI', len(self.data), self.opcode, crc32)
             #encrypt header
-            packet = self.crypt.EncryptSend(packet)
+            packet = self.crypt.EncryptSend(packetHeader)
             #add data
-            packet += self.data
+            packet += str(self.data)
             return packet
         except Exception as e:
             cfunctions.Log_Error("ClientPacket.createPacket: " + str(e))

@@ -437,7 +437,14 @@ class TCPHandler(asyncore.dispatcher_with_send):
                 cfunctions.Log_Warning("TCPHandler.handle_read: Unknown opcode: " + str(opcode))
         
         #ignore
-        except (RuntimeError, socket.error) as e:
+        except socket.error as e:
+            #timeout disconnect socket
+            if e.errno == errno.ETIMEDOUT:
+                self.handle_close()
+            else:
+                raise
+                
+        except RuntimeError as e:
             pass
     
         except Exception as e:
