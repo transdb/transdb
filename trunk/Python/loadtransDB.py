@@ -270,8 +270,8 @@ def client_socket_run(stop_event, listenHost, listenPort):
                 server.TickForDailyChallenge()
                 server.saveDailyChallengeOpcodeStats()
                 lastTick = time.time() + pollTimeout
-        
-        server.shutdown()
+        #close
+        asyncore.close_all()
     except Exception as e:
         cfunctions.Log_Error("client_socket_run: " + str(e))
 

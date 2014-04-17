@@ -313,7 +313,7 @@ class TCPHandler(asyncore.dispatcher_with_send):
         self.sock = sock
         self.crypt = crypto.Crypt()
         #set socket timeout
-        common.set_keepalive_linux(self.sock, after_idle_sec=30, interval_sec=15, max_fails=2)
+        common.set_keepalive_linux(self.sock, after_idle_sec=10, interval_sec=5, max_fails=3)
     
     def handle_read(self):
         """ Handle socket read event """
@@ -615,16 +615,7 @@ class TCPServer(asyncore.dispatcher):
         
         except Exception as e:
             cfunctions.Log_Error("TCPServer.TickForDailyChallenge: " + str(e))
-    
-    def shutdown(self):
-        try:
-            self.close()
-            #close client sockets
-            for sock in self.clientSocketDict.keys():
-                handler = self.clientSocketDict[sock]
-                handler.handle_close()
-        except Exception as e:
-            cfunctions.Log_Error("TCPServer.shutdown: " + str(e))
+
 
 
 
