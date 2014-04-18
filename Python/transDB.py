@@ -74,16 +74,16 @@ def getData(token):
     """ get data by token """
     try:
         while True:
-            #wait for data in queue
-            readSet, writeSet, errorSet = select.select([recvQueue._reader], [], [], SELECT_WAIT_TIME)
-            if recvQueue._reader in readSet:
-                tokenTmp, data = recvQueue.get()
-                #0 is reserved for non wait calls
-                if tokenTmp != 0:
-                    if tokenTmp != token:
-                        recvQueue.put((tokenTmp, data))
-                    else:
-                        return data
+            try:
+                #wait for data in queue
+                tokenTmp, data = recvQueue.get(True, 10)
+                if tokenTmp != token:
+                    recvQueue.put((tokenTmp, data))
+                else:
+                    return data
+            except Queue.Empty as e:
+                pass
+
     except Exception as e:
         cfunctions.Log_Error("trandDB.getData: " + str(e))
 
@@ -95,7 +95,7 @@ def stats():
         packet.data = struct.pack('<I', token)
         sendQueue.put(packet)
         data = getData(token)
-        return json.loads(data.replace('\0', ''))
+        return json.loads(data[:-1])
     except Exception as e:
         cfunctions.Log_Error("trandDB.stats: " + str(e))
 
@@ -134,16 +134,6 @@ def writeData(x, y, data):
         return data
     except Exception as e:
         cfunctions.Log_Error("trandDB.writeData: " + str(e))
-
-def writeDataNoWait(x, y, data):
-    try:
-        """ Write data to DB without wating for result """
-        packet = packets.TransDBPacket(C_MSG_WRITE_DATA)
-        packet.data = struct.pack('<IIQQ', 0, 0, long(x), long(y)) + data
-        sendQueue.put(packet)
-    except Exception as e:
-        cfunctions.Log_Error("trandDB.writeDataNoWait: " + str(e))
-
 
 def deleteData(x, y):
     try:

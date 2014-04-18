@@ -170,7 +170,7 @@ def GetLeaderBoardDict(gameID):
             gameIDsDict[gameID] = leadeboardDict
             #save used gameIDs to DB
             dataList = pickle.dumps(gameIDsDict.keys(), pickle.HIGHEST_PROTOCOL)
-            transDB.writeDataNoWait(X_KEY_FOR_SETTINGS, SETTINGS_Y_KEY_GAME_IDS, dataList)
+            transDB.writeData(X_KEY_FOR_SETTINGS, SETTINGS_Y_KEY_GAME_IDS, dataList)
         return leadeboardDict
     except Exception as e:
         cfunctions.Log_Error("GetLeaderBoardDict: " + str(e))
@@ -211,7 +211,7 @@ def AddUserToLeaderBoard(gameID, userID, userName, score):
         
         #save to DB - x=gameID, y=userID
         userData = pickle.dumps(user, pickle.HIGHEST_PROTOCOL)
-        transDB.writeDataNoWait(gameID, user.userID, userData)
+        transDB.writeData(gameID, user.userID, userData)
         
         return user
     except Exception as e:
