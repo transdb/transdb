@@ -55,7 +55,7 @@ class Stats:
         """ Save opcode stats to DB """
         try:
             opcodesCountData = pickle.dumps(self.opcodesCount, pickle.HIGHEST_PROTOCOL)
-            transDB.writeDataNoWait(clientSocket.X_KEY_FOR_SETTINGS, clientSocket.SETTINGS_Y_DAILY_CHALLENGE_OPCODE_STATS, opcodesCountData)
+            transDB.writeData(clientSocket.X_KEY_FOR_SETTINGS, clientSocket.SETTINGS_Y_DAILY_CHALLENGE_OPCODE_STATS, opcodesCountData)
         except Exception as e:
             cfunctions.Log_Error("Stats.saveDailyChallengeOpcodeStats: " + str(e))
 
@@ -83,7 +83,7 @@ class Stats:
             
             #save to DB
             userData = struct.pack("<II", numberOfGames, len(userName)) + userName
-            transDB.writeDataNoWait(clientSocket.X_KEY_FOR_STATS, userID, userData)
+            transDB.writeData(clientSocket.X_KEY_FOR_STATS, userID, userData)
         except Exception as e:
             cfunctions.Log_Error("Stats.UpdatePlayedGames: " + str(e))
     
