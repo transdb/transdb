@@ -16,6 +16,7 @@ import smtplib
 import packets
 import crypto
 import statistics
+import platform
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
 from datetime import datetime
@@ -61,6 +62,14 @@ lastDailyChallengeActiveLevel = 0
 
 #stats
 stats = statistics.Stats()
+
+#socket timeout func
+if platform.system()  == "Linux":
+    set_keepalive_func = common.set_keepalive_linux
+elif platform.system()  == "Darwin":
+    set_keepalive_func = common.set_keepalive_osx
+else:
+    set_keepalive_func = None
 
 class User:
     def __init__(self, userID, userName, score):
@@ -313,7 +322,7 @@ class TCPHandler(asyncore.dispatcher_with_send):
         self.sock = sock
         self.crypt = crypto.Crypt()
         #set socket timeout
-        common.set_keepalive_linux(self.sock, after_idle_sec=10, interval_sec=5, max_fails=3)
+        set_keepalive_func(self.sock, after_idle_sec=10, interval_sec=5, max_fails=3)
     
     def handle_read(self):
         """ Handle socket read event """
@@ -347,7 +356,7 @@ class TCPHandler(asyncore.dispatcher_with_send):
             dataCrc32 = zlib.crc32(data) & 0xffffffff
             if dataCrc32 != crc32:
                 cfunctions.Log_Warning("TCPHandler.handle_read: Crc32 does not match disconnecting socket.")
-                self.close()
+                self.handle_close()
                 return
         
             #counter
