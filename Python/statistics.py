@@ -4,7 +4,13 @@ import clientSocket
 import struct
 import pickle
 import json
+import smtplib
 from operator import itemgetter, attrgetter
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEBase import MIMEBase
+from email.MIMEText import MIMEText
+from email.Utils import COMMASPACE, formatdate
+from email import Encoders
 
 class Stats:
     def __init__(self):
@@ -69,6 +75,39 @@ class Stats:
             return json.dumps(userList, ensure_ascii=False)
         except Exception as e:
             cfunctions.Log_Error("Stats.dumpUserStatsToJSON: " + str(e))
+
+    def SendByEmail(self):
+        """ dumps stats and send by email  """
+        try:
+            #header
+            fromaddr = "kudrnac@hypervhosting.cz"
+            toaddr = ["miroslav.kudrnac@geewa.com", "denis.timofeev@geewa.com", "jozef.kral@geewa.com", "tomas.pojkar@geewa.com", "tomas.kafka@geewa.com", "nikola.bornova@geewa.com"]
+            msg = MIMEMultipart()
+            msg['From'] = fromaddr
+            msg['To'] = COMMASPACE.join(toaddr)
+            msg['Date'] = formatdate(localtime=True)
+            msg['Subject'] = "Daily challenge stats"
+
+            #body - opcodesStats
+            body = json.dumps(self.opcodesCount) + '\n\n'
+            msg.attach(MIMEText(body, 'plain'))
+
+            #attachment - userStats
+            jsonStr = self.dumpUserStatsToJSON()
+            part = MIMEBase('application', "octet-stream")
+            part.set_payload(jsonStr)
+            Encoders.encode_base64(part)
+            part.add_header('Content-Disposition', 'attachment; filename="userStats.json"')
+            msg.attach(part)
+            
+            #send email
+            server = smtplib.SMTP('vps4u.cz', 25)
+            server.login("kudrnac@hypervhosting.cz", "102111036")
+            server.sendmail(fromaddr, toaddr, msg.as_string())
+            server.quit()
+        
+        except Exception as e:
+            cfunctions.Log_Error("Stats.SendByEmail: " + str(e))
 
     def UpdatePlayedGames(self, userID, userName):
         """ UpdatePlayedGames for user and save to DB """

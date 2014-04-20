@@ -12,13 +12,10 @@ import asyncore
 import json
 import cfunctions
 import random
-import smtplib
 import packets
 import crypto
 import statistics
 import platform
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEText import MIMEText
 from datetime import datetime
 from collections import OrderedDict
 from operator import itemgetter, attrgetter
@@ -513,25 +510,8 @@ class TCPServer(asyncore.dispatcher):
         try:
             """ Send email with daily stats and reset stats """
             
-            #header
-            fromaddr = "kudrnac@hypervhosting.cz"
-            toaddr = ["miroslav.kudrnac@geewa.com", "denis.timofeev@geewa.com", "jozef.kral@geewa.com", "tomas.pojkar@geewa.com", "tomas.kafka@geewa.com", "nikola.bornova@geewa.com"]
-            msg = MIMEMultipart()
-            msg['From'] = fromaddr
-            msg['To'] = ",".join(toaddr)
-            msg['Subject'] = "Daily challenge stats"
-            #body - userStats
-            body = stats.dumpUserStatsToJSON()
-            msg.attach(MIMEText(body, 'plain'))
-            #body - opcodesStats
-            body = '\n\n' + json.dumps(stats.opcodesCount)
-            msg.attach(MIMEText(body, 'plain'))
-        
-            #send email
-            server = smtplib.SMTP('vps4u.cz', 25)
-            server.login("kudrnac@hypervhosting.cz", "102111036")
-            server.sendmail(fromaddr, toaddr, msg.as_string())
-            server.quit()
+            #send by email
+            stats.SendByEmail()
         
             #reset stats
             stats.Reset()
