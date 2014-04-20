@@ -12,6 +12,40 @@
     string g_serviceLongName = "TransDB";
     string g_serviceName = "TransDB";
     string g_serviceDescription = "Transaction Database Server";
+#else
+    //DAEMON
+    static void PrepareDaemon()
+    {
+        pid_t pid, sid;
+        
+        //fork parent process
+        pid = fork();
+        if(pid < 0)
+            exit(EXIT_FAILURE);
+        
+        //we got good pid, close parent process
+        if(pid > 0)
+            exit(EXIT_SUCCESS);
+        
+        //change file mask
+        umask(0);
+        
+        //create new signature id for our child
+        sid = setsid();
+        if(sid < 0)
+            exit(EXIT_FAILURE);
+        
+        //change directory on *unix thre is allway root (/)
+        if(chdir("/") < 0)
+            exit(EXIT_FAILURE);
+        
+        //close standart file descriptors
+        close(STDIN_FILENO);
+        close(STDOUT_FILENO);
+        close(STDERR_FILENO);
+        
+        //all done continue to main loop
+    }
 #endif
 
 void StartSharedLib()
@@ -70,6 +104,13 @@ int main(int argc, const char * argv[])
             Log.CreateFileLog(sFullLogPath);
 #endif
         }
+#ifndef WIN32
+        else if(strcmp(argv[i], "-d") == 0)
+        {
+            //start as daemon
+            PrepareDaemon();
+        }
+#endif
 #ifdef WIN32
 		if(strcmp(argv[i], "-s") == 0)
         {

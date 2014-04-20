@@ -184,6 +184,7 @@
 		8DB34A1216A4203800BC17C4 /* MemoryWatcher.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MemoryWatcher.cpp; sourceTree = "<group>"; };
 		8DB34A1316A4203800BC17C4 /* MemoryWatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MemoryWatcher.h; sourceTree = "<group>"; };
 		8DB7891118A3902200560037 /* log.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = log.html; sourceTree = "<group>"; };
+		8DBB052319044F4200922E7E /* transdb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = transdb; path = ../cfg/transdb; sourceTree = "<group>"; };
 		8DBBC27516071D780006752A /* Common.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Common.cpp; sourceTree = "<group>"; };
 		8DBBC27616071D780006752A /* Common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Common.h; sourceTree = "<group>"; };
 		8DC9C50F15F4F621001058CC /* IndexBlock.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IndexBlock.h; sourceTree = "<group>"; };
@@ -335,6 +336,7 @@
 		8D0271DF15F7C05500FD3CAE /* cfg */ = {
 			isa = PBXGroup;
 			children = (
+				8DBB052319044F4200922E7E /* transdb */,
 				8D0271E115F7C06600FD3CAE /* transdb.conf */,
 			);
 			name = cfg;
