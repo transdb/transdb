@@ -244,7 +244,7 @@ def http_socket_run(stop_event, listenHost, listenPort):
         #start HTTP interface
         SocketServer.TCPServer.allow_reuse_address = True
         httpd = SocketServer.TCPServer((listenHost, listenPort), TransDBHandler)
-        httpd.timeout = 1
+        httpd.timeout = 10
         while not stop_event.is_set():
             httpd.handle_request()
         httpd.server_close()
@@ -279,9 +279,12 @@ class LoadTransDB:
 
     def __init__(self):
         self.transdbThread = None
-        self.httpdThread = None
+        self.httpThread = None
         self.clientSocketThread = None
         self.stopEvent = threading.Event()
+        self.httpStopEvent = threading.Event()
+        self.clientStopEvent = threading.Event()
+        self.transdbStopEvent = threading.Event()
 
     def run(self, configPath, logPath, transDBListenHost, transDBListenPort, webServiceListenPort):
         try:
@@ -297,16 +300,16 @@ class LoadTransDB:
                 trandbSocketConnectIP = transDBListenHost
         
             #start TrandDB com thread
-            self.transdbThread = threading.Thread(target=transDB.socket_run, args=[transDB.recvQueue, transDB.sendQueue, self.stopEvent,
+            self.transdbThread = threading.Thread(target=transDB.socket_run, args=[transDB.recvQueue, transDB.sendQueue, self.transdbStopEvent,
                                                                                    trandbSocketConnectIP, transDBListenPort])
             self.transdbThread.start()
             
             #start HTTP interface thread
-            self.httpdThread = threading.Thread(target=http_socket_run, args=[self.stopEvent, transDBListenHost, webServiceListenPort])
-            self.httpdThread.start()
+            self.httpThread = threading.Thread(target=http_socket_run, args=[self.httpStopEvent, transDBListenHost, webServiceListenPort])
+            self.httpThread.start()
             
             #start client socket thread
-            self.clientSocketThread = threading.Thread(target=client_socket_run, args=[self.stopEvent, transDBListenHost, 9339])
+            self.clientSocketThread = threading.Thread(target=client_socket_run, args=[self.clientStopEvent, transDBListenHost, 9339])
             self.clientSocketThread.start()
     
             #loop until shutdown
@@ -318,10 +321,17 @@ class LoadTransDB:
 
     def shutdown(self):
         try:
-            self.stopEvent.set()
-            self.transdbThread.join()
-            self.httpdThread.join()
+            self.httpStopEvent.set()
+            self.httpThread.join()
+            
+            self.clientStopEvent.set()
             self.clientSocketThread.join()
+            
+            self.transdbStopEvent.set()
+            self.transdbThread.join()
+            
+            self.stopEvent.set()
+
         except Exception as e:
             cfunctions.Log_Error("LoadTransDB.shutdown: " + str(e))
 

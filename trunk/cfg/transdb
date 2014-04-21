@@ -19,10 +19,10 @@
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
-DESC=“Transaction database“
+DESC="Transaction database"
 NAME=transdb
 DAEMON=/usr/sbin/$NAME
-DAEMON_ARGS=“-d -l /var/log/transdb/”
+DAEMON_ARGS="-d -c /etc/transdb.conf -l /var/log/transdb/"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
