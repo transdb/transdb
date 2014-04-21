@@ -14,9 +14,29 @@
     string g_serviceDescription = "Transaction Database Server";
 #else
     //DAEMON
+    static int _null_open(int f, int fd)
+    {
+        int fd2;
+        
+        if ((fd2 = open("/dev/null", f)) < 0)
+            return -1;
+        
+        if (fd2 == fd)
+            return fd;
+        
+        if (dup2(fd2, fd) < 0)
+            return -1;
+        
+        close(fd2);
+        return fd;
+    }
+
     static void PrepareDaemon()
     {
         pid_t pid, sid;
+        struct rlimit rl;
+        int maxfd;
+        HANDLE fd;
         
         //fork parent process
         pid = fork();
@@ -27,17 +47,20 @@
         if(pid > 0)
             exit(EXIT_SUCCESS);
         
+        //redirect standard descriptors to /dev/null
+        if(_null_open(O_RDONLY, STDIN_FILENO) < 0)
+            exit(EXIT_FAILURE);
+        
+        if(_null_open(O_WRONLY, STDOUT_FILENO) < 0)
+            exit(EXIT_FAILURE);
+        
+        if(_null_open(O_WRONLY, STDERR_FILENO) < 0)
+            exit(EXIT_FAILURE);
+        
         //create new signature id for our child
         sid = setsid();
         if(sid < 0)
             exit(EXIT_FAILURE);
-        
-        //change directory on *unix thre is allway root (/)
-        if(chdir("/") < 0)
-            exit(EXIT_FAILURE);
-        
-        //change file mask
-        umask(0);
         
         // A second fork ensures the process cannot acquire a controlling terminal.
         pid = fork();
@@ -48,10 +71,23 @@
         if(pid > 0)
             exit(EXIT_SUCCESS);
         
-        //close standart file descriptors
-        close(STDIN_FILENO);
-        close(STDOUT_FILENO);
-        close(STDERR_FILENO);
+        //change directory on *unix thre is allway root (/)
+        if(chdir("/") < 0)
+            exit(EXIT_FAILURE);
+        
+        //change file mask
+        umask(0);
+        
+        //close all decriptors
+        if (getrlimit(RLIMIT_NOFILE, &rl) > 0)
+            maxfd = (int)rl.rlim_max;
+        else
+            maxfd = (int)sysconf(_SC_OPEN_MAX);
+        
+        for(fd = 3;fd < maxfd;++fd)
+        {
+            close(fd);
+        }
         
         //all done continue to main loop
     }
@@ -108,11 +144,6 @@ int main(int argc, const char * argv[])
         else if(strcmp(argv[i], "-l") == 0)
         {
             sLogPath = argv[i+1];
-#ifndef WIN32
-            //open log file
-            string sFullLogPath = FormatOutputString(sLogPath.c_str(), "transdb", true);
-            Log.CreateFileLog(sFullLogPath);
-#endif
         }
 #ifndef WIN32
         else if(strcmp(argv[i], "-d") == 0)
@@ -186,7 +217,16 @@ int main(int argc, const char * argv[])
         }
 #endif
     }
-        
+    
+#ifndef WIN32
+    //open log file
+    if(!sLogPath.empty())
+    {
+        string sFullLogPath = FormatOutputString(sLogPath.c_str(), "transdb", true);
+        Log.CreateFileLog(sFullLogPath);
+    }
+#endif
+    
     //print some struct sizes
     Log.Notice(__FUNCTION__, "Starting server in: %s mode. SVN version: %s.", g_pCompiledVersion, SVNVERSION);
     Log.Notice(__FUNCTION__, "TBB version: %u", TBB_INTERFACE_VERSION);
