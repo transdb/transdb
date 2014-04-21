@@ -206,6 +206,8 @@ int main(int argc, const char * argv[])
         static const uint32 buff_size = 256;
         char buff[buff_size];
         long pid = static_cast<long>(getpid());
+        //create file
+        Common::CheckFileExists(sPidFilePath.c_str(), true);
         //open file
         HANDLE hFile = IO::fopen(sPidFilePath.c_str(), IO::IO_WRITE_ONLY);
         if(hFile == INVALID_HANDLE_VALUE)
