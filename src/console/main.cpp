@@ -22,13 +22,8 @@
         pid = fork();
         if(pid < 0)
             exit(EXIT_FAILURE);
-        
-        //we got good pid, close parent process
-        if(pid > 0)
+        else
             exit(EXIT_SUCCESS);
-        
-        //change file mask
-        umask(0);
         
         //create new signature id for our child
         sid = setsid();
@@ -38,6 +33,16 @@
         //change directory on *unix thre is allway root (/)
         if(chdir("/") < 0)
             exit(EXIT_FAILURE);
+        
+        //change file mask
+        umask(0);
+        
+        //second fork ensures the process cannot acquire a controlling terminal.
+        pid = fork();
+        if(pid < 0)
+            exit(EXIT_FAILURE);
+        else
+            exit(EXIT_SUCCESS);
         
         //close standart file descriptors
         close(STDIN_FILENO);
