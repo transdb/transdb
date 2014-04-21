@@ -205,14 +205,14 @@ int main(int argc, const char * argv[])
     {
         static const uint32 buff_size = 256;
         char buff[buff_size];
-        uint64 pid = static_cast<uint64>(getpid());
+        long pid = static_cast<long>(getpid());
         //open file
         HANDLE hFile = IO::fopen(sPidFilePath.c_str(), IO::IO_WRITE_ONLY);
         if(hFile == INVALID_HANDLE_VALUE)
             return 1;
         
         //write pid
-        snprintf(buff, buff_size, I64FMTD, pid);
+        snprintf(buff, buff_size, "%ld\n", pid);
         IO::fwrite(buff, strlen(buff), hFile);
         IO::fclose(hFile);
     }
