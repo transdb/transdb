@@ -98,6 +98,7 @@ int main(int argc, const char * argv[])
 	//parse command args
 	string sConfigPath;
     string sLogPath;
+    string sPidFilePath;
     for(int i = 0;i < argc;++i)
     {                
         if(strcmp(argv[i], "-c") == 0)
@@ -118,6 +119,10 @@ int main(int argc, const char * argv[])
         {
             //start as daemon
             PrepareDaemon();
+        }
+        else if(strcmp(argv[i], "-p") == 0)
+        {
+            sPidFilePath = argv[i+1];
         }
 #endif
 #ifdef WIN32
@@ -193,6 +198,25 @@ int main(int argc, const char * argv[])
     Log.Notice(__FUNCTION__, "INDEX_BLOCK_SIZE = " I64FMTD, INDEX_BLOCK_SIZE);
     Log.Notice(__FUNCTION__, "MAX_RECORD_SIZE = %u", MAX_RECORD_SIZE);
     Log.Notice(__FUNCTION__, "IMAX_RECORD_POS = %u", IMAX_RECORD_POS);
+    
+#ifndef WIN32
+    //create pid file
+    if(!sPidFilePath.empty())
+    {
+        static const uint32 buff_size = 256;
+        char buff[buff_size];
+        uint64 pid = static_cast<uint64>(getpid());
+        //open file
+        HANDLE hFile = IO::fopen(sPidFilePath.c_str(), IO::IO_WRITE_ONLY);
+        if(hFile == INVALID_HANDLE_VALUE)
+            return 1;
+        
+        //write pid
+        snprintf(buff, buff_size, I64FMTD, pid);
+        IO::fwrite(buff, strlen(buff), hFile);
+        IO::fclose(hFile);
+    }
+#endif
     
     //set default
     if(sConfigPath.empty())
