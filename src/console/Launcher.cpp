@@ -45,14 +45,21 @@ void Launcher::OnSignal(int s)
 {
 	switch(s)
 	{
-	case SIGINT:
-	case SIGTERM:
-	case SIGABRT:
+        case SIGINT:
+        case SIGTERM:
+        case SIGABRT:
 #ifdef WIN32	
-	case SIGBREAK:
+        case SIGBREAK:
 #endif	
-		Sync_Add(&g_stopEvent);
-		break;
+        {
+            Sync_Add(&g_stopEvent);
+        }break;
+        case SIGHUP:
+        {
+            //reload config
+            LoadConfig();
+            g_pConfigWatcher->executeListeners();
+        }break;
 	}
 
 	signal(s, OnSignal);
