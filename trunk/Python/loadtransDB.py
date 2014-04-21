@@ -263,13 +263,13 @@ def client_socket_run(stop_event, listenHost, listenPort):
         #start Client interface
         server = clientSocket.TCPServer(listenHost, listenPort)
         while not stop_event.is_set():
-            #asyncore loop
-            asyncore.loop(timeout=pollTimeout, count=1, use_poll=True)
             #every XX secods
             if lastTick < time.time():
                 server.TickForDailyChallenge()
                 server.saveDailyChallengeOpcodeStats()
                 lastTick = time.time() + pollTimeout
+            #asyncore loop
+            asyncore.loop(timeout=pollTimeout, count=1, use_poll=True)
         #close
         asyncore.close_all()
     except Exception as e:
@@ -279,12 +279,9 @@ class LoadTransDB:
 
     def __init__(self):
         self.transdbThread = None
-        self.httpThread = None
+        self.httpdThread = None
         self.clientSocketThread = None
         self.stopEvent = threading.Event()
-        self.httpStopEvent = threading.Event()
-        self.clientStopEvent = threading.Event()
-        self.transdbStopEvent = threading.Event()
 
     def run(self, configPath, logPath, transDBListenHost, transDBListenPort, webServiceListenPort):
         try:
@@ -300,16 +297,16 @@ class LoadTransDB:
                 trandbSocketConnectIP = transDBListenHost
         
             #start TrandDB com thread
-            self.transdbThread = threading.Thread(target=transDB.socket_run, args=[transDB.recvQueue, transDB.sendQueue, self.transdbStopEvent,
+            self.transdbThread = threading.Thread(target=transDB.socket_run, args=[transDB.recvQueue, transDB.sendQueue, self.stopEvent,
                                                                                    trandbSocketConnectIP, transDBListenPort])
             self.transdbThread.start()
             
             #start HTTP interface thread
-            self.httpThread = threading.Thread(target=http_socket_run, args=[self.httpStopEvent, transDBListenHost, webServiceListenPort])
-            self.httpThread.start()
+            self.httpdThread = threading.Thread(target=http_socket_run, args=[self.stopEvent, transDBListenHost, webServiceListenPort])
+            self.httpdThread.start()
             
             #start client socket thread
-            self.clientSocketThread = threading.Thread(target=client_socket_run, args=[self.clientStopEvent, transDBListenHost, 9339])
+            self.clientSocketThread = threading.Thread(target=client_socket_run, args=[self.stopEvent, transDBListenHost, 9339])
             self.clientSocketThread.start()
     
             #loop until shutdown
@@ -321,17 +318,10 @@ class LoadTransDB:
 
     def shutdown(self):
         try:
-            self.httpStopEvent.set()
-            self.httpThread.join()
-            
-            self.clientStopEvent.set()
-            self.clientSocketThread.join()
-            
-            self.transdbStopEvent.set()
-            self.transdbThread.join()
-            
             self.stopEvent.set()
-
+            self.transdbThread.join()
+            self.httpdThread.join()
+            self.clientSocketThread.join()
         except Exception as e:
             cfunctions.Log_Error("LoadTransDB.shutdown: " + str(e))
 
