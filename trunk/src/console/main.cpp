@@ -22,7 +22,9 @@
         pid = fork();
         if(pid < 0)
             exit(EXIT_FAILURE);
-        else
+        
+        //we got good pid, close parent process
+        if(pid > 0)
             exit(EXIT_SUCCESS);
         
         //create new signature id for our child
@@ -37,11 +39,13 @@
         //change file mask
         umask(0);
         
-        //second fork ensures the process cannot acquire a controlling terminal.
+        // A second fork ensures the process cannot acquire a controlling terminal.
         pid = fork();
         if(pid < 0)
             exit(EXIT_FAILURE);
-        else
+        
+        //we got good pid, close parent process
+        if(pid > 0)
             exit(EXIT_SUCCESS);
         
         //close standart file descriptors
