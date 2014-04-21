@@ -69,6 +69,7 @@
 	#include <sys/ioctl.h>
 	#include <sys/socket.h>
     #include <sys/times.h>
+    #include <sys/resource.h>
 	#include <netinet/in.h>
 	#include <arpa/inet.h>
 	#include <unistd.h>
