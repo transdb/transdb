@@ -155,6 +155,11 @@ def loadDataFromDatabase():
                 
                 #deserialize user
                 user = pickle.loads(recordData)
+                
+                #tmp fix
+                if user.score >= 10000:
+                    user.score = 0
+                
                 #get leadeboard dict by gameID
                 leadeboardDict = GetLeaderBoardDict(gameID)
                 #add to leaderboard map
@@ -365,6 +370,10 @@ class TCPHandler(asyncore.dispatcher_with_send):
                 structSize = struct.calcsize("<HQI")
                 gameID, userID, score = struct.unpack_from("<HQI", data)
                 userName = data[structSize:-1]
+                
+                #tmp fix
+                if score >= 10000:
+                    score = 0
                 
                 #check data from client - ignore bad data
                 if gameID == 0 or userID == 0:
