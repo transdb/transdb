@@ -13,6 +13,7 @@ import common
 import pickle
 import json
 import statistics
+import base64
 from string import Template
 from templates import *
 
@@ -20,6 +21,7 @@ HTML = "text/html"
 CSS = "text/css"
 g_logPath = None
 g_confPath = None
+g_authKey = base64.b64encode("transdb:A1b2C3d4")
 
 urls = (("/", "index"), ("/fragment", "fragment"), ("/config", "config"), ("/log", "log"), ("/style.css", "css"), ("/editor", "editor"), ("/dailyChallenge", "dailyChallenge"))
 
@@ -183,6 +185,12 @@ class TransDBHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         
         return (buff, None, HTML)
 
+    def do_AUTHHEAD(self):
+        self.send_response(401)
+        self.send_header('WWW-Authenticate', 'Basic realm=\"TransDB - Web Access\"')
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+
     def do_REQ(self, body=None):
         """
         Process a request.
@@ -222,7 +230,16 @@ class TransDBHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def do_GET(self):
         """ Handle GET requests """
-        self.do_REQ()
+        #Authorization
+        if self.headers.getheader('Authorization') == None:
+            self.do_AUTHHEAD()
+            self.wfile.write('no auth header received')
+        elif self.headers.getheader('Authorization') == 'Basic ' + g_authKey:
+            self.do_REQ()
+        else:
+            self.do_AUTHHEAD()
+            self.wfile.write(self.headers.getheader('Authorization'))
+            self.wfile.write('not authenticated')
     
     def do_POST(self):
         """ 
