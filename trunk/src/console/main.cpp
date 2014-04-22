@@ -36,44 +36,44 @@
         pid_t pid, sid;
         struct rlimit rl;
         int maxfd;
-        HANDLE fd;
+        int fd;
         
         //fork parent process
         pid = fork();
         if(pid < 0)
-            exit(EXIT_FAILURE);
+            _exit(EXIT_FAILURE);
         
         //we got good pid, close parent process
         if(pid > 0)
-            exit(EXIT_SUCCESS);
+            _exit(EXIT_SUCCESS);
         
         //redirect standard descriptors to /dev/null
         if(_null_open(O_RDONLY, STDIN_FILENO) < 0)
-            exit(EXIT_FAILURE);
+            _exit(EXIT_FAILURE);
         
         if(_null_open(O_WRONLY, STDOUT_FILENO) < 0)
-            exit(EXIT_FAILURE);
+            _exit(EXIT_FAILURE);
         
         if(_null_open(O_WRONLY, STDERR_FILENO) < 0)
-            exit(EXIT_FAILURE);
+            _exit(EXIT_FAILURE);
         
         //create new signature id for our child
         sid = setsid();
         if(sid < 0)
-            exit(EXIT_FAILURE);
+            _exit(EXIT_FAILURE);
         
         // A second fork ensures the process cannot acquire a controlling terminal.
         pid = fork();
         if(pid < 0)
-            exit(EXIT_FAILURE);
+            _exit(EXIT_FAILURE);
         
         //we got good pid, close parent process
         if(pid > 0)
-            exit(EXIT_SUCCESS);
+            _exit(EXIT_SUCCESS);
         
         //change directory on *unix thre is allway root (/)
         if(chdir("/") < 0)
-            exit(EXIT_FAILURE);
+            _exit(EXIT_FAILURE);
         
         //change file mask
         umask(0);
@@ -135,6 +135,7 @@ int main(int argc, const char * argv[])
 	string sConfigPath;
     string sLogPath;
     string sPidFilePath;
+    bool startAsDaemon = false;
     for(int i = 0;i < argc;++i)
     {                
         if(strcmp(argv[i], "-c") == 0)
@@ -148,8 +149,7 @@ int main(int argc, const char * argv[])
 #ifndef WIN32
         else if(strcmp(argv[i], "-d") == 0)
         {
-            //start as daemon
-            PrepareDaemon();
+            startAsDaemon = true;
         }
         else if(strcmp(argv[i], "-p") == 0)
         {
@@ -219,6 +219,12 @@ int main(int argc, const char * argv[])
     }
     
 #ifndef WIN32
+    //start as daemon
+    if(startAsDaemon)
+    {
+        PrepareDaemon();
+    }
+    
     //open log file
     if(!sLogPath.empty())
     {
