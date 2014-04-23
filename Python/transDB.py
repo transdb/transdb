@@ -135,6 +135,15 @@ def writeData(x, y, data):
     except Exception as e:
         cfunctions.Log_Error("trandDB.writeData: " + str(e))
 
+def writeDataNoWait(x, y, data):
+    try:
+        """ Write data to DB witout getting result """
+        packet = packets.TransDBPacket(C_MSG_WRITE_DATA)
+        packet.data = struct.pack('<IIQQ', 0, 0, long(x), long(y)) + data
+        sendQueue.put(packet)
+    except Exception as e:
+        cfunctions.Log_Error("trandDB.writeDataNoWait: " + str(e))
+
 def deleteData(x, y):
     try:
         """ Delete data in DB if y=0 delete all data for x """
@@ -150,9 +159,18 @@ def deleteData(x, y):
 def writeDataNum(x, data):
     try:
         """ Write key|recordSize|record|....Nx array to DB """
+        flags = 0
+        #GZIP data
+        if len(data) > 4096:
+            encoder = zlib.compressobj(8, zlib.DEFLATED, 16+zlib.MAX_WBITS, zlib.DEF_MEM_LEVEL, 0)
+            dataGZIP = encoder.compress(data)
+            dataGZIP += encoder.flush()
+            flags = GZIP
+            data = dataGZIP
+        
         token = getToken()
         packet = packets.TransDBPacket(C_MSG_WRITE_DATA_NUM)
-        packet.data = struct.pack('<IIQ', token, 0, long(x)) + data
+        packet.data = struct.pack('<IIQ', token, flags, long(x)) + data
         sendQueue.put(packet)
         data = getData(token)
         return data
@@ -238,7 +256,9 @@ def socket_run(rcv_queue, send_queue, stop_event, addr, port):
                     else:
                         data = data[offset:]
                     
-                    rcv_queue.put((token, data))
+                    #if token == 0 then we dont want to handle response
+                    if token != 0:
+                        rcv_queue.put((token, data))
 
         #close socket
         s.shutdown(1)
