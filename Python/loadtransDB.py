@@ -14,6 +14,7 @@ import pickle
 import json
 import statistics
 import base64
+import zlib
 from string import Template
 from templates import *
 
@@ -220,9 +221,16 @@ class TransDBHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             except (KeyError, RuntimeError) as e :
                 self.send_error(500, str(e))
         else:
+            #gzip
+            encoder = zlib.compressobj(8, zlib.DEFLATED, 16+zlib.MAX_WBITS, zlib.DEF_MEM_LEVEL, 0)
+            buffGZIP = encoder.compress(buff)
+            buffGZIP += encoder.flush()
+            buff = buffGZIP
+            #headers
             self.send_response(200)
             self.send_header("Content-type", typ)
             self.send_header("Content-Length", str(len(buff)))
+            self.send_header("Content-Encoding", "gzip")
             self.send_header("Last-Modified", self.date_time_string(time.time()))
             self.end_headers()
             self.wfile.write(buff)

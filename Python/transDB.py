@@ -135,6 +135,15 @@ def writeData(x, y, data):
     except Exception as e:
         cfunctions.Log_Error("trandDB.writeData: " + str(e))
 
+def writeDataNoWait(x, y, data):
+    try:
+        """ Write data to DB witout getting result """
+        packet = packets.TransDBPacket(C_MSG_WRITE_DATA)
+        packet.data = struct.pack('<IIQQ', 0, 0, long(x), long(y)) + data
+        sendQueue.put(packet)
+    except Exception as e:
+        cfunctions.Log_Error("trandDB.writeDataNoWait: " + str(e))
+
 def deleteData(x, y):
     try:
         """ Delete data in DB if y=0 delete all data for x """
@@ -184,72 +193,75 @@ def socket_run(rcv_queue, send_queue, stop_event, addr, port):
         while not stop_event.is_set():
             #wait for socket read event or queue read event
             readSet, writeSet, errorSet = select.select([s, sendQueue._reader], [], [], SELECT_WAIT_TIME)
-            #process send queue
-            if sendQueue._reader in readSet:
-                packet = sendQueue.get()
-                packetData = packet.createPacket()
-                s.sendall(packetData)
-        
-            #process client socket
-            if s in readSet:
-                packetHeader = ''
-                #wait for header
-                headerLen = struct.calcsize("<IH")
-                while len(packetHeader) < headerLen:
-                    chunk = s.recv(headerLen - len(packetHeader))
-                    if chunk == '':
-                        raise RuntimeError("Socket connection broken")
-                    packetHeader = packetHeader + chunk
-                
-                #get rest of the packet data
-                size, opcode  = struct.unpack("<IH", packetHeader)
-                data = ''
-                while len(data) < size:
-                    chunk = s.recv(size - len(data))
-                    if chunk == '':
-                        raise RuntimeError("Socket connection broken")
-                    data = data + chunk
-                
-                #opcode handler
-                if opcode == S_MSG_PING:
-                    packet = packets.TransDBPacket(C_MSG_PONG)
-                    packet.data = data
-                    packetData = packet.createPacket()
-                    s.sendall(packetData)
-                else:
-                    #uint32 token, flag
-                    offset = 8
+            #process readSet
+            for obj in readSet:
+                #process send queue
+                if obj == sendQueue._reader:
+                    while not sendQueue.empty():
+                        packet = sendQueue.get()
+                        packetData = packet.createPacket()
+                        s.sendall(packetData)
+            
+                #process client socket
+                elif obj == s:
+                    packetHeader = ''
+                    #wait for header
+                    headerLen = struct.calcsize("<IH")
+                    while len(packetHeader) < headerLen:
+                        chunk = s.recv(headerLen - len(packetHeader))
+                        if chunk == '':
+                            raise RuntimeError("Socket connection broken")
+                        packetHeader = packetHeader + chunk
                     
-                    if opcode == S_MSG_READ_DATA:
-                        #uint64 x, y
-                        offset += 16
+                    #get rest of the packet data
+                    size, opcode  = struct.unpack("<IH", packetHeader)
+                    data = ''
+                    while len(data) < size:
+                        chunk = s.recv(size - len(data))
+                        if chunk == '':
+                            raise RuntimeError("Socket connection broken")
+                        data = data + chunk
                     
-                    elif opcode == S_MSG_DELETE_DATA:
-                        #uint64 x, y
-                        offset += 16
-                    
-                    elif opcode == S_MSG_WRITE_DATA:
-                        #uint64 x, y
-                        #uint32 writeStatus
-                        offset += 20
-                    
-                    elif opcode == C_MSG_WRITE_DATA_NUM:
-                        #uint64 x
-                        #uint32 writeStatus
-                        offset += 12
-                    
-                    token, flag = struct.unpack_from("<II", data)
-                    if flag == GZIP:
-                        try:
-                            data = zlib.decompress(data[offset:], 16+zlib.MAX_WBITS)
-                        except zlib.error as e:
-                            print(str(e))
+                    #opcode handler
+                    if opcode == S_MSG_PING:
+                        packet = packets.TransDBPacket(C_MSG_PONG)
+                        packet.data = data
+                        packetData = packet.createPacket()
+                        s.sendall(packetData)
                     else:
-                        data = data[offset:]
-                    
-                    #if token == 0 then we dont want to handle response
-                    if token != 0:
-                        rcv_queue.put((token, data))
+                        #uint32 token, flag
+                        offset = 8
+                        
+                        if opcode == S_MSG_READ_DATA:
+                            #uint64 x, y
+                            offset += 16
+                        
+                        elif opcode == S_MSG_DELETE_DATA:
+                            #uint64 x, y
+                            offset += 16
+                        
+                        elif opcode == S_MSG_WRITE_DATA:
+                            #uint64 x, y
+                            #uint32 writeStatus
+                            offset += 20
+                        
+                        elif opcode == C_MSG_WRITE_DATA_NUM:
+                            #uint64 x
+                            #uint32 writeStatus
+                            offset += 12
+                        
+                        token, flag = struct.unpack_from("<II", data)
+                        if flag == GZIP:
+                            try:
+                                data = zlib.decompress(data[offset:], 16+zlib.MAX_WBITS)
+                            except zlib.error as e:
+                                print(str(e))
+                        else:
+                            data = data[offset:]
+                        
+                        #if token == 0 then we dont want to handle response
+                        if token != 0:
+                            rcv_queue.put((token, data))
 
         #close socket
         s.shutdown(1)
