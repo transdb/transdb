@@ -135,15 +135,6 @@ def writeData(x, y, data):
     except Exception as e:
         cfunctions.Log_Error("trandDB.writeData: " + str(e))
 
-def writeDataNoWait(x, y, data):
-    try:
-        """ Write data to DB witout getting result """
-        packet = packets.TransDBPacket(C_MSG_WRITE_DATA)
-        packet.data = struct.pack('<IIQQ', 0, 0, long(x), long(y)) + data
-        sendQueue.put(packet)
-    except Exception as e:
-        cfunctions.Log_Error("trandDB.writeDataNoWait: " + str(e))
-
 def deleteData(x, y):
     try:
         """ Delete data in DB if y=0 delete all data for x """
