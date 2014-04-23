@@ -22,7 +22,7 @@ debug: $(SRC_SHARED) $(SRC_CONSOLE) ${EXED}
 	cp $(EXED) ../
 
 $(EXE): $(OBJ)
-	$(CC) $(OBJ) $(LIB) -o $@ 
+	$(CC) $(OBJ) $(LIB) -s -o $@ 
 
 $(EXED): $(OBJD)
 	$(CC) $(OBJD) $(LIB) -o $@
