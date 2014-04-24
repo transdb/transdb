@@ -82,6 +82,9 @@ NOINLINE static bool _S_DiskWriter_ProcessQueue(DiskWriter::DirtyXQueue *pQueue,
 NOINLINE static bool _S_DiskWriter_GetItemsToProcess(DiskWriter::DirtyXProcess &rAllItemsToProcess,
                                                      DiskWriter::DirtyXProcess &rItemsToProcess)
 {
+    //warning fix
+    DiskWriter::DirtyXProcess::size_type tmpSizeType = static_cast<DiskWriter::DirtyXProcess::size_type>(g_TransactionsPerCommit);
+    
     //set size to 0 (preserve internal buffer) + reserve space (if needed)
     rItemsToProcess.resize(0);
     rItemsToProcess.reserve(g_TransactionsPerCommit);
@@ -91,7 +94,7 @@ NOINLINE static bool _S_DiskWriter_GetItemsToProcess(DiskWriter::DirtyXProcess &
         rItemsToProcess.push_back(rAllItemsToProcess.back());
         rAllItemsToProcess.pop_back();
         //
-        if(rItemsToProcess.size() == g_TransactionsPerCommit)
+        if(rItemsToProcess.size() == tmpSizeType)
             break;
     }
     return rItemsToProcess.size() ? true : false;

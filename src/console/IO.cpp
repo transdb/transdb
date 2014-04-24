@@ -70,7 +70,7 @@ void IO::fclosetrans(const HANDLE &hTransaction)
 
 HANDLE IO::fopen(const char *pPath, const ACCESS &eAccess)
 {
-    HANDLE hHandle;
+    HANDLE hHandle = INVALID_HANDLE_VALUE;
 #ifdef WIN32
     DWORD dwDesiredAccess;
     DWORD dwFlagsAndAttributes;
