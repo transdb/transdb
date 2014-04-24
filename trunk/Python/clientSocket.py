@@ -42,6 +42,7 @@ SETTINGS_Y_DAILY_CHALLENGE_LEVELS = 3
 SETTINGS_Y_DAILY_CHALLENGE_ACTIVE_LEVELS = 4
 SETTINGS_Y_DAILY_CHALLENGE_LAST_ACTIVE_LEVEL = 5
 SETTINGS_Y_DAILY_CHALLENGE_OPCODE_STATS = 10
+SETTINGS_Y_KEY_EMERGENCY_SCREEN_LUA = 100
 
 #dictionary holding data
 gameIDsDict = {}
@@ -404,7 +405,7 @@ class TCPHandler(asyncore.dispatcher_with_send):
             #leaderboard
             elif opcode == C_MSG_GET_LEADERBOARD:
                 #get gameID (levelID), userID
-                gameID, userID = struct.unpack_from("<HQ", data, 0)
+                gameID, userID = struct.unpack_from("<HQ", data)
                 #create JSON per active levels
                 jsonDict = {}
                 jsonDict[gameID] = CreateLeaderboardJSON(gameID, userID)
@@ -423,14 +424,28 @@ class TCPHandler(asyncore.dispatcher_with_send):
             
             #emergency screen data
             elif opcode == C_MSG_GET_EMERGENCY_SCREEN_DATA:
-                data = transDB.readData(X_KEY_FOR_SETTINGS, SETTINGS_Y_KEY_EMERGENCY_SCREEN)
+                #get version
+                emergenyScreenData = ''
+                version = 0
+                s_fmt = "<I"
+                if len(data) == struct.calcsize(s_fmt):
+                    version = struct.unpack_from(s_fmt, data)
+            
+                #version 0 is JSON, version 1 is LUA
+                if version == 0:
+                    emergenyScreenData = transDB.readData(X_KEY_FOR_SETTINGS, SETTINGS_Y_KEY_EMERGENCY_SCREEN)
+                elif version == 1:
+                    emergenyScreenData = transDB.readData(X_KEY_FOR_SETTINGS, SETTINGS_Y_KEY_EMERGENCY_SCREEN_LUA)
+                else:
+                    cfunctions.Log_Warning("TCPHandler.handle_read: unknown emergency screen version: " + str(version))
+                        
                 #GZIP compress
                 encoder = zlib.compressobj(8, zlib.DEFLATED, 16+zlib.MAX_WBITS, zlib.DEF_MEM_LEVEL, 0)
-                dataGZIP = encoder.compress(data)
-                dataGZIP += encoder.flush()
+                emergenyScreenDataGZIP = encoder.compress(emergenyScreenData)
+                emergenyScreenDataGZIP += encoder.flush()
                 #create packet + send
                 packet = packets.ClientPacket(S_MSG_GET_EMERGENCY_SCREEN_DATA, self.crypt)
-                packet.data = dataGZIP
+                packet.data = emergenyScreenDataGZIP
                 packetData = packet.createPacket()
                 self.send(packetData)
             
