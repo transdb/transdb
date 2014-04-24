@@ -327,6 +327,10 @@ class TCPHandler(asyncore.dispatcher_with_send):
         self.crypt = crypto.Crypt()
         #set socket timeout
         set_keepalive_func(self.sock, after_idle_sec=10, interval_sec=5, max_fails=3)
+            
+    def handle_close(self):
+        """ Handle socket close event """
+        self.close()
     
     def handle_read(self):
         """ Handle socket read event """
@@ -467,14 +471,21 @@ class TCPHandler(asyncore.dispatcher_with_send):
             else:
                 cfunctions.Log_Warning("TCPHandler.handle_read: Unknown opcode: " + str(opcode))
         
-        #ignore
+        #handle socket errors
         except socket.error as e:
             #timeout disconnect socket
             if e.errno == errno.ETIMEDOUT:
                 self.handle_close()
+            #[Errno 113] No route to host
+            elif e.errno == errno.EHOSTUNREACH:
+                self.handle_close()
+            #[Errno 11] Resource temporarily unavailable
+            elif e.errno == errno.EAGAIN:
+                self.handle_close()
             else:
                 cfunctions.Log_Error("TCPHandler.handle_read: " + str(e))
-                
+        
+        #ignore
         except RuntimeError as e:
             pass
     
