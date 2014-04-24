@@ -16,6 +16,7 @@ import packets
 import crypto
 import statistics
 import platform
+import errno
 from datetime import datetime
 from collections import OrderedDict
 from operator import itemgetter, attrgetter
