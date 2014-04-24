@@ -430,7 +430,7 @@ class TCPHandler(asyncore.dispatcher_with_send):
                 version = 0
                 s_fmt = "<I"
                 if len(data) == struct.calcsize(s_fmt):
-                    version = struct.unpack_from(s_fmt, data)
+                    version = struct.unpack_from(s_fmt, data)[0]
             
                 #version 0 is JSON, version 1 is LUA
                 if version == 0:
