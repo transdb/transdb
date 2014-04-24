@@ -37,9 +37,9 @@ private:
 template <class K, class V>
 class HashMap
 {
-    typedef HashNode<K, V>              HashNode;
-    typedef HashNode*                   HashNodeTable;
-    typedef FixedPool<HashNode>         HashNodeMemPool;
+    typedef HashNode<K, V>              HashNodeT;
+    typedef HashNodeT*                  HashNodeTable;
+    typedef FixedPool<HashNodeT>        HashNodeMemPool;
     
 public:
     explicit HashMap(const uint64 &tableSize) : m_recordsCount(0)
@@ -74,8 +74,8 @@ public:
     
     INLINE void clear()
     {
-        HashNode *pEntry;
-        Vector<HashNode*, uint64> rNodes;
+        HashNodeT *pEntry;
+        Vector<HashNodeT*, uint64> rNodes;
         getAllNodes(rNodes);
         //deallocate
         for(uint64 i = 0;i < rNodes.size();++i)
@@ -91,7 +91,7 @@ public:
     {
         if(m_recordsCount != 0)
         {
-            HashNode *pEntry;
+            HashNodeT *pEntry;
             for(uint64 i = 0;i < m_tableSize;++i)
             {
                 pEntry = m_pTable[i];
@@ -107,7 +107,7 @@ public:
     INLINE bool containsKey(const K &key)
     {
         uint64 hashValue = static_cast<uint64>(key) & m_tableSizeMask;
-        HashNode *pEntry = m_pTable[hashValue];
+        HashNodeT *pEntry = m_pTable[hashValue];
         
         while(pEntry != NULL)
         {
@@ -122,7 +122,7 @@ public:
     INLINE bool get(const K &key, V &value)
     {
         uint64 hashValue = static_cast<uint64>(key) & m_tableSizeMask;
-        HashNode *pEntry = m_pTable[hashValue];
+        HashNodeT *pEntry = m_pTable[hashValue];
         
         while(pEntry != NULL)
         {
@@ -139,8 +139,8 @@ public:
     INLINE void put(const K &key, const V &value)
     {
         uint64 hashValue = static_cast<uint64>(key) & m_tableSizeMask;
-        HashNode *pPrev = NULL;
-        HashNode *pEntry = m_pTable[hashValue];
+        HashNodeT *pPrev = NULL;
+        HashNodeT *pEntry = m_pTable[hashValue];
         
         while(pEntry != NULL && pEntry->getKey() != key)
         {
@@ -170,8 +170,8 @@ public:
     INLINE void remove(const K &key)
     {
         uint64 hashValue = static_cast<uint64>(key) & m_tableSizeMask;
-        HashNode *pPrev = NULL;
-        HashNode *pEntry = m_pTable[hashValue];
+        HashNodeT *pPrev = NULL;
+        HashNodeT *pEntry = m_pTable[hashValue];
         
         while(pEntry != NULL && pEntry->getKey() != key)
         {
@@ -205,11 +205,11 @@ private:
 	HashMap(const HashMap& that);
     
     //
-    INLINE void getAllNodes(Vector<HashNode*, uint64> &rNodes)
+    INLINE void getAllNodes(Vector<HashNodeT*, uint64> &rNodes)
     {
         if(m_recordsCount != 0)
         {
-            HashNode *pEntry;
+            HashNodeT *pEntry;
             for(uint64 i = 0;i < m_tableSize;++i)
             {
                 pEntry = m_pTable[i];
