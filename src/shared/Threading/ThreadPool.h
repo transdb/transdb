@@ -84,7 +84,7 @@ private:
 	pthread_t           m_handle;
     
 public:
-    explicit ThreadController() : m_suspended(false), m_thread_id(0), m_handle(NULL)
+    explicit ThreadController() : m_suspended(false), m_thread_id(0), m_handle(0)
     {
         
     }
