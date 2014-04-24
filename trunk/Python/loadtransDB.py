@@ -344,9 +344,9 @@ class LoadTransDB:
     def shutdown(self):
         try:
             self.stopEvent.set()
-            self.transdbThread.join()
-            self.httpdThread.join()
             self.clientSocketThread.join()
+            self.httpdThread.join()
+            self.transdbThread.join()
         except Exception as e:
             cfunctions.Log_Error("LoadTransDB.shutdown: " + str(e))
 
