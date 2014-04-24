@@ -145,10 +145,11 @@ uint32 BlockManager::WriteRecord(const uint64 &recordkey, const uint8 *pRecord, 
     
     //PHASE 2 --> check record limit
     //block limit - start to rewrite from begin (record key is timestamp)
-    if(g_EnableRecordLimit && m_rBlockIndex.size() >= g_RecordLimit)
+    BlocksIndex::size_type recordLimit = static_cast<BlocksIndex::size_type>(g_RecordLimit);
+    if(g_EnableRecordLimit && m_rBlockIndex.size() >= recordLimit)
     {
         //limit can be lowed so delete all records
-        while(m_rBlockIndex.size() >= g_RecordLimit)
+        while(m_rBlockIndex.size() >= recordLimit)
         {
             //delete 1st one (the oldest)
             itr = m_rBlockIndex.begin();
