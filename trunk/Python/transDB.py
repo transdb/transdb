@@ -10,6 +10,7 @@ import common
 import cfunctions
 import multiprocessing
 import packets
+import errno
 from collections import OrderedDict
 
 GZIP = 1
