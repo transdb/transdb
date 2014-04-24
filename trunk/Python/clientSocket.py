@@ -488,7 +488,7 @@ class TCPServer(asyncore.dispatcher):
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.set_reuse_addr()
         self.bind((host, port))
-        self.listen(128)
+        self.listen(5)
         #set if use timeinterval or daily timer
         global remainingTime
         global useTimeInterval
