@@ -1,6 +1,6 @@
 # Define required macros here
 SHELL = /bin/sh
-CC=clang++
+CC=g++
 CFLAGS= -std=c++11 -c -Wall -O3 -DNDEBUG
 CFLAGSD= -std=c++11 -c -Wall -DDEBUG -ggdb
 INC=-I. $(shell /usr/local/bin/python-config --includes)
