@@ -139,14 +139,14 @@ public:
         --m_size;
     }
     
-	INLINE T &operator[](const std::size_t &index)
+	INLINE T &operator[](const size_type &index)
     {
         assert(index >= 0);
         assert(index < m_size);
         return m_pBuff[index];
     }
 
-    INLINE const T &operator[](const std::size_t &index) const
+    INLINE const T &operator[](const size_type &index) const
     {
 		return const_cast<Vector<T>&>(*this)[index];
     }
