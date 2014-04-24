@@ -296,6 +296,7 @@ def client_socket_run(stop_event, listenHost, listenPort):
             #asyncore loop
             asyncore.loop(timeout=pollTimeout, count=1, use_poll=True)
         #close
+        server.close()
         asyncore.close_all()
     except Exception as e:
         cfunctions.Log_Error("client_socket_run: " + str(e))
