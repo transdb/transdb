@@ -178,8 +178,7 @@ def socket_run(rcv_queue, send_queue, stop_event, addr, port):
         s.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.connect((addr, port))
-        #s.setblocking(0)
-        stop_event.wait(5)
+        s.setblocking(0)
         
         #loop
         while not stop_event.is_set():
