@@ -175,25 +175,12 @@ def socket_run(rcv_queue, send_queue, stop_event, addr, port):
     try:
         #create socket + connect
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.connect((addr, port))
-        s.setblocking(0)
         
         #loop
         while not stop_event.is_set():
             #wait for socket read event or queue read event
             readSet, writeSet, errorSet = select.select([s, sendQueue._reader], [], [], SELECT_WAIT_TIME)
-            #process send queue
-            if sendQueue._reader in readSet:
-                try:
-                    while True:
-                        packet = sendQueue.get_nowait()
-                        packetData = packet.createPacket()
-                        s.sendall(packetData)
-                except Queue.Empty as e:
-                    pass
-        
             #process client socket
             if s in readSet:
                 packetHeader = ''
@@ -218,8 +205,7 @@ def socket_run(rcv_queue, send_queue, stop_event, addr, port):
                 if opcode == S_MSG_PING:
                     packet = packets.TransDBPacket(C_MSG_PONG)
                     packet.data = data
-                    packetData = packet.createPacket()
-                    s.sendall(packetData)
+                    sendQueue.put(packet)
                 else:
                     #uint32 token, flag
                     offset = 8
@@ -253,10 +239,20 @@ def socket_run(rcv_queue, send_queue, stop_event, addr, port):
                     
                     rcv_queue.put((token, data))
 
+            #process send queue
+            if sendQueue._reader in readSet:
+                try:
+                    while True:
+                        packet = sendQueue.get_nowait()
+                        packetData = packet.createPacket()
+                        s.sendall(packetData)
+                except Queue.Empty as e:
+                    pass
+
         #close socket
         s.shutdown(1)
         s.close()
-        
+
     except Exception as e:
         cfunctions.Log_Error("socket_run: " + str(e))
 
