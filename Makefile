@@ -3,8 +3,8 @@ SHELL = /bin/sh
 CC=g++
 CFLAGS= -std=c++11 -c -Wall -O3 -DNDEBUG
 CFLAGSD= -std=c++11 -c -Wall -DDEBUG -ggdb
-INC=-I. $(shell /usr/local/bin/python-config --includes)
-LIB=-ltbb -ltbbmalloc -lz $(shell /usr/local/bin/python-config --libs)
+INC=-I. $(shell python-config --includes)
+LIB=-ltbb -ltbbmalloc -lz $(shell python-config --libs)
 SRC_CONSOLE = $(shell find ./src/console/ -name *.cpp) 
 SRC_SHARED = $(shell find ./src/shared/ -name *.cpp | grep -v "StackWalker.cpp") 
 SRC= $(SRC_SHARED) $(SRC_CONSOLE) 
