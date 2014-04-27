@@ -48,6 +48,9 @@ SETTINGS_Y_KEY_EMERGENCY_SCREEN_LUA = 100
 #dictionary holding data
 gameIDsDict = {}
 
+#fot time measurement
+timeDict = {}
+
 #for daily challenges
 #5am GMT
 dailyChallangeStartTime = 5
@@ -157,10 +160,6 @@ def loadDataFromDatabase():
                 
                 #deserialize user
                 user = pickle.loads(recordData)
-                
-                #tmp fix
-                if user.score >= 10000:
-                    user.score = 0
                 
                 #get leadeboard dict by gameID
                 leadeboardDict = GetLeaderBoardDict(gameID)
@@ -377,9 +376,16 @@ class TCPHandler(asyncore.dispatcher_with_send):
                 gameID, userID, score = struct.unpack_from("<HQI", data)
                 userName = data[structSize:-1]
                 
-                #tmp fix
-                if score >= 10000:
-                    score = 0
+                #check time - avoid cheating score
+                if userID in timeDict:
+                    startTime = timeDict[userID]
+                    timeDict[userID] = time.time()
+                    gameTime = int(time.time() - startTime)
+                    if (gameTime < 1800 and score > 1000) or (gameTime < (5*60) and score > :
+                    
+                
+                    cfunctions.Log_Warning("")
+                
                 
                 #check data from client - ignore bad data
                 if gameID == 0 or userID == 0:
@@ -411,6 +417,8 @@ class TCPHandler(asyncore.dispatcher_with_send):
             elif opcode == C_MSG_GET_LEADERBOARD:
                 #get gameID (levelID), userID
                 gameID, userID = struct.unpack_from("<HQ", data)
+                #save time when showed leadeboard
+                timeDict[userID] = time.time()
                 #create JSON per active levels
                 jsonDict = {}
                 jsonDict[gameID] = CreateLeaderboardJSON(gameID, userID)
