@@ -17,6 +17,7 @@ import crypto
 import statistics
 import platform
 import errno
+from random import randint
 from datetime import datetime
 from collections import OrderedDict
 from operator import itemgetter, attrgetter
@@ -50,6 +51,7 @@ gameIDsDict = {}
 
 #fot time measurement
 timeDict = {}
+banTable = [8654585614]
 
 #for daily challenges
 #5am GMT
@@ -160,6 +162,10 @@ def loadDataFromDatabase():
                 
                 #deserialize user
                 user = pickle.loads(recordData)
+                
+                #check bantable - set rnd low score
+                if user.userID in banTable:
+                    user.score = randint(1, 20)
                 
                 #get leadeboard dict by gameID
                 leadeboardDict = GetLeaderBoardDict(gameID)
@@ -381,12 +387,18 @@ class TCPHandler(asyncore.dispatcher_with_send):
                     startTime = timeDict[userID]
                     timeDict[userID] = time.time()
                     gameTime = int(time.time() - startTime)
-                    if (gameTime < 1800 and score > 1000) or (gameTime < (5*60) and score > :
-                    
-                
-                    cfunctions.Log_Warning("")
-                
-                
+                    cheater = False
+                    gameMode = ((int(dailyChallengeActiveLevels[0]) / 100) % 100)
+                    if gameMode == 2:
+                        if (gameTime < 200 and score > 200):
+                            cheater = True
+                        if cheater == True:
+                            cfunctions.Log_Warning("Possible cheating - userID: "+str(userID)+", userName: "+userName+", score: "+str(score)+", gameTime: "+str(gameTime))
+
+                #check bantable - set rnd low score
+                if userID in banTable:
+                    score = randint(1, 20)
+
                 #check data from client - ignore bad data
                 if gameID == 0 or userID == 0:
                     #send dummy data to client
@@ -479,24 +491,13 @@ class TCPHandler(asyncore.dispatcher_with_send):
             else:
                 cfunctions.Log_Warning("TCPHandler.handle_read: Unknown opcode: " + str(opcode))
         
-        #handle socket errors
+        #handle socket errors - disconnect socket
         except socket.error as e:
-            #timeout disconnect socket
-            if e.errno == errno.ETIMEDOUT:
-                self.handle_close()
-            #[Errno 113] No route to host
-            elif e.errno == errno.EHOSTUNREACH:
-                self.handle_close()
-            #[Errno 11] Resource temporarily unavailable
-            elif e.errno == errno.EAGAIN:
-                self.handle_close()
-            else:
-                cfunctions.Log_Error("TCPHandler.handle_read: " + str(e))
-        
+            self.handle_close()
         #ignore
         except RuntimeError as e:
             pass
-    
+        #log other exceptions
         except Exception as e:
             cfunctions.Log_Error("TCPHandler.handle_read: " + str(e))
 
