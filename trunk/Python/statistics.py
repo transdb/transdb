@@ -1,16 +1,18 @@
-import transDB
-import cfunctions
-import clientSocket
 import struct
 import pickle
 import json
 import smtplib
-from operator import itemgetter, attrgetter
+from operator import itemgetter
+from email import Encoders
+
+import transDB
+import cfunctions
+import consts
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEBase import MIMEBase
 from email.MIMEText import MIMEText
 from email.Utils import COMMASPACE, formatdate
-from email import Encoders
+
 
 class Stats:
     def __init__(self):
@@ -22,10 +24,10 @@ class Stats:
             #reset opcodes
             self.opcodesCount = {}
             opcodesCountData = pickle.dumps(self.opcodesCount)
-            transDB.writeData(clientSocket.X_KEY_FOR_SETTINGS, clientSocket.SETTINGS_Y_DAILY_CHALLENGE_OPCODE_STATS, opcodesCountData)
+            transDB.writeData(consts.X_KEY_FOR_SETTINGS, consts.SETTINGS_Y_DAILY_CHALLENGE_OPCODE_STATS, opcodesCountData)
             #reset user stats
             self.userStats = {}
-            transDB.deleteData(clientSocket.X_KEY_FOR_STATS, 0)
+            transDB.deleteData(consts.X_KEY_FOR_STATS, 0)
         except Exception as e:
             cfunctions.Log_Error("Stats.Reset: " + str(e))
 
@@ -33,12 +35,12 @@ class Stats:
         """ Load statistics.Stats class from DB """
         try:
             #load opcodes stats
-            opcodesCountData = transDB.readData(clientSocket.X_KEY_FOR_SETTINGS, clientSocket.SETTINGS_Y_DAILY_CHALLENGE_OPCODE_STATS)
+            opcodesCountData = transDB.readData(consts.X_KEY_FOR_SETTINGS, consts.SETTINGS_Y_DAILY_CHALLENGE_OPCODE_STATS)
             if len(opcodesCountData) != 0:
                 self.opcodesCount = pickle.loads(opcodesCountData)
             
             #load user stats
-            data = transDB.readData(clientSocket.X_KEY_FOR_STATS, 0)
+            data = transDB.readData(consts.X_KEY_FOR_STATS, 0)
             if len(data) != 0:
                 offset = 0
                 while offset < len(data):
@@ -61,7 +63,7 @@ class Stats:
         """ Save opcode stats to DB """
         try:
             opcodesCountData = pickle.dumps(self.opcodesCount, pickle.HIGHEST_PROTOCOL)
-            transDB.writeData(clientSocket.X_KEY_FOR_SETTINGS, clientSocket.SETTINGS_Y_DAILY_CHALLENGE_OPCODE_STATS, opcodesCountData)
+            transDB.writeData(consts.X_KEY_FOR_SETTINGS, consts.SETTINGS_Y_DAILY_CHALLENGE_OPCODE_STATS, opcodesCountData)
         except Exception as e:
             cfunctions.Log_Error("Stats.saveDailyChallengeOpcodeStats: " + str(e))
 
@@ -109,6 +111,19 @@ class Stats:
         except Exception as e:
             cfunctions.Log_Error("Stats.SendByEmail: " + str(e))
 
+    def ResetDailyChallengeStats(self):
+        try:
+            """ Send email with daily stats and reset stats """
+            
+            #send by email
+            self.SendByEmail()
+            
+            #reset stats
+            self.Reset()
+        
+        except Exception as e:
+            cfunctions.Log_Error("Stats.ResetDailyChallengeStats: " + str(e))
+
     def UpdatePlayedGames(self, userID, userName):
         """ UpdatePlayedGames for user and save to DB """
         try:
@@ -122,7 +137,7 @@ class Stats:
             
             #save to DB
             userData = struct.pack("<II", numberOfGames, len(userName)) + userName
-            transDB.writeData(clientSocket.X_KEY_FOR_STATS, userID, userData)
+            transDB.writeData(consts.X_KEY_FOR_STATS, userID, userData)
         except Exception as e:
             cfunctions.Log_Error("Stats.UpdatePlayedGames: " + str(e))
     

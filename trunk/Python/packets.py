@@ -5,7 +5,7 @@ import cfunctions
 class TransDBPacket:
     """ Packet class """
     def __init__(self, opcode):
-        self.opcode = opcode;
+        self.opcode = opcode
         self.data = ''
     
     def createPacket(self):
@@ -15,19 +15,18 @@ class TransDBPacket:
 
 class ClientPacket:
     """ Packet class """
-    def __init__(self, opcode, crypt):
-        self.opcode = opcode;
+    def __init__(self, opcode):
+        self.opcode = opcode
         self.data = ''
-        self.crypt = crypt
     
-    def createPacket(self):
+    def createPacket(self, crypt):
         try:
             #calc crc as unsigned
             crc32 = zlib.crc32(self.data) & 0xffffffff
             #create packet header
             packetHeader = struct.pack('<IHI', len(self.data), self.opcode, crc32)
             #encrypt header
-            packet = self.crypt.EncryptSend(packetHeader)
+            packet = crypt.EncryptSend(packetHeader)
             #add data
             packet += str(self.data)
             return packet

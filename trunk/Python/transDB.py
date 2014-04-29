@@ -1,4 +1,3 @@
-import time
 import socket
 import struct
 import zlib
@@ -6,11 +5,12 @@ import Queue
 import threading
 import json
 import select
-import common
-import cfunctions
 import multiprocessing
-import packets
 from collections import OrderedDict
+
+import cfunctions
+import packets
+
 
 GZIP = 1
 BLOCK_SIZE = 4096
@@ -100,8 +100,8 @@ def stats():
         cfunctions.Log_Error("trandDB.stats: " + str(e))
 
 def fragment():
+    """ Get file fragmentation info. """
     try:
-        """ Get file fragmentation info. """
         token = getToken()
         packet = packets.TransDBPacket(C_MSG_GET_FREESPACE)
         packet.data = struct.pack('<III', token, 0, 1)
@@ -112,8 +112,8 @@ def fragment():
         cfunctions.Log_Error("trandDB.fragment: " + str(e))
 
 def readData(x, y):
+    """ Get data from DB """
     try:
-        """ Get data from DB """
         token = getToken()
         packet = packets.TransDBPacket(C_MSG_READ_DATA)
         packet.data = struct.pack('<IIQQ', token, 0, long(x), long(y))
@@ -124,8 +124,8 @@ def readData(x, y):
         cfunctions.Log_Error("trandDB.readData: " + str(e))
 
 def writeData(x, y, data):
+    """ Write data to DB """
     try:
-        """ Write data to DB """
         token = getToken()
         packet = packets.TransDBPacket(C_MSG_WRITE_DATA)
         packet.data = struct.pack('<IIQQ', token, 0, long(x), long(y)) + data
@@ -136,8 +136,8 @@ def writeData(x, y, data):
         cfunctions.Log_Error("trandDB.writeData: " + str(e))
 
 def deleteData(x, y):
+    """ Delete data in DB if y=0 delete all data for x """
     try:
-        """ Delete data in DB if y=0 delete all data for x """
         token = getToken()
         packet = packets.TransDBPacket(C_MSG_DELETE_DATA)
         packet.data = struct.pack('<IIQQ', token, 0, long(x), long(y))
@@ -148,8 +148,8 @@ def deleteData(x, y):
         cfunctions.Log_Error("trandDB.deleteData: " + str(e))
 
 def writeDataNum(x, data):
+    """ Write key|recordSize|record|....Nx array to DB """
     try:
-        """ Write key|recordSize|record|....Nx array to DB """
         flags = 0
         #GZIP data
         if len(data) > 4096:

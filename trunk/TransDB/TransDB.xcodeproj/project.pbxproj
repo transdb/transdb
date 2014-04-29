@@ -154,6 +154,8 @@
 		8D2711F915F0DFB3005F94B6 /* DiskWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DiskWriter.h; sourceTree = "<group>"; };
 		8D2711FB15F0DFBC005F94B6 /* DiskWriter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DiskWriter.cpp; sourceTree = "<group>"; };
 		8D3E57DE188EA4CD00D54CBC /* SortedVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SortedVector.h; sourceTree = "<group>"; };
+		8D3F749C190FC526002778F7 /* leaderboard.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = leaderboard.py; path = ../Python/leaderboard.py; sourceTree = "<group>"; };
+		8D3F749D190FC622002778F7 /* consts.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = consts.py; path = ../Python/consts.py; sourceTree = "<group>"; };
 		8D462C8518B790DE00142BBF /* common.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = common.py; path = ../Python/common.py; sourceTree = "<group>"; };
 		8D50482618FBDB05007381C1 /* crypto.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = crypto.py; path = ../Python/crypto.py; sourceTree = "<group>"; };
 		8D50482718FBDB3B007381C1 /* statistics.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = statistics.py; path = ../Python/statistics.py; sourceTree = "<group>"; };
@@ -393,6 +395,8 @@
 				8D50482618FBDB05007381C1 /* crypto.py */,
 				8D50482718FBDB3B007381C1 /* statistics.py */,
 				8D50482818FBDB6B007381C1 /* packets.py */,
+				8D3F749C190FC526002778F7 /* leaderboard.py */,
+				8D3F749D190FC622002778F7 /* consts.py */,
 			);
 			name = Python;
 			sourceTree = "<group>";
