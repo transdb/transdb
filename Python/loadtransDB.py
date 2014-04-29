@@ -1,22 +1,21 @@
 import BaseHTTPServer
 import SocketServer
-import cgi
 import time
-import transDB
 import socket
 import threading
 import urlparse
-import clientSocket
 import asyncore
-import cfunctions
-import common
-import pickle
 import json
-import statistics
 import base64
 import zlib
 from string import Template
+
+import transDB
+import clientSocket
+import cfunctions
+import statistics
 from templates import *
+
 
 HTML = "text/html"
 CSS = "text/css"
@@ -207,7 +206,7 @@ class TransDBHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 method = getattr(TransDBHandler, mtd)
     
         buff, e, typ = method(self, body)
-        if not e ==  None :
+        if not e == None :
             try:
                 err = render("error", {'title': "Error", 'code': e, 'error': buff})
 
@@ -279,7 +278,7 @@ def http_socket_run(stop_event, listenHost, listenPort):
 def client_socket_run(stop_event, listenHost, listenPort):
     try:
         #load leadeboard data from DB
-        clientSocket.loadDataFromDatabase()
+        clientSocket.leaderboard.loadDataFromDatabase()
         
         #timer
         lastTick = time.time()
@@ -290,8 +289,8 @@ def client_socket_run(stop_event, listenHost, listenPort):
         while not stop_event.is_set():
             #every XX secods
             if lastTick < time.time():
-                server.TickForDailyChallenge()
-                server.saveDailyChallengeOpcodeStats()
+                clientSocket.leaderboard.TickForDailyChallenge()
+                clientSocket.leaderboard.stats.saveDailyChallengeOpcodeStats()
                 lastTick = time.time() + pollTimeout
             #asyncore loop
             asyncore.loop(timeout=pollTimeout, count=1, use_poll=True)
@@ -354,7 +353,7 @@ class LoadTransDB:
 if __name__ == '__main__':
     try:
         ld = LoadTransDB()
-        ld.run("/Users/wvi/src/transdb.conf", "/Users/wvi/work/Logs", "localhost", 5555, 9876)
+        ld.run("/Users/miroslavkudrnac/SVN/TransStorageServer/trunk/cfg/transdb.conf", "/Users/wvi/work/Logs", "localhost", 5555, 8888)
     except KeyboardInterrupt as e:
         print("\nSIGINT caught ... shutdown")
         ld.shutdown()

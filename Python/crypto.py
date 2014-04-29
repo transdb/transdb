@@ -13,11 +13,11 @@ class Crypt:
         try:
             returnData = bytearray(data)
             for t in xrange(0, len(returnData)):
-                self.m_recv_i %= self.m_keyLen;
-                x = ((returnData[t] - self.m_recv_j) ^ self.m_cryptKey[self.m_recv_i]) % 256;
-                self.m_recv_i += 1;
-                self.m_recv_j = returnData[t];
-                returnData[t] = x;
+                self.m_recv_i %= self.m_keyLen
+                x = ((returnData[t] - self.m_recv_j) ^ self.m_cryptKey[self.m_recv_i]) % 256
+                self.m_recv_i += 1
+                self.m_recv_j = returnData[t]
+                returnData[t] = x
             return str(returnData)
         except Exception as e:
             cfunctions.Log_Error("Crypt.DecryptRecv: " + str(e))
@@ -26,9 +26,9 @@ class Crypt:
         try:
             returnData = bytearray(data)
             for t in xrange(0, len(returnData)):
-                self.m_send_i %= self.m_keyLen;
-                returnData[t] = self.m_send_j = ((returnData[t] ^ self.m_cryptKey[self.m_send_i]) + self.m_send_j) % 256;
-                self.m_send_i += 1;
+                self.m_send_i %= self.m_keyLen
+                returnData[t] = self.m_send_j = ((returnData[t] ^ self.m_cryptKey[self.m_send_i]) + self.m_send_j) % 256
+                self.m_send_i += 1
             return str(returnData)
         except Exception as e:
             cfunctions.Log_Error("Crypt.EncryptSend: " + str(e))
