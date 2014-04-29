@@ -51,7 +51,7 @@ gameIDsDict = {}
 
 #fot time measurement
 timeDict = {}
-banTable = [8654585614]
+banTable = [8654585614,8650784135]
 
 #for daily challenges
 #5am GMT
@@ -390,7 +390,7 @@ class TCPHandler(asyncore.dispatcher_with_send):
                     cheater = False
                     gameMode = ((int(dailyChallengeActiveLevels[0]) / 100) % 100)
                     if gameMode == 2:
-                        if (gameTime < 200 and score > 200):
+                        if (gameTime < 600 and score > 600):
                             cheater = True
                         if cheater == True:
                             cfunctions.Log_Warning("Possible cheating - userID: "+str(userID)+", userName: "+userName+", score: "+str(score)+", gameTime: "+str(gameTime))
