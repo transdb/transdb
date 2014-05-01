@@ -26,7 +26,7 @@ class Leaderboard:
         self.timeDict = {}
         self.banTable = [8654585614, 8650784135, 8659413645, 8664423249,
                          8592925224, 8661139638, 8637683649, 8654585614,
-                         8640859146]
+                         8640859146, 8619348861]
         #for daily challenges
         #5am GMT
         self.dailyChallangeStartTime = 5
@@ -394,6 +394,10 @@ class Leaderboard:
             
             #check bantable - set rnd low score
             if userID in self.banTable:
+                score = randint(1, 20)
+            
+            #score limit
+            if score > 10000:
                 score = randint(1, 20)
             
             #check data from client - ignore bad data
