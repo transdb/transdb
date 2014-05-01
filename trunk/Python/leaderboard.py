@@ -24,7 +24,9 @@ class Leaderboard:
         self.gameIDsDict = {}
         #for time measurement
         self.timeDict = {}
-        self.banTable = [8654585614, 8650784135]
+        self.banTable = [8654585614, 8650784135, 8659413645, 8664423249,
+                         8592925224, 8661139638, 8637683649, 8654585614,
+                         8640859146]
         #for daily challenges
         #5am GMT
         self.dailyChallangeStartTime = 5
