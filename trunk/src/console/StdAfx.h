@@ -43,6 +43,7 @@
 #include "tbb/mutex.h"
 #include "tbb/recursive_mutex.h"
 #include "tbb/concurrent_vector.h"
+#include "tbb/parallel_sort.h"
 
 #ifdef USE_INTEL_SCALABLE_ALLOCATORS
     #include "tbb/scalable_allocator.h"

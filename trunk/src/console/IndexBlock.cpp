@@ -56,7 +56,7 @@ void IndexBlock::Init(Storage *pStorage,
     typedef Vector<IndexDef> IndexDefList;
     IndexDefList::iterator itr;
     IndexDefList rIndexDef;
-    rIndexDef.reserve(1000000);
+    rIndexDef.reserve(4*1024*1024);
     
 	//save dataFileSize for later use
 	dataFileSizeTmp = dataFileSize;
@@ -140,7 +140,7 @@ void IndexBlock::Init(Storage *pStorage,
     if(rIndexDef.size())
     {
         //sort
-        std::sort(rIndexDef.begin(), rIndexDef.end(), SortFreeSpace);
+        tbb::parallel_sort(rIndexDef.begin(), rIndexDef.end(), SortFreeSpace);
         
         //init variables
         counter = 0;
