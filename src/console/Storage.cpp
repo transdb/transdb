@@ -125,22 +125,24 @@ void Storage::Crc32Check(const HANDLE &rDataFileHandle)
     Log.Notice(__FUNCTION__, "Checking integrity of data file. This can take some time.");
     uint64 counter = 0;
     size_t dataIndexesSize;
-    std::list<WriteInfo> rInfo;
+    typedef Vector<WriteInfo> WriteInfoVec;
+    WriteInfoVec rInfo;
     
     //
     dataIndexesSize = m_dataIndexes.size();
     
     //fill list
+    rInfo.reserve(dataIndexesSize);
     for(RecordIndexMap::const_iterator itr = m_dataIndexes.begin();itr != m_dataIndexes.end();++itr)
     {
         rInfo.push_back(WriteInfo(itr->first, itr->second->m_recordStart));
     }
     
     //sort by record pos
-    rInfo.sort(SortWriteInfoForCRC32Check);
+    tbb::parallel_sort(rInfo.begin(), rInfo.end(), SortWriteInfoForCRC32Check);
     
     //check crc32
-    for(std::list<WriteInfo>::iterator itr = rInfo.begin();itr != rInfo.end();++itr)
+    for(WriteInfoVec::iterator itr = rInfo.begin();itr != rInfo.end();++itr)
     {
         ++counter;
         LoadFromDisk(rDataFileHandle, itr->m_key);
