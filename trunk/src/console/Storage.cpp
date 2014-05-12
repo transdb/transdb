@@ -139,7 +139,7 @@ void Storage::Crc32Check(const HANDLE &rDataFileHandle)
     }
     
     //sort by record pos
-    tbb::parallel_sort(rInfo.begin(), rInfo.end(), SortWriteInfoForCRC32Check);
+    tbb::parallel_sort(rInfo.begin(), rInfo.end(), &SortWriteInfoForCRC32Check);
     
     //check crc32
     for(WriteInfoVec::iterator itr = rInfo.begin();itr != rInfo.end();++itr)
