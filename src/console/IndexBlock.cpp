@@ -174,7 +174,7 @@ void IndexBlock::Init(Storage *pStorage,
     if(pIndexDef->size())
     {
         //sort
-        tbb::parallel_sort(pIndexDef->begin(), pIndexDef->end(), SortFreeSpace);
+        tbb::parallel_sort(pIndexDef->begin(), pIndexDef->end(), &SortFreeSpace);
         
         //init variables
         counter = 0;
