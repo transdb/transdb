@@ -24,7 +24,7 @@ struct IndexDef
 	{
         
 	}
-
+    
     uint64  m_key;
     int64   m_dataPosition;
     int64   m_dataLen;
@@ -35,35 +35,100 @@ INLINE static bool SortFreeSpace(const IndexDef &rIndexDefStruct1, const IndexDe
 	return (rIndexDefStruct1.m_dataPosition < rIndexDefStruc2.m_dataPosition);
 }
 
+typedef tbb::concurrent_unordered_set<uint32>   Init_FreeBlocksSet;
+typedef tbb::concurrent_vector<IndexDef>        Init_IndexDefVec;
+
+struct FillIndex
+{
+    uint8                   *m_pData;
+    Init_FreeBlocksSet      *m_pFreeBlocksSet;
+    Init_IndexDefVec        *m_pIndexDef;
+    RecordIndexMap          *m_pRecordIndexMap;
+    
+    void operator()(const tbb::blocked_range<uint32>& range) const
+    {
+        uint8 *pBlock;
+        ICIDF *pICIDF;
+        uint16 position;
+        DREC *pDREC;
+        RecordIndex *pIREC;
+        void *pIRECMemory;
+        
+        //build index map
+        for(uint32 i = range.begin();i != range.end();++i)
+        {
+            position = 0;
+            pBlock = (m_pData + (INDEX_BLOCK_SIZE * i));
+            pICIDF = GetICIDF(pBlock);
+            
+            //read record
+            for(;;)
+            {
+                if(position > IMAX_RECORD_POS)
+                    break;
+                
+                //get record
+                pDREC = (DREC*)(pBlock + position);
+                
+                //has data
+                if(!IsEmptyDREC(pDREC))
+                {
+                    //create storage index
+                    pIRECMemory                 = malloc(sizeof(RecordIndex));
+                    pIREC                       = new(pIRECMemory) RecordIndex();
+                    pIREC->m_recordStart        = pDREC->m_recordStart;
+                    pIREC->m_blockCount         = pDREC->m_blockCount;
+                    pIREC->m_crc32              = pDREC->m_crc32;
+                    pIREC->m_pBlockManager      = NULL;
+                    //flags
+                    pIREC->m_flags              = eRIF_None;
+                    //set internal index
+                    pIREC->m_IB_blockNumber     = i;
+                    pIREC->m_IB_recordOffset    = position;
+                    m_pRecordIndexMap->insert(RecordIndexMap::value_type(pDREC->m_key, pIREC));
+                    
+                    //create tmp freespace for calculating freespace list
+                    m_pIndexDef->push_back(IndexDef(pDREC->m_key, pDREC->m_recordStart, pDREC->m_blockCount * BLOCK_SIZE));
+                }
+                
+                //update position
+                position += sizeof(DREC);
+            }
+            
+            //add block with free space
+            if(pICIDF->m_amoutOfFreeSpace >= sizeof(DREC))
+            {
+                m_pFreeBlocksSet->insert(i);
+            }
+        }
+    }
+};
+
 void IndexBlock::Init(Storage *pStorage,
-					  const char *pIndexFilePath, 
+					  const char *pIndexFilePath,
 				      RecordIndexMap &rRecordIndexMap,
 					  int64 dataFileSize,
                       int64 *indexFileSize)
 {
 	HANDLE hIndexFile;
 	uint8 *pData;
-    uint8 *pBlock;
-    ICIDF *pICIDF;
-    uint16 position;
-    DREC *pDREC;
-    RecordIndex *pIREC;
     int64 dataFileSizeTmp;
     int64 freeSpaceLen;
     uint64 counter;
     size_t freeSpaceStart;
-
-    typedef Vector<IndexDef> IndexDefList;
-    IndexDefList::iterator itr;
-    IndexDefList rIndexDef;
-    rIndexDef.reserve(4*1024*1024);
+    
+    //for concurrent processing
+    std::unique_ptr<Init_IndexDefVec> pIndexDef = std::unique_ptr<Init_IndexDefVec>(new Init_IndexDefVec());
+    std::unique_ptr<Init_FreeBlocksSet> pFreeBlocksSet = std::unique_ptr<Init_FreeBlocksSet>(new Init_FreeBlocksSet());
+    //prealloc
+    pIndexDef->reserve(4*1024*1024);
     
 	//save dataFileSize for later use
 	dataFileSizeTmp = dataFileSize;
-
+    
     //check file exists
     Common::CheckFileExists(pIndexFilePath, true);
-
+    
     //open index file
     hIndexFile = IO::fopen(pIndexFilePath, IO::IO_RDWR);
     assert(hIndexFile != INVALID_HANDLE_VALUE);
@@ -81,73 +146,42 @@ void IndexBlock::Init(Storage *pStorage,
         //read
         IO::fseek(hIndexFile, 0, SEEK_SET);
         IO::fread(pData, fileSize, hIndexFile);
-
-        //build index map
-        for(uint32 i = 0;i < m_blockCount;++i)
+        
+        //create struct - save pointers to data and containers
+        FillIndex rFillIndex;
+        rFillIndex.m_pData = pData;
+        rFillIndex.m_pFreeBlocksSet = pFreeBlocksSet.get();
+        rFillIndex.m_pIndexDef = pIndexDef.get();
+        rFillIndex.m_pRecordIndexMap = &rRecordIndexMap;
+        
+        //iterate and fill containers
+        tbb::parallel_for(tbb::blocked_range<uint32>(0, m_blockCount), rFillIndex);
+        
+        //add data to m_freeBlocks
+        for(Init_FreeBlocksSet::iterator itr = pFreeBlocksSet->begin();itr != pFreeBlocksSet->end();++itr)
         {
-            position = 0;
-            pBlock = (pData + (INDEX_BLOCK_SIZE * i));
-            pICIDF = GetICIDF(pBlock);
-
-            //read record
-            for(;;)
-            {
-                if(position > IMAX_RECORD_POS)
-                    break;
-                
-                //get record
-                pDREC = (DREC*)(pBlock+position);
-                
-                //has data
-                if(!IsEmptyDREC(pDREC))
-                {
-                    //create storage index
-                    pIREC                       = pStorage->m_rRecordIndexMemPool.allocate();
-                    pIREC->m_recordStart        = pDREC->m_recordStart;
-                    pIREC->m_blockCount         = pDREC->m_blockCount;
-                    pIREC->m_crc32              = pDREC->m_crc32;
-                    pIREC->m_pBlockManager      = NULL;
-                    //flags
-                    pIREC->m_flags              = eRIF_None;
-                    //set internal index
-                    pIREC->m_IB_blockNumber     = i;
-                    pIREC->m_IB_recordOffset    = position;
-                    rRecordIndexMap.insert(RecordIndexMap::value_type(pDREC->m_key, pIREC));
-                    
-                    //create tmp freespace for calculating freespace list
-                    rIndexDef.push_back(IndexDef(pDREC->m_key, pDREC->m_recordStart, pDREC->m_blockCount * BLOCK_SIZE));
-                }
-                
-                //update position
-                position += sizeof(DREC);
-            }
-            
-            //add block with free space
-            if(pICIDF->m_amoutOfFreeSpace >= sizeof(DREC))
-            {
-                m_freeBlocks.insert(i);
-            }
+            m_freeBlocks.insert(*itr);
         }
         
         //release memory
         free(pData);
 	}
-
+    
 	//close file handle
 	IO::fclose(hIndexFile);
-
+    
     //load free space from index
-    if(rIndexDef.size())
+    if(pIndexDef->size())
     {
         //sort
-        tbb::parallel_sort(rIndexDef.begin(), rIndexDef.end(), SortFreeSpace);
+        tbb::parallel_sort(pIndexDef->begin(), pIndexDef->end(), SortFreeSpace);
         
         //init variables
         counter = 0;
         freeSpaceStart = 0;
         
         //
-        for(itr = rIndexDef.begin();itr != rIndexDef.end();++itr)
+        for(Init_IndexDefVec::iterator itr = pIndexDef->begin();itr != pIndexDef->end();++itr)
         {
             //
             freeSpaceLen = itr->m_dataPosition - freeSpaceStart;
@@ -182,8 +216,8 @@ void IndexBlock::WriteRecordIndexToDisk(const HANDLE &hFile, RecordIndexMap::acc
     DREC *pDREC;
     int16 recordOffset;
     
-    //fill disk record    
-    DREC rDiskRecord;    
+    //fill disk record
+    DREC rDiskRecord;
     rDiskRecord.m_key           = rWriteAccesor->first;
     rDiskRecord.m_recordStart   = rWriteAccesor->second->m_recordStart;
     rDiskRecord.m_crc32         = rWriteAccesor->second->m_crc32;
@@ -242,12 +276,12 @@ void IndexBlock::WriteRecordIndexToDisk(const HANDLE &hFile, RecordIndexMap::acc
         {
             //write to block with free space
             freeBlock = (*m_freeBlocks.begin());
-            diskPosition = (INDEX_BLOCK_SIZE*freeBlock);            
+            diskPosition = (INDEX_BLOCK_SIZE*freeBlock);
             
-            //get disk block            
+            //get disk block
             //try to use cache
             pDiskBlock = GetCachedDiskBlock(hFile, diskPosition, freeBlock);
-                        
+            
             //get ICIDF
             pICIDF = GetICIDF(pDiskBlock);
             
@@ -294,9 +328,9 @@ void IndexBlock::EraseRecord(const HANDLE &hFile, const RecordIndex &rRecordInde
 {
     //not written yet
     if(rRecordIndex.m_IB_recordOffset == -1)
-        return;
+    return;
     
-    ICIDF *pICIDF;  
+    ICIDF *pICIDF;
 	DREC *pDREC;
     size_t diskPosition;
     uint8 *pDiskBlock;
@@ -306,7 +340,7 @@ void IndexBlock::EraseRecord(const HANDLE &hFile, const RecordIndex &rRecordInde
     
     //load block from disk
     pDiskBlock = GetCachedDiskBlock(hFile, diskPosition, rRecordIndex.m_IB_blockNumber);
-        
+    
     //get ICIDF
     pICIDF = GetICIDF(pDiskBlock);
     
@@ -318,15 +352,15 @@ void IndexBlock::EraseRecord(const HANDLE &hFile, const RecordIndex &rRecordInde
      +---------+---------+---------+---------------+------+
      0         18        36         54             4092  4096
      
-    */
+     */
     
     //clear DREC
     pDREC = (DREC*)(pDiskBlock + rRecordIndex.m_IB_recordOffset);
     memset(pDREC, 0, sizeof(DREC));
-
+    
     //update ICIDF
     pICIDF->m_amoutOfFreeSpace += sizeof(DREC);
-
+    
     //block has freespace
     m_freeBlocks.insert(rRecordIndex.m_IB_blockNumber);
     
@@ -390,7 +424,7 @@ DREC *IndexBlock::GetEmptyDREC(const uint8 *pDiskBlock, int16 *newRecordOffset)
     for(;;)
     {
         if(position > IMAX_RECORD_POS)
-            break;
+        break;
         
         //get DREC
         pDREC = (DREC*)(pDiskBlock + position);
