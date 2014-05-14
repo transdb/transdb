@@ -60,7 +60,7 @@ protected:
     //declarations
 	char						*m_pDataPath;
 	char						*m_pIndexPath;
-    tbb::atomic<int64>          m_dataFileSize;
+    std::atomic<int64>          m_dataFileSize;
     
     //disk writer
     uint32                      m_diskWriterCount;
@@ -68,30 +68,30 @@ protected:
     
     //shared
     FixedPool<RecordIndex>      m_rRecordIndexMemPool;
-    tbb::mutex                  m_rRecordIndexMemPoolLock;
+    std::mutex                  m_rRecordIndexMemPoolLock;
     IndexBlock                  *m_pDataIndexDiskWriter;
-    tbb::mutex                  m_rDataIndexDiskWriterLock;
+    std::mutex                  m_rDataIndexDiskWriterLock;
     RecordIndexMap              m_dataIndexes;
     
     //shared
     FixedPool<BlockManager>     m_rBlockManagerMemPool;
-    tbb::mutex                  m_rBlockManagerMemPoolLock;
+    std::mutex                  m_rBlockManagerMemPoolLock;
     
     //shared
     FreeSpaceBlockMap           m_rFreeSpace;
-    tbb::mutex                  m_rFreeSpaceLock;
+    std::mutex                  m_rFreeSpaceLock;
     
     //Memory limit
     LRUCache                    *m_pLRUCache;
-    tbb::mutex                  m_LRULock;
-    tbb::atomic<uint64>         m_memoryUsed;
+    std::mutex                  m_LRULock;
+    std::atomic<uint64>         m_memoryUsed;
     
     //
     FixedPool<BlockSize_T>      m_rBlockMemPool;
-    tbb::mutex                  m_rBlockMemPoolLock;
+    std::mutex                  m_rBlockMemPoolLock;
     
     //stats
-    tbb::atomic<uint64>         m_sumDiskReadTime;
+    std::atomic<uint64>         m_sumDiskReadTime;
 };
 
 #endif

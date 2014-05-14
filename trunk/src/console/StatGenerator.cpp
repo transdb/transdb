@@ -207,7 +207,7 @@ StatGenerator::StatGenerator(Storage &rStorage) : m_rStorage(rStorage)
 
 void StatGenerator::GetFreeFraceStats(uint64 &freeSpaceChunkCount, uint64 &freeSpaceBlocksCount)
 {
-    std::lock_guard<tbb::mutex> rFreeSpaceLock(m_rStorage.m_rFreeSpaceLock);
+    std::lock_guard<std::mutex> rFreeSpaceLock(m_rStorage.m_rFreeSpaceLock);
     
     //coutn chunks
     freeSpaceBlocksCount = m_rStorage.m_rFreeSpace.size();
@@ -221,25 +221,25 @@ void StatGenerator::GetFreeFraceStats(uint64 &freeSpaceChunkCount, uint64 &freeS
 
 void StatGenerator::GetBlockMemPoolStats(uint64 &blockMemPoolSize)
 {
-    std::lock_guard<tbb::mutex> rBlockMemPoolGuard(m_rStorage.m_rBlockMemPoolLock);
+    std::lock_guard<std::mutex> rBlockMemPoolGuard(m_rStorage.m_rBlockMemPoolLock);
     blockMemPoolSize = m_rStorage.m_rBlockMemPool.GetSize();
 }
 
 void StatGenerator::GetRecordIndexMemPoolStats(uint64 &recordIndexMemPoolSize)
 {
-    std::lock_guard<tbb::mutex> rRIMemPoolGuard(m_rStorage.m_rRecordIndexMemPoolLock);
+    std::lock_guard<std::mutex> rRIMemPoolGuard(m_rStorage.m_rRecordIndexMemPoolLock);
     recordIndexMemPoolSize = m_rStorage.m_rRecordIndexMemPool.GetSize();
 }
 
 void StatGenerator::GetBlockManagerMemPoolStats(uint64 &blockManagerMemPoolSize)
 {
-    std::lock_guard<tbb::mutex> rBM_Guard(m_rStorage.m_rBlockManagerMemPoolLock);
+    std::lock_guard<std::mutex> rBM_Guard(m_rStorage.m_rBlockManagerMemPoolLock);
     blockManagerMemPoolSize = m_rStorage.m_rBlockManagerMemPool.GetSize();
 }
 
 void StatGenerator::GetLRUCacheStats(uint64 &size, uint64 &cacheSize)
 {
-    std::lock_guard<tbb::mutex> rLRUGuard(m_rStorage.m_LRULock);
+    std::lock_guard<std::mutex> rLRUGuard(m_rStorage.m_LRULock);
     size = m_rStorage.m_pLRUCache->size();
     cacheSize = m_rStorage.m_pLRUCache->cacheSize();
 }

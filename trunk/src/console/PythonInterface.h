@@ -26,7 +26,7 @@ public:
 private:
     PyObject            *m_pInstance;
     std::string         m_lastVersion;
-    tbb::atomic<bool>   m_pythonScriptRunning;
+    std::atomic<bool>   m_pythonScriptRunning;
 };
 
 #endif

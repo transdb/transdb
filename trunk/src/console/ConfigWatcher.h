@@ -36,7 +36,7 @@ public:
 private:
 	string          m_configPath;
     ListenerSet     m_rListeners;
-    tbb::mutex      m_rListenersLock;
+    std::mutex      m_rListenersLock;
 };
 
 extern ConfigWatcher *g_pConfigWatcher;

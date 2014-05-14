@@ -40,9 +40,9 @@
 class FileLog
 {
 private:
-	FILE * m_file;
-	string m_filename;
-	Mutex  m_lock;
+	FILE *          m_file;
+    std::string      m_filename;
+    std::mutex      m_lock;
     
 public:
 	FileLog(const char * filename, bool open);
@@ -89,7 +89,7 @@ private:
 	void Time();
 	void Line();
 
-	Mutex       m_lock;
+    std::mutex  m_lock;
 #ifdef WIN32	
 	HANDLE      m_stdout_handle;
 	HANDLE      m_stderr_handle;
@@ -97,8 +97,8 @@ private:
 	int32       m_log_level;
     FileLog     *m_pFileLog;
 
-#define LOCK_LOG	do{ m_lock.Acquire(); }while(0)
-#define UNLOCK_LOG	do{ m_lock.Release(); }while(0)
+#define LOCK_LOG	do{ m_lock.lock(); }while(0)
+#define UNLOCK_LOG	do{ m_lock.unlock(); }while(0)
 };
 
 #define Log ScreenLog::getSingleton()

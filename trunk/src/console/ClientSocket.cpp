@@ -168,7 +168,7 @@ void ClientSocket::OnRead()
     {
         Log.Error(__FUNCTION__, "Fatal error stopping server.");
         g_pClientSocketWorker->SetException(true);
-        Sync_Add(&g_stopEvent);
+        g_stopEvent = true;
     }
 }
 

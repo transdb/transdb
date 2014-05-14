@@ -310,7 +310,7 @@ void FileLog::write(const char* format, ...)
 	if(!m_file)
 		return;
 
-	m_lock.Acquire();
+	m_lock.lock();
 	va_list ap;
 	va_start(ap, format);
 	char out[4096];
@@ -326,7 +326,7 @@ void FileLog::write(const char* format, ...)
 	fflush(m_file);
 
 	va_end(ap);
-	m_lock.Release();
+	m_lock.unlock();
 }
 
 void FileLog::Open()

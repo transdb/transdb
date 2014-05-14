@@ -149,13 +149,13 @@ private:
     
 	/** deleted/disconnected markers
 	 */
-	volatile bool	m_deleted;
-	volatile bool	m_connected;
+    std::atomic<bool>	m_deleted;
+	std::atomic<bool>   m_connected;
     
-	SOCKET			m_new_fd;
-	sockaddr_in 	m_new_peer;
-	sockaddr_in 	m_address;
-	socklen_t		m_len;
+	SOCKET              m_new_fd;
+	sockaddr_in         m_new_peer;
+	sockaddr_in         m_address;
+	socklen_t           m_len;
 };
 
 #endif

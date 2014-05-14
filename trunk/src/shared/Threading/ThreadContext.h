@@ -23,26 +23,14 @@
 class ThreadContext
 {
 public:
-	ThreadContext() 
+	ThreadContext() : m_threadRunning(true)
 	{
-        Sync_Set(&m_threadRunning, 1);
-#ifdef WIN32
-		m_hHandle = CreateEvent(NULL, FALSE, FALSE, NULL);
-#else       
-        pthread_mutex_init(&m_abortmutex, NULL);
-        pthread_cond_init(&m_abortcond, NULL);
-#endif
+
 	}
 
-	virtual ~ThreadContext() 
+	virtual ~ThreadContext()
 	{
-        SetThreadName("");        
-#ifdef WIN32		
-		CloseHandle(m_hHandle);
-#else
-        pthread_mutex_destroy(&m_abortmutex);
-        pthread_cond_destroy(&m_abortcond);    
-#endif
+        SetThreadName("");
 	}
 
 	virtual bool run() = 0;
@@ -54,51 +42,25 @@ public:
 
 	void Terminate() 
 	{
-        Sync_Set(&m_threadRunning, 0);
-#ifndef WIN32        
-        pthread_mutex_lock(&m_abortmutex);
-        pthread_cond_signal(&m_abortcond);
-        pthread_mutex_unlock(&m_abortmutex);
-#else
-		SetEvent(m_hHandle);
-#endif
+        m_threadRunning = false;
+        m_rCond.notify_one();
 	}
 
-	long GetThreadRunning() 
+	bool GetThreadRunning() const
     { 
         return m_threadRunning; 
     }
     
     void Wait(long ms)
     {
-#ifdef WIN32    
-        WaitForSingleObject(m_hHandle, ms);
-#else        
-        gettimeofday(&m_tnow, NULL);
-        m_tv.tv_sec  = m_tnow.tv_sec + ms / 1000;
-        m_tv.tv_nsec = m_tnow.tv_usec*1000 + (ms % 1000)*1000000;
-        if(m_tv.tv_nsec >= 1000000000)
-        {
-            m_tv.tv_nsec -= 1000000000;
-            m_tv.tv_sec++;
-        }        
-        
-        pthread_mutex_lock(&m_abortmutex);
-        pthread_cond_timedwait(&m_abortcond, &m_abortmutex, &m_tv);
-        pthread_mutex_unlock(&m_abortmutex);
-#endif        
+        std::unique_lock<std::mutex> rLock(m_rCondMutex);
+        m_rCond.wait_for(rLock, std::chrono::milliseconds(ms));
     }
 
 protected:
-#ifdef WIN32
-	HANDLE			m_hHandle;
-#else
-    pthread_cond_t  m_abortcond;
-	pthread_mutex_t m_abortmutex;
-    struct timeval  m_tnow;
-    struct timespec m_tv;
-#endif
-	volatile long	m_threadRunning;
+    std::condition_variable m_rCond;
+    std::mutex              m_rCondMutex;
+	std::atomic<bool>       m_threadRunning;
 };
 
 #endif

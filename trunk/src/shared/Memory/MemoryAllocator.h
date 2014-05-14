@@ -22,7 +22,6 @@
 
 #include "../Defines.h"
 #include "../Logs/Log.h"
-#include "tbb/mutex.h"
 
 template<typename T>
 class FixedPool
@@ -180,11 +179,11 @@ private:
 };
 
 template <class T>
-NOINLINE static void _S_FixedPool_Recycle(const char *pName, tbb::mutex &rLock, T &rT)
+NOINLINE static void _S_FixedPool_Recycle(const char *pName, std::mutex &rLock, T &rT)
 {
     Log.Debug(__FUNCTION__, "%s recycling started.", pName);
     {
-        std::lock_guard<tbb::mutex> rBGuard(rLock);
+        std::lock_guard<std::mutex> rBGuard(rLock);
         rT.recycle();
     }
     Log.Debug(__FUNCTION__, "%s recycling finished.", pName);

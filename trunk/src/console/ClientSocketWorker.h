@@ -98,7 +98,7 @@ protected:
     Storage             *m_pStorage;
 	TaskDataQueue       m_rTaskDataQueue;
     TaskDataQueue       m_rReadTaskDataQueue;
-    tbb::atomic<bool>   m_exception;
+    std::atomic<bool>   m_exception;
 	tbb::fixed_pool		*m_pFixedPool;
 	void				*m_pFixedPoolMem;
 };

@@ -24,10 +24,6 @@ vector<string> StrSplit(const string & src, const string & sep);
 
 void replace(std::string &str, const char* find, const char* rep, uint32 limit = 0);
 
-long Sync_Add(volatile long* value);
-long Sync_Sub(volatile long* value);
-void Sync_Set(volatile long* value, long setValue);
-
 string FormatOutputString(const char * Prefix, const char * Description, bool useTimeStamp);
 
 inline bool isWhiteSpace(const unsigned char c) 

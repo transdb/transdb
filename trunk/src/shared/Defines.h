@@ -97,6 +97,10 @@
 #include <array>
 #include <memory>
 #include <mutex>
+#include <atomic>
+#include <condition_variable>
+#include <chrono>
+#include <thread>
 
 #ifndef WIN32
 	#include <pthread.h>

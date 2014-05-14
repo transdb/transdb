@@ -58,16 +58,20 @@ void ClientSocketWorker::InitWorkerThreads()
     m_rReadTaskDataQueue.set_capacity(g_MaxReadTasksInQueue);
 
 	//start worker threads
+    Log.Notice(__FUNCTION__, "Spawning writer threads...");
 	for(int i = 0;i < g_MaxParallelTasks;++i)
 	{
 		ThreadPool.ExecuteTask(new ClientSocketWorkerTask(*m_pStorage, false));
 	}
+    Log.Notice(__FUNCTION__, "Spawning writer threads... done");
     
     //start reader worker threads
+    Log.Notice(__FUNCTION__, "Spawning reader threads...");
     for(int i = 0;i < g_MaxParallelReadTasks;++i)
     {
         ThreadPool.ExecuteTask(new ClientSocketWorkerTask(*m_pStorage, true));
     }
+    Log.Notice(__FUNCTION__, "Spawning reader threads... done");
 }
 
 void ClientSocketWorker::DestroyWorkerThreads()
@@ -86,7 +90,7 @@ void ClientSocketWorker::DestroyWorkerThreads()
         //process all tasks before shutdown
         while(m_rTaskDataQueue.size() != waitSize)
         {
-            Log.Notice(__FUNCTION__, "Waiting for: %u tasks to finish.", (uint32)m_rTaskDataQueue.size());
+            Log.Notice(__FUNCTION__, "Waiting for: %d tasks to finish.", (int32)m_rTaskDataQueue.size());
             Sleep(5000);
         }
         
@@ -94,7 +98,7 @@ void ClientSocketWorker::DestroyWorkerThreads()
         waitSize = g_MaxParallelReadTasks * (-1);
         while(m_rReadTaskDataQueue.size() !=  waitSize)
         {
-            Log.Notice(__FUNCTION__, "Waiting for: %u read tasks to finish.", (uint32)m_rReadTaskDataQueue.size());
+            Log.Notice(__FUNCTION__, "Waiting for: %d read tasks to finish.", (int32)m_rReadTaskDataQueue.size());
             Sleep(5000);
         }
         

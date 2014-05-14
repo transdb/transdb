@@ -49,33 +49,6 @@ void replace(std::string &str, const char* find, const char* rep, uint32 limit)
 	}
 }
 
-long Sync_Add(volatile long* value)
-{
-#ifdef WIN32
-	return InterlockedIncrement(value);
-#else
-	return __sync_add_and_fetch(value, 1);
-#endif
-}
-
-long Sync_Sub(volatile long* value)
-{
-#ifdef WIN32	
-	return InterlockedDecrement(value);
-#else
-	return __sync_sub_and_fetch(value, 1);
-#endif
-}
-
-void Sync_Set(volatile long* value, long setValue)
-{
-#ifdef WIN32
-    InterlockedExchange(value, setValue);
-#else
-    __sync_lock_test_and_set(value, setValue);
-#endif    
-}
-
 string FormatOutputString(const char * Prefix, const char * Description, bool useTimeStamp)
 {
 	char p[MAX_PATH];

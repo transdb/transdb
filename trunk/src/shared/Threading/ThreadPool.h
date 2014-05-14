@@ -20,15 +20,14 @@
 #ifndef THREADPOOL_H
 #define THREADPOOL_H
 
-#include "Mutex.h"
 #include "ThreadContext.h"
 
 #ifdef WIN32
 class ThreadController
 {
 private:
-	HANDLE hThread;
-	uint32 thread_id;
+	HANDLE                  hThread;
+	std::atomic<uint32>     thread_id;
 
 public:
 	ThreadController() : hThread(NULL), thread_id(0)
@@ -64,7 +63,7 @@ public:
 		}
 	}
 
-	INLINE uint32 GetId() 
+	INLINE uint32 GetId() const
 	{ 
 		return thread_id; 
 	}
@@ -72,13 +71,17 @@ public:
 
 #else
 
-long GenerateThreadId();
-	
+static INLINE uint32 GenerateThreadId()
+{
+    static std::atomic<uint32> g_threadid_count(1);
+    return ++g_threadid_count;
+}
+
 class ThreadController
 {
 private:
-    volatile bool       m_suspended;
-	long                m_thread_id;
+    std::atomic<bool>   m_suspended;
+	std::atomic<uint32> m_thread_id;
 	pthread_cond_t      m_cond;
 	pthread_mutex_t     m_mutex;
 	pthread_t           m_handle;
@@ -103,12 +106,12 @@ public:
 		pthread_cond_destroy(&m_cond);
 	}
 	
-	void Suspend(Mutex &rTH_Mutex)
+	void Suspend(std::recursive_mutex &rTH_Mutex)
 	{
         //lock suspend lock
         assert(!pthread_mutex_lock(&m_mutex));
         //release threadpool mutex now Resume cannot be called before Suspend
-        rTH_Mutex.Release();
+        rTH_Mutex.unlock();
         
         m_suspended = true;
         do
@@ -127,38 +130,66 @@ public:
         assert(!pthread_mutex_unlock(&m_mutex));
 	}
 	
-	INLINE uint32 GetId()
-    {
-        return (uint32)m_thread_id;
+	INLINE uint32 GetId() const
+    {        
+        return m_thread_id;
     }
 };
 #endif
 
+//class Worker
+//{
+//public:
+//    Worker(ThreadContext *pExecTarget) : m_pThreadContext(pExecTarget)
+//    {
+//        
+//    }
+//    
+//    void Suspend()
+//    {
+//        std::unique_lock<std::mutex> rLock(m_rCondMutex);
+//        m_rCond.wait(rLock);
+//    }
+//    
+//    void Resume()
+//    {
+//        m_rCond.notify_one();
+//    }
+//    
+//    std::thread::id GetId() const
+//	{
+//		return std::this_thread::get_id();
+//	}
+//    
+//private:
+//    ThreadContext               *m_pThreadContext;
+//    ThreadController            m_rControlInterface;
+//    std::condition_variable     m_rCond;
+//    std::mutex                  m_rCondMutex;
+//};
+
 struct Thread
 {
-	Thread(ThreadContext * ExecTarget) : m_pExecutionTarget(ExecTarget)
+	explicit Thread(ThreadContext * ExecTarget) : m_pExecutionTarget(ExecTarget)
 	{
 	}
-
-	ThreadContext       *m_pExecutionTarget;
-	ThreadController    m_rControlInterface;
-	Mutex               m_rSetupMutex;
+    
+    std::atomic<ThreadContext*>     m_pExecutionTarget;
+    ThreadController                m_rControlInterface;
+    std::mutex                      m_rSetupMutex;
 };
 
 typedef std::set<Thread*> ThreadSet;
-typedef std::list<Thread*> ThreadList;
 
 class CThreadPool
 {
 private:
-	int GetNumCpus();
-
-	volatile uint32 _threadsRequestedSinceLastCheck;
-	volatile uint32 _threadsFreedSinceLastCheck;
-	volatile uint32 _threadsExitedSinceLastCheck;
-	volatile uint32 _threadsToExit;
-	volatile int32 _threadsEaten;
-	Mutex _mutex;
+    std::atomic<uint32>     m_threadsRequestedSinceLastCheck;
+	std::atomic<uint32>     m_threadsFreedSinceLastCheck;
+	std::atomic<uint32>     m_threadsExitedSinceLastCheck;
+	std::atomic<uint32>     m_threadsToExit;
+	std::atomic<int32>      m_threadsEaten;
+	std::recursive_mutex    m_mutex;
 
     ThreadSet m_activeThreads;
 	ThreadSet m_freeThreads;
@@ -199,35 +230,28 @@ public:
 	// resets the gobble counter
 	void Gobble() 
     { 
-        _mutex.Acquire();
-        _threadsEaten = (int32)m_freeThreads.size(); 
-        _mutex.Release();
+        std::lock_guard<std::recursive_mutex> rGuard(m_mutex);
+        m_threadsEaten = (int32)m_freeThreads.size();
     }
 
 	// gets active thread count
-	uint32 GetActiveThreadCount() 
-    { 
-        uint32 ret;
-        _mutex.Acquire();
-        ret = (uint32)m_activeThreads.size();
-        _mutex.Release();
-        return ret; 
+	uint32 GetActiveThreadCount()
+    {
+        std::lock_guard<std::recursive_mutex> rGuard(m_mutex);
+        return (uint32)m_activeThreads.size();
     }
 
 	// gets free thread count
 	uint32 GetFreeThreadCount() 
     {
-        uint32 ret;
-        _mutex.Acquire();
-        ret = (uint32)m_freeThreads.size();
-        _mutex.Release();
-        return ret; 
+        std::lock_guard<std::recursive_mutex> rGuard(m_mutex);
+        return (uint32)m_freeThreads.size();
     }
     
     //gets mutex
-    INLINE Mutex &GetMutex()
+    INLINE std::recursive_mutex &GetMutex()
     {
-        return _mutex;
+        return m_mutex;
     }
 };
 

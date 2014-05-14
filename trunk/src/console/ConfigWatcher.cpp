@@ -55,19 +55,19 @@ bool ConfigWatcher::run()
 
 void ConfigWatcher::addListener(IConfigListener *pIConfigListener)
 {
-    std::lock_guard<tbb::mutex> rGuard(m_rListenersLock);
+    std::lock_guard<std::mutex> rGuard(m_rListenersLock);
     m_rListeners.insert(pIConfigListener);
 }
 
 void ConfigWatcher::removeListener(IConfigListener *pIConfigListener)
 {
-    std::lock_guard<tbb::mutex> rGuard(m_rListenersLock);
+    std::lock_guard<std::mutex> rGuard(m_rListenersLock);
     m_rListeners.erase(pIConfigListener);
 }
 
 void ConfigWatcher::executeListeners()
 {
-    std::lock_guard<tbb::mutex> rGuard(m_rListenersLock);
+    std::lock_guard<std::mutex> rGuard(m_rListenersLock);
     for(ListenerSet::iterator itr = m_rListeners.begin();itr != m_rListeners.end();++itr)
     {
         (*itr)->onConfigReload();

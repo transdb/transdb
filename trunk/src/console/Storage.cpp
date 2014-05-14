@@ -111,7 +111,7 @@ void Storage::LoadFromDisk(const HANDLE &rDataFileHandle, const uint64 &x)
     {
         //update LRU
         {
-            std::lock_guard<tbb::mutex> rGuard(m_LRULock);
+            std::lock_guard<std::mutex> rGuard(m_LRULock);
             m_pLRUCache->put(x);
         }
         
@@ -164,7 +164,7 @@ void Storage::ReadData(const HANDLE &rDataFileHandle, const uint64 &x, const uin
     {
         //update LRU
         {
-            std::lock_guard<tbb::mutex> rGuard(m_LRULock);
+            std::lock_guard<std::mutex> rGuard(m_LRULock);
             m_pLRUCache->put(x);
         }
         
@@ -185,7 +185,7 @@ void Storage::ReadData(const HANDLE &rDataFileHandle, const uint64 &x, ByteBuffe
     {
         //update LRU
         {
-            std::lock_guard<tbb::mutex> rGuard(m_LRULock);
+            std::lock_guard<std::mutex> rGuard(m_LRULock);
             m_pLRUCache->put(x);
         }
         
@@ -209,7 +209,7 @@ uint32 Storage::WriteData(const HANDLE &rDataFileHandle, const uint64 &x, const 
     
     //update LRU
     {
-        std::lock_guard<tbb::mutex> rGuard(m_LRULock);
+        std::lock_guard<std::mutex> rGuard(m_LRULock);
         m_pLRUCache->put(x);
     }
     
@@ -218,14 +218,14 @@ uint32 Storage::WriteData(const HANDLE &rDataFileHandle, const uint64 &x, const 
     {
         //allocate recordIndex struct
         {
-            std::lock_guard<tbb::mutex> rRI_Guard(m_rRecordIndexMemPoolLock);
+            std::lock_guard<std::mutex> rRI_Guard(m_rRecordIndexMemPoolLock);
             rWriteAccesor->second = m_rRecordIndexMemPool.allocate();
         }
         
         //allocate blockmanager
         //create block manager + add new block for write + update num of blocks
         {
-            std::lock_guard<tbb::mutex> rBM_Guard(m_rBlockManagerMemPoolLock);
+            std::lock_guard<std::mutex> rBM_Guard(m_rBlockManagerMemPoolLock);
             rWriteAccesor->second->m_pBlockManager = m_rBlockManagerMemPool.allocate(*this);
             rWriteAccesor->second->m_blockCount = rWriteAccesor->second->m_pBlockManager->numOfBlocks();
         }
@@ -309,7 +309,7 @@ void Storage::DeleteData(const uint64 &x)
 
         //delete from LRU
         {
-            std::lock_guard<tbb::mutex> rLRU_Guard(m_LRULock);
+            std::lock_guard<std::mutex> rLRU_Guard(m_LRULock);
             m_pLRUCache->remove(x);
         }
         
@@ -319,7 +319,7 @@ void Storage::DeleteData(const uint64 &x)
         //release memory
         if(rWriteAccessor->second->m_pBlockManager)
         {
-            std::lock_guard<tbb::mutex> rBM_Guard(m_rBlockManagerMemPoolLock);
+            std::lock_guard<std::mutex> rBM_Guard(m_rBlockManagerMemPoolLock);
             m_rBlockManagerMemPool.deallocate(rWriteAccessor->second->m_pBlockManager);
             rWriteAccessor->second->m_pBlockManager = NULL;
             //update memory counter
@@ -328,7 +328,7 @@ void Storage::DeleteData(const uint64 &x)
         
         //deallocate recordIndex struct
         {
-            std::lock_guard<tbb::mutex> rRI_Guard(m_rRecordIndexMemPoolLock);
+            std::lock_guard<std::mutex> rRI_Guard(m_rRecordIndexMemPoolLock);
             m_rRecordIndexMemPool.deallocate(rWriteAccessor->second);
             rWriteAccessor->second = NULL;
         }
@@ -351,7 +351,7 @@ void Storage::DeleteData(const HANDLE &rDataFileHandle, const uint64 &x, const u
     {
         //update LRU
         {
-            std::lock_guard<tbb::mutex> rGuard(m_LRULock);
+            std::lock_guard<std::mutex> rGuard(m_LRULock);
             m_pLRUCache->put(x);
         }
         
@@ -385,7 +385,7 @@ void Storage::GetAllY(const HANDLE &rDataFileHandle, const uint64 &x, ByteBuffer
     {
         //update LRU
         {
-            std::lock_guard<tbb::mutex> rGuard(m_LRULock);
+            std::lock_guard<std::mutex> rGuard(m_LRULock);
             m_pLRUCache->put(x);
         }
         
@@ -406,7 +406,7 @@ void Storage::DefragmentData(const HANDLE &rDataFileHandle, const uint64 &x)
     {
         //update LRU
         {
-            std::lock_guard<tbb::mutex> rGuard(m_LRULock);
+            std::lock_guard<std::mutex> rGuard(m_LRULock);
             m_pLRUCache->put(x);
         }
         
@@ -456,7 +456,7 @@ void Storage::DefragmentDataInternal(RecordIndexMap::accessor &rWriteAccessor)
 void Storage::GetFreeSpaceDump(ByteBuffer &rBuff, const uint32 &dumpFlags)
 {
     //lock
-    std::lock_guard<tbb::mutex> rGuard(m_rFreeSpaceLock);
+    std::lock_guard<std::mutex> rGuard(m_rFreeSpaceLock);
     
     //prealloc buffer
     if(dumpFlags == eSFSDF_FULL)
@@ -497,7 +497,7 @@ void Storage::CheckMemory()
     while(m_memoryUsed.load() > g_MemoryLimit)
     {
         {
-            std::lock_guard<tbb::mutex> rGetGuard(m_LRULock);
+            std::lock_guard<std::mutex> rGetGuard(m_LRULock);
             if(!m_pLRUCache->get(&xToDelete))
                 break;
         }
@@ -518,7 +518,7 @@ void Storage::CheckMemory()
                 m_memoryUsed -= ((rWriteAccessor->second->m_pBlockManager->numOfBlocks() * BLOCK_SIZE) + sizeof(BlockManager));
                 
                 //clean memory
-                std::lock_guard<tbb::mutex> rBM_Guard(m_rBlockManagerMemPoolLock);
+                std::lock_guard<std::mutex> rBM_Guard(m_rBlockManagerMemPoolLock);
                 m_rBlockManagerMemPool.deallocate(rWriteAccessor->second->m_pBlockManager);
                 rWriteAccessor->second->m_pBlockManager = NULL;
             }
@@ -530,7 +530,7 @@ void Storage::CheckMemory()
         
         //delete from LRU
         {
-            std::lock_guard<tbb::mutex> rRemoveGuard(m_LRULock);
+            std::lock_guard<std::mutex> rRemoveGuard(m_LRULock);
             if(m_pLRUCache->remove(xToDelete) == false)
             {
                 Log.Warning(__FUNCTION__, "m_pLRUCache->remove(" I64FMTD ") == false", xToDelete);
@@ -571,7 +571,7 @@ bool Storage::CheckBlockManager(const HANDLE &rDataFileHandle, const uint64 &x, 
         
         //copy to blocks allocated from memory pool
         {
-            std::lock_guard<tbb::mutex> rBGuard(m_rBlockMemPoolLock);
+            std::lock_guard<std::mutex> rBGuard(m_rBlockMemPoolLock);
             //split blocks
             for(i = 0;i < rWriteAccessor->second->m_blockCount;++i)
             {
@@ -583,7 +583,7 @@ bool Storage::CheckBlockManager(const HANDLE &rDataFileHandle, const uint64 &x, 
         
 		//create new blockmanager
         {
-            std::lock_guard<tbb::mutex> rBM_Guard(m_rBlockManagerMemPoolLock);
+            std::lock_guard<std::mutex> rBM_Guard(m_rBlockManagerMemPoolLock);
             rWriteAccessor->second->m_pBlockManager = m_rBlockManagerMemPool.allocate(*this, x, rBlocks);
         }
         
@@ -650,7 +650,7 @@ bool Storage::run()
     {
         Log.Error(__FUNCTION__, "Fatal error stopping server.");
         g_pClientSocketWorker->SetException(true);
-        Sync_Add(&g_stopEvent);
+        g_stopEvent = true;
     }
     
     return false;
@@ -665,7 +665,7 @@ void Storage::AddFreeSpace(const int64 &pos, const int64 &lenght)
     }
     
     //lock
-    std::lock_guard<tbb::mutex> rGuard(m_rFreeSpaceLock);
+    std::lock_guard<std::mutex> rGuard(m_rFreeSpaceLock);
     //
     FreeSpaceBlockMap::iterator itr = m_rFreeSpace.find(lenght);
     if(itr != m_rFreeSpace.end())
@@ -695,7 +695,7 @@ int64 Storage::GetFreeSpacePos(const int64 &lenght)
     int64 newPos;
     
     //lock
-    std::lock_guard<tbb::mutex> rGuard(m_rFreeSpaceLock);
+    std::lock_guard<std::mutex> rGuard(m_rFreeSpaceLock);
     //
     FreeSpaceBlockMap::iterator itr = m_rFreeSpace.find(lenght);
     if(itr != m_rFreeSpace.end())

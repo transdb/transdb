@@ -5,39 +5,45 @@
 	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
 	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
-	<string>51335488-5C78-496E-9569-207046FF65DA</string>
+	<string>A24E8F70-79AC-4EDF-8A54-70A6EA1F72C3</string>
 	<key>IDESourceControlProjectName</key>
 	<string>TransDBTester</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>45C38E51-BE0A-4179-A373-9C4EE9724BEE</key>
-		<string>http://system.geewa.com:8088/svn/base/trunk/TransStorageServer</string>
+		<key>BB9BBE9D-FA9D-47CC-B7F9-D1FC7A1CBE75</key>
+		<string>http://hyperv02.vps4u.cz:8443/svn/TransStorageServer</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
 	<string>trunk/TransDBTester/TransDBTester.xcodeproj/project.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>45C38E51-BE0A-4179-A373-9C4EE9724BEE</key>
+		<key>BB9BBE9D-FA9D-47CC-B7F9-D1FC7A1CBE75</key>
 		<string>../../../..</string>
 	</dict>
 	<key>IDESourceControlProjectRepositoryRootDictionary</key>
 	<dict>
-		<key>45C38E51-BE0A-4179-A373-9C4EE9724BEE</key>
-		<string>http://system.geewa.com:8088/svn/base</string>
+		<key>BB9BBE9D-FA9D-47CC-B7F9-D1FC7A1CBE75</key>
+		<string>http://hyperv02.vps4u.cz:8443/svn/TransStorageServer</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
-	<string>http://system.geewa.com:8088/svn/base/trunk/TransStorageServer/trunk/TransDBTester/TransDBTester.xcodeproj</string>
+	<string>http://hyperv02.vps4u.cz:8443/svn/TransStorageServer/trunk/TransDBTester/TransDBTester.xcodeproj</string>
 	<key>IDESourceControlProjectVersion</key>
 	<integer>110</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>45C38E51-BE0A-4179-A373-9C4EE9724BEE</string>
+	<string>BB9BBE9D-FA9D-47CC-B7F9-D1FC7A1CBE75</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
 		<dict>
+			<key>IDESourceControlRepositoryBranchesRelativeLocationKey</key>
+			<string>branches</string>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.subversion</string>
+			<key>IDESourceControlRepositoryTagsRelativeLocationKey</key>
+			<string>tags</string>
+			<key>IDESourceControlRepositoryTrunkRelativeLocationKey</key>
+			<string>trunk</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>45C38E51-BE0A-4179-A373-9C4EE9724BEE</string>
+			<string>BB9BBE9D-FA9D-47CC-B7F9-D1FC7A1CBE75</string>
 			<key>IDESourceControlWCCName</key>
 			<string>TransStorageServer</string>
 		</dict>

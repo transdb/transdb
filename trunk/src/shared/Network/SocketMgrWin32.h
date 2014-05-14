@@ -53,10 +53,10 @@ public:
 	void ShutdownThreads();
 
 private:
-	HANDLE			m_completionPort;
-	SocketSet		m_sockets;
-	Mutex			m_socketLock;
-	volatile long	m_threadcount;
+	HANDLE              m_completionPort;
+	SocketSet           m_sockets;
+	Mutex               m_socketLock;
+	std::atomic<long>	m_threadcount;
 };
 
 #define sSocketMgr SocketMgr::getSingleton()
