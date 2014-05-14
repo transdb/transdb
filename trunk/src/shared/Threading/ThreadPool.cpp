@@ -37,11 +37,8 @@ CThreadPool::~CThreadPool()
 
 }
 
-bool CThreadPool::ThreadExit(Thread * t)
+bool CThreadPool::ThreadExit(std::unique_lock<std::mutex> &rGuard, Thread * t)
 {
-    //lock
-    std::lock_guard<std::mutex> rGuard(m_mutex);
-	
 	// we're definitely no longer active
 	m_activeThreads.erase(t);
 
@@ -78,7 +75,7 @@ bool CThreadPool::ThreadExit(Thread * t)
 void CThreadPool::ExecuteTask(ThreadContext *pExecutionTarget)
 {
     //lock
-    std::lock_guard<std::mutex> rGuard(m_mutex);
+    std::unique_lock<std::mutex> rGuard(m_mutex);
     
 	Thread * t;
 	++m_threadsRequestedSinceLastCheck;
@@ -101,7 +98,7 @@ void CThreadPool::ExecuteTask(ThreadContext *pExecutionTarget)
 	{
 		// creating a new thread means it heads straight to its task.
 		// no need to resume it :)
-		t = StartThread(pExecutionTarget);
+		t = StartThread(rGuard, pExecutionTarget);
 	}
 
 	// add the thread to the active set
@@ -112,12 +109,15 @@ void CThreadPool::ExecuteTask(ThreadContext *pExecutionTarget)
 
 void CThreadPool::Startup()
 {
+    //lock
+    std::unique_lock<std::mutex> rGuard(m_mutex);
+    
 	int i;
 	int tcount = THREAD_RESERVE;
 
 	for(i = 0; i < tcount; ++i)
     {
-		StartThread(NULL);
+		StartThread(rGuard, NULL);
     }
 
 	Log.Debug("ThreadPool", "Startup, launched %u threads.", tcount);
@@ -144,7 +144,7 @@ void CThreadPool::ShowStats()
 void CThreadPool::IntegrityCheck()
 {
     //lock
-    std::lock_guard<std::mutex> rGuard(m_mutex);
+    std::unique_lock<std::mutex> rGuard(m_mutex);
     
 	int32 gobbled = m_threadsEaten;
     if(gobbled < 0)
@@ -156,7 +156,7 @@ void CThreadPool::IntegrityCheck()
 
 		for(uint32 i = 0; i < new_threads; ++i)
         {
-			StartThread(NULL);
+			StartThread(rGuard, NULL);
         }
 
 		Log.Debug("ThreadPool", "IntegrityCheck: (gobbled < 0) Spawning %u threads.", new_threads);
@@ -168,7 +168,7 @@ void CThreadPool::IntegrityCheck()
 		uint32 new_threads = (THREAD_RESERVE - gobbled);
 		for(uint32 i = 0; i < new_threads; ++i)
         {
-			StartThread(NULL);
+			StartThread(rGuard, NULL);
         }
 
 		Log.Debug("ThreadPool", "IntegrityCheck: (gobbled <= 5) Spawning %u threads.", new_threads);
@@ -178,7 +178,7 @@ void CThreadPool::IntegrityCheck()
 		// this means we had "excess" threads sitting around doing nothing.
 		// lets kill some of them off.
 		uint32 kill_count = (gobbled - THREAD_RESERVE);
-		KillFreeThreads(kill_count);
+		KillFreeThreads(rGuard, kill_count);
 		m_threadsEaten -= kill_count;
 		Log.Debug("ThreadPool", "IntegrityCheck: (gobbled > 5) Killing %u threads.", kill_count);
 	}
@@ -193,11 +193,8 @@ void CThreadPool::IntegrityCheck()
 	m_threadsFreedSinceLastCheck = 0;
 }
 
-void CThreadPool::KillFreeThreads(uint32 count)
+void CThreadPool::KillFreeThreads(std::unique_lock<std::mutex> &rGuard, uint32 count)
 {
-    //lock
-    std::lock_guard<std::mutex> rGuard(m_mutex);
-    
 	Log.Debug("ThreadPool", "Killing %u excess threads.", count);
 	
 	Thread * t;
@@ -214,20 +211,21 @@ void CThreadPool::KillFreeThreads(uint32 count)
 
 void CThreadPool::Shutdown()
 {
-	m_mutex.lock();
-	size_t tcount = m_activeThreads.size() + m_freeThreads.size();		// exit all
-	Log.Debug("ThreadPool", "Shutting down %u threads.", tcount);
-	KillFreeThreads((uint32)m_freeThreads.size());
-	m_threadsToExit += (uint32)m_activeThreads.size();
+    {   //lock
+        std::unique_lock<std::mutex> rGuard;
+        size_t tcount = m_activeThreads.size() + m_freeThreads.size();		// exit all
+        Log.Debug("ThreadPool", "Shutting down %u threads.", tcount);
+        KillFreeThreads(rGuard, (uint32)m_freeThreads.size());
+        m_threadsToExit += (uint32)m_activeThreads.size();
 
-	for(ThreadSet::iterator itr = m_activeThreads.begin(); itr != m_activeThreads.end(); ++itr)
-	{
-		if((*itr)->m_pExecutionTarget != NULL)
-		{
-			(*itr)->m_pExecutionTarget.load()->OnShutdown();
-		}
-	}
-	m_mutex.unlock();
+        for(ThreadSet::iterator itr = m_activeThreads.begin(); itr != m_activeThreads.end(); ++itr)
+        {
+            if((*itr)->m_pExecutionTarget != NULL)
+            {
+                (*itr)->m_pExecutionTarget.load()->OnShutdown();
+            }
+        }
+    }   //unlock
 
 	for(;;)
 	{
@@ -268,7 +266,7 @@ static void thread_proc(Thread *t)
 
         //lock to avoid call resume before suspend
         std::unique_lock<std::mutex> rTP_Lock(t->m_rThreadPool.m_mutex);
-		if(!ThreadPool.ThreadExit(t))
+		if(!t->m_rThreadPool.ThreadExit(rTP_Lock, t))
 		{
 			Log.Debug("ThreadPool", "Thread %u exiting.", tid);
 			break;
@@ -287,7 +285,7 @@ static void thread_proc(Thread *t)
 	}
 }
 
-Thread * CThreadPool::StartThread(ThreadContext *pExecutionTarget)
+Thread * CThreadPool::StartThread(std::unique_lock<std::mutex> &rGuard, ThreadContext *pExecutionTarget)
 {
     //create thread wrapper class
 	Thread * t = new Thread(*this, pExecutionTarget);
