@@ -20,44 +20,27 @@
 #include "Threading.h"
 #include "../Logs/Log.h"
 
-//#ifndef WIN32
-//	
-//	std::atomic<uint32> g_threadid_count(0);
-//	uint32 GenerateThreadId()
-//	{
-//        g_threadid_count += 1;
-//        return g_threadid_count;
-//	}
-//
-//#endif
-
 #define THREAD_RESERVE 4
 CThreadPool ThreadPool;
 
 CThreadPool::CThreadPool()
 {
-	m_threadsExitedSinceLastCheck	= 0;
-	m_threadsRequestedSinceLastCheck = 0;
-	m_threadsEaten					= 0;
+	m_threadsExitedSinceLastCheck       = 0;
+	m_threadsRequestedSinceLastCheck    = 0;
+	m_threadsEaten                      = 0;
 	m_threadsFreedSinceLastCheck		= 0;
-	m_threadsToExit					= 0;
-
-#ifdef WIN32	
-	hHandle = CreateEvent(NULL, FALSE, FALSE, NULL);
-#endif
+	m_threadsToExit                     = 0;
 }
 
 CThreadPool::~CThreadPool()
 {
-#ifdef WIN32		
-	CloseHandle(hHandle);
-#endif
+
 }
 
 bool CThreadPool::ThreadExit(Thread * t)
 {
     //lock
-    std::lock_guard<std::recursive_mutex> rGuard(m_mutex);
+    std::lock_guard<std::mutex> rGuard(m_mutex);
 	
 	// we're definitely no longer active
 	m_activeThreads.erase(t);
@@ -83,19 +66,19 @@ bool CThreadPool::ThreadExit(Thread * t)
 	ThreadSet::iterator itr = m_freeThreads.find(t);
 	if(itr != m_freeThreads.end())
 	{
-		Log.Error("ThreadPool", "Thread %u duplicated with thread %u", (*itr)->m_rControlInterface.GetId(), t->m_rControlInterface.GetId());
+		Log.Error("ThreadPool", "Thread %u duplicated with thread %u", (*itr)->GetId(), t->GetId());
 	}
 	m_freeThreads.insert(t);
 	
-	Log.Debug("ThreadPool", "Thread %u entered the free pool.", t->m_rControlInterface.GetId());
+	Log.Debug("ThreadPool", "Thread %u entered the free pool.", t->GetId());
 
 	return true;
 }
 
-void CThreadPool::ExecuteTask(ThreadContext * ExecutionTarget)
+void CThreadPool::ExecuteTask(ThreadContext *pExecutionTarget)
 {
     //lock
-    std::lock_guard<std::recursive_mutex> rGuard(m_mutex);
+    std::lock_guard<std::mutex> rGuard(m_mutex);
     
 	Thread * t;
 	++m_threadsRequestedSinceLastCheck;
@@ -108,21 +91,21 @@ void CThreadPool::ExecuteTask(ThreadContext * ExecutionTarget)
 		m_freeThreads.erase(t);
 
 		// execute the task on this thread.
-		t->m_pExecutionTarget = ExecutionTarget;
+		t->m_pExecutionTarget = pExecutionTarget;
 
 		// resume the thread, and it should start working.
-		t->m_rControlInterface.Resume();
-		Log.Debug("ThreadPool", "Thread %u left the thread pool.", t->m_rControlInterface.GetId());
+		t->Resume();
+		Log.Debug("ThreadPool", "Thread %u left the thread pool.", t->GetId());
 	}
 	else
 	{
 		// creating a new thread means it heads straight to its task.
 		// no need to resume it :)
-		t = StartThread(ExecutionTarget);
+		t = StartThread(pExecutionTarget);
 	}
 
 	// add the thread to the active set
-	Log.Debug("ThreadPool", "Thread %u is now executing task at %p.", t->m_rControlInterface.GetId(), ExecutionTarget);
+	Log.Debug("ThreadPool", "Thread %u is now executing task at %p.", t->GetId(), pExecutionTarget);
 
 	m_activeThreads.insert(t);
 }
@@ -161,7 +144,7 @@ void CThreadPool::ShowStats()
 void CThreadPool::IntegrityCheck()
 {
     //lock
-    std::lock_guard<std::recursive_mutex> rGuard(m_mutex);
+    std::lock_guard<std::mutex> rGuard(m_mutex);
     
 	int32 gobbled = m_threadsEaten;
     if(gobbled < 0)
@@ -213,7 +196,7 @@ void CThreadPool::IntegrityCheck()
 void CThreadPool::KillFreeThreads(uint32 count)
 {
     //lock
-    std::lock_guard<std::recursive_mutex> rGuard(m_mutex);
+    std::lock_guard<std::mutex> rGuard(m_mutex);
     
 	Log.Debug("ThreadPool", "Killing %u excess threads.", count);
 	
@@ -225,7 +208,7 @@ void CThreadPool::KillFreeThreads(uint32 count)
 		t = *itr;
 		t->m_pExecutionTarget = NULL;
 		++m_threadsToExit;
-		t->m_rControlInterface.Resume();
+		t->Resume();
 	}
 }
 
@@ -253,11 +236,8 @@ void CThreadPool::Shutdown()
 		{
 			Log.Debug("ThreadPool", "%u threads remaining...", m_activeThreads.size() + m_freeThreads.size());
 			m_mutex.unlock();
-#ifdef WIN32				
-			WaitForSingleObject(hHandle, 100);
-#else
-			Sleep(100);
-#endif
+            //wait
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
 			continue;
 		}
 
@@ -266,77 +246,11 @@ void CThreadPool::Shutdown()
 	}
 }
 
-#ifdef WIN32
-
-unsigned int WINAPI thread_proc(void* param)
+static void thread_proc(Thread *t)
 {
-	Thread * t = (Thread*)param;
-
-	t->m_rSetupMutex.Acquire();
-	uint32 tid = t->m_rControlInterface.GetId();
+    //save on stack
+	uint32 tid = t->GetId();
 	bool ht = (t->m_pExecutionTarget != NULL);
-	t->m_rSetupMutex.Release();
-
-	Log.Debug("ThreadPool", "Thread %u started.", t->m_rControlInterface.GetId());
-
-	for(;;)
-	{
-		if(t->m_pExecutionTarget != NULL)
-		{
-			if(t->m_pExecutionTarget->run())
-			{
-				delete t->m_pExecutionTarget;
-			}
-
-			t->m_pExecutionTarget = NULL;
-		}
-
-		if(!ThreadPool.ThreadExit(t))
-		{
-			Log.Debug("ThreadPool", "Thread %u exiting.", tid);
-			break;
-		}
-		else
-		{
-			if(ht)
-			{
-				Log.Debug("ThreadPool", "Thread %u waiting for a new task.", tid);
-			}
-
-			// enter "suspended" state. when we return, the threadpool will either tell us to fuk off, or to execute a new task.
-			t->m_rControlInterface.Suspend();
-			// after resuming, this is where we will end up. start the loop again, check for tasks, then go back to the threadpool.
-		}
-	}
-
-	_endthreadex(0);
-	return 0;
-}
-
-Thread * CThreadPool::StartThread(ThreadContext * ExecutionTarget)
-{
-	HANDLE h;
-	uint32 threadid;
-	Thread * t = new Thread(ExecutionTarget);
-	
-	t->m_rSetupMutex.Acquire();
-	h = (HANDLE)_beginthreadex(NULL, 0, &thread_proc, (LPVOID)t, 0, &threadid);
-	t->m_rControlInterface.Setup(h, threadid);
-	t->m_rSetupMutex.Release();
-
-	return t;
-}
-
-#else
-
-static void * thread_proc(void * param)
-{
-	Thread * t = (Thread*)param;
-
-	t->m_rSetupMutex.lock();
-	uint32 tid = t->m_rControlInterface.GetId();
-	bool ht = (t->m_pExecutionTarget != NULL);
-	t->m_rSetupMutex.unlock();
 
 	Log.Debug("ThreadPool", "Thread %u started.", tid);
 	
@@ -352,11 +266,11 @@ static void * thread_proc(void * param)
 			t->m_pExecutionTarget = NULL;
 		}
 
-        ThreadPool.GetMutex().lock();
+        //lock to avoid call resume before suspend
+        std::unique_lock<std::mutex> rTP_Lock(t->m_rThreadPool.m_mutex);
 		if(!ThreadPool.ThreadExit(t))
 		{
 			Log.Debug("ThreadPool", "Thread %u exiting.", tid);
-            ThreadPool.GetMutex().unlock();
 			break;
 		}
 		else
@@ -367,29 +281,21 @@ static void * thread_proc(void * param)
 			}
             
 			// enter "suspended" state. when we return, the threadpool will either tell us to fuk off, or to execute a new task.
-			t->m_rControlInterface.Suspend(ThreadPool.GetMutex());
+			t->Suspend(rTP_Lock);
 			// after resuming, this is where we will end up. start the loop again, check for tasks, then go back to the threadpool.
 		}
 	}
-
-	pthread_exit(NULL);
-    return NULL;
 }
 
-Thread * CThreadPool::StartThread(ThreadContext * ExecutionTarget)
+Thread * CThreadPool::StartThread(ThreadContext *pExecutionTarget)
 {
-	pthread_t target;
-	Thread * t = new Thread(ExecutionTarget);
-
-	// lock the main mutex, to make sure id generation doesn't get messed up
-	m_mutex.lock();
-	t->m_rSetupMutex.lock();
-	pthread_create(&target, NULL, &thread_proc, (void*)t);
-	pthread_detach(target);
-	t->m_rControlInterface.Setup(target);
-	t->m_rSetupMutex.unlock();
-	m_mutex.unlock();
+    //create thread wrapper class
+	Thread * t = new Thread(*this, pExecutionTarget);
+    
+    //start  thread_proc with Thread class as param
+    std::thread rThread(&thread_proc, t);
+    rThread.detach();
+    
+    //return
 	return t;
 }
-
-#endif

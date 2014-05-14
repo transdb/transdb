@@ -95,10 +95,7 @@ void Launcher::run()
 		sSocketGarbageCollector.Update();
 
 		//wait
-        {
-            std::unique_lock<std::mutex> rLock(m_rCondMutex);
-            m_rCond.wait_for(rLock, std::chrono::milliseconds(waitTime));
-        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(waitTime));
 	}
 
 	Log.Notice(__FUNCTION__, "Server shutdown in progress.");
