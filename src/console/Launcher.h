@@ -25,18 +25,9 @@ class InterClient;
 class Launcher
 {
 public:
-	Launcher()
+	explicit Launcher() : m_loopCounter(0)
 	{
 		m_loopCounter	= 0;
-#ifdef WIN32		
-		m_Handle		= CreateEvent(NULL, FALSE, FALSE, NULL);
-#endif		
-	}
-	~Launcher()
-	{
-#ifdef WIN32		
-		CloseHandle(m_Handle);
-#endif		
 	}
 
 	void run();
@@ -47,10 +38,9 @@ public:
 private:
 	static void OnSignal(int s);
 
-#ifdef WIN32
-	HANDLE m_Handle;
-#endif
-	uint32 m_loopCounter;
+    std::condition_variable m_rCond;
+    std::mutex              m_rCondMutex;
+	uint32                  m_loopCounter;
 };
 
 extern std::atomic<bool> g_stopEvent;

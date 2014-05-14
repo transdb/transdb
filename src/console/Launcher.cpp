@@ -74,9 +74,9 @@ void Launcher::run()
 		//check every 5mins
 		if(!((++m_loopCounter) % modThreadPoolCheck))
 		{
-//#ifdef DEBUG
-//			ThreadPool.ShowStats();
-//#endif
+#ifdef DEBUG
+			ThreadPool.ShowStats();
+#endif
 			ThreadPool.IntegrityCheck();
 		}
 
@@ -95,11 +95,10 @@ void Launcher::run()
 		sSocketGarbageCollector.Update();
 
 		//wait
-#ifdef WIN32		
-		WaitForSingleObject(m_Handle, waitTime);
-#else
-		Sleep(waitTime);
-#endif
+        {
+            std::unique_lock<std::mutex> rLock(m_rCondMutex);
+            m_rCond.wait_for(rLock, std::chrono::milliseconds(waitTime));
+        }
 	}
 
 	Log.Notice(__FUNCTION__, "Server shutdown in progress.");
