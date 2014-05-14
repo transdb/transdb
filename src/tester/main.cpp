@@ -51,17 +51,17 @@ public:
 //            random = rand() % 1000;
             random = x;
             
-            for(uint64 y = 1;y < 1000;++y)
+            for(uint64 y = 1;y < 10;++y)
             {
                 datasize = rand()%1024;
                 pData = (uint8*)malloc(datasize);
                 memset(pData, (rand()%255)+1, datasize);
                 
-                Packet rPacket(C_MSG_DELETE_DATA, 1024);
+                Packet rPacket(C_MSG_WRITE_DATA, 1024);
+                rPacket << uint32(token);
                 rPacket << uint32(0);
-                rPacket << uint32(0);
-                rPacket << uint64(200000);
-                rPacket << uint64(0); //uint64(GetTickCount64()); //uint64(y);
+                rPacket << uint64(x);
+                rPacket << uint64(y); //uint64(GetTickCount64()); //uint64(y);
                 rPacket.append(pData, datasize);
 
                 free(pData);
@@ -70,8 +70,6 @@ public:
                 {
                     Wait(100);
                 }
-                
-                return true;
 
                 //Sleep(1);
                 ++token;
@@ -91,7 +89,7 @@ int main(int argc, const char * argv[])
     assert(StartSharedLib());    
     
     
-    ClientSocket *pSocket = ConnectTCPSocket<ClientSocket>("g.vps4u.cz", 5555);
+    ClientSocket *pSocket = ConnectTCPSocket<ClientSocket>("localhost", 5555);
     if(pSocket == NULL)
         return 1;
     

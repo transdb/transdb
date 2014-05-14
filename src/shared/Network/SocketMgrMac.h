@@ -41,7 +41,7 @@ private:
     
     // fd -> pointer binding.
 	volatile SocketSet	m_sockets;
-	Mutex				m_socketLock;
+    std::mutex          m_socketLock;
     
 public:
     

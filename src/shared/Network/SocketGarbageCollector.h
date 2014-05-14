@@ -26,13 +26,13 @@
 /* Socket Garbage Collector */
 #define SOCKET_GC_TIMEOUT 15
 
-typedef unordered_map<Socket*, time_t> DeletionQueueMap;
+typedef std::map<Socket*, time_t> DeletionQueueMap;
 
 class SocketGarbageCollector : public Singleton<SocketGarbageCollector>
 {
 private:
 	volatile DeletionQueueMap	m_deletionQueue;
-	Mutex						m_DelLock;
+    std::mutex					m_DelLock;
 
 public:
 	~SocketGarbageCollector()

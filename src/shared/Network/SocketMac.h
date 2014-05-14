@@ -49,11 +49,11 @@ public:
     
 	/** Locks the socket's write buffer so you can begin a write operation
 	 */
-	void BurstBegin() { m_writeMutex.Acquire(); }
+	void BurstBegin()   { m_writeMutex.lock(); }
     
 	/** Unlocks the socket's write buffer so others can write to it
 	 */
-	void BurstEnd() { m_writeMutex.Release(); }
+	void BurstEnd()     { m_writeMutex.unlock(); }
     
 	/** Writes the specified data to the end of the socket's write buffer
 	 */
@@ -106,33 +106,25 @@ public:
 	// Atomic wrapper functions for increasing read/write locks
 	void IncSendLock()
     {
-        m_writeLockMutex.Acquire();
         ++m_writeLock;
-        m_writeLockMutex.Release();
     }
     
 	void DecSendLock()
     {
-        m_writeLockMutex.Acquire();
         --m_writeLock;
-        m_writeLockMutex.Release();
     }
     
 	bool AcquireSendLock()
 	{
-        bool res;
-        m_writeLockMutex.Acquire();
 		if(m_writeLock)
         {
-			res = false;
+			return false;
         }
 		else
 		{
 			++m_writeLock;
-			res = true;
+			return true;
 		}
-        m_writeLockMutex.Release();
-        return res;
 	}
     
 	// Get the client's ip in numerical form.
@@ -150,8 +142,8 @@ protected:
     
 	/** deleted/disconnected markers
 	 */
-	volatile bool	m_deleted;
-	volatile bool	m_connected;
+	std::atomic<bool>	m_deleted;
+	std::atomic<bool>	m_connected;
     
 	/** Called when connection is opened.
 	 */ 
@@ -159,22 +151,21 @@ protected:
     
 	/** Connected peer
 	 */
-	sockaddr_in 	m_peer;
+	sockaddr_in         m_peer;
     
 	/** Read (inbound)/Write (outbound) buffer
 	 */
-	CircularBuffer	m_readBuffer;
-	CircularBuffer	m_writeBuffer;
+	CircularBuffer      m_readBuffer;
+	CircularBuffer      m_writeBuffer;
     
 	/** Socket's read/write buffer protection
 	 */
-	Mutex 			m_writeMutex;
-	Mutex 			m_readMutex;
+    std::mutex          m_writeMutex;
+    std::mutex          m_readMutex;
 	
 	/** Write lock, stops multiple write events from being posted.
 	 */ 
-	volatile long 	m_writeLock;
-	Mutex           m_writeLockMutex;
+	std::atomic<long> 	m_writeLock;
 };
 
 #endif

@@ -77,8 +77,6 @@
 		8DE8238B15EF54B800F74908 /* Singleton.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DE8235415EF54B800F74908 /* Singleton.h */; };
 		8DE8238C15EF54B800F74908 /* Structs.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DE8235515EF54B800F74908 /* Structs.h */; };
 		8DE8238D15EF54B800F74908 /* LockingPtr.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DE8235715EF54B800F74908 /* LockingPtr.h */; };
-		8DE8238E15EF54B800F74908 /* Mutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DE8235815EF54B800F74908 /* Mutex.cpp */; };
-		8DE8238F15EF54B800F74908 /* Mutex.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DE8235915EF54B800F74908 /* Mutex.h */; };
 		8DE8239015EF54B800F74908 /* ThreadContext.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DE8235A15EF54B800F74908 /* ThreadContext.h */; };
 		8DE8239115EF54B800F74908 /* Threading.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DE8235B15EF54B800F74908 /* Threading.h */; };
 		8DE8239215EF54B800F74908 /* ThreadPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DE8235C15EF54B800F74908 /* ThreadPool.cpp */; };
@@ -182,8 +180,6 @@
 		8DE8235415EF54B800F74908 /* Singleton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Singleton.h; path = ../src/shared/Singleton.h; sourceTree = "<group>"; };
 		8DE8235515EF54B800F74908 /* Structs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Structs.h; path = ../src/shared/Structs.h; sourceTree = "<group>"; };
 		8DE8235715EF54B800F74908 /* LockingPtr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LockingPtr.h; sourceTree = "<group>"; };
-		8DE8235815EF54B800F74908 /* Mutex.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mutex.cpp; sourceTree = "<group>"; };
-		8DE8235915EF54B800F74908 /* Mutex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Mutex.h; sourceTree = "<group>"; };
 		8DE8235A15EF54B800F74908 /* ThreadContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ThreadContext.h; sourceTree = "<group>"; };
 		8DE8235B15EF54B800F74908 /* Threading.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Threading.h; sourceTree = "<group>"; };
 		8DE8235C15EF54B800F74908 /* ThreadPool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ThreadPool.cpp; sourceTree = "<group>"; };
@@ -389,8 +385,6 @@
 			isa = PBXGroup;
 			children = (
 				8DE8235715EF54B800F74908 /* LockingPtr.h */,
-				8DE8235815EF54B800F74908 /* Mutex.cpp */,
-				8DE8235915EF54B800F74908 /* Mutex.h */,
 				8DE8235A15EF54B800F74908 /* ThreadContext.h */,
 				8DE8235B15EF54B800F74908 /* Threading.h */,
 				8DE8235C15EF54B800F74908 /* ThreadPool.cpp */,
@@ -468,7 +462,6 @@
 				8DE8238B15EF54B800F74908 /* Singleton.h in Headers */,
 				8DE8238C15EF54B800F74908 /* Structs.h in Headers */,
 				8DE8238D15EF54B800F74908 /* LockingPtr.h in Headers */,
-				8DE8238F15EF54B800F74908 /* Mutex.h in Headers */,
 				8DE8239015EF54B800F74908 /* ThreadContext.h in Headers */,
 				8DE8239115EF54B800F74908 /* Threading.h in Headers */,
 				8DE8239315EF54B800F74908 /* ThreadPool.h in Headers */,
@@ -598,7 +591,6 @@
 				8DE8238115EF54B800F74908 /* SocketOpsWin32.cpp in Sources */,
 				8DE8238215EF54B800F74908 /* SocketWindows.cpp in Sources */,
 				8DE8238515EF54B800F74908 /* GeewaPacket.cpp in Sources */,
-				8DE8238E15EF54B800F74908 /* Mutex.cpp in Sources */,
 				8DE8239215EF54B800F74908 /* ThreadPool.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -638,8 +630,8 @@
 		8DE8230D15EF542200F74908 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CLANG_X86_VECTOR_INSTRUCTIONS = sse4.2;
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -661,8 +653,8 @@
 		8DE8230E15EF542200F74908 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CLANG_X86_VECTOR_INSTRUCTIONS = sse4.2;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;

@@ -27,7 +27,7 @@ public:
     
 private:
     volatile ClientSocketMap                    m_clientSockets;
-    Mutex                                       m_lock;
+    std::mutex                                  m_lock;
 };
 
 extern ClientSocketHolder g_rClientSocketHolder;

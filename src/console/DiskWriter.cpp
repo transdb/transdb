@@ -29,7 +29,7 @@ DiskWriter::~DiskWriter()
 void DiskWriter::Queue(RecordIndexMap::accessor &rWriteAccesor)
 {
 	//lock
-    std::lock_guard<tbb::mutex> rQGuard(m_rQueueLock);
+    std::lock_guard<std::mutex> rQGuard(m_rQueueLock);
 
 	//check if item exists, if exists replace
 	WriteInfo rWriteInfo(rWriteAccesor->first, rWriteAccesor->second->m_recordStart);
@@ -44,7 +44,7 @@ void DiskWriter::Queue(RecordIndexMap::accessor &rWriteAccesor)
 void DiskWriter::QueueIndexDeletetion(RecordIndexMap::accessor &rWriteAccesor)
 {
     //lock
-    std::lock_guard<tbb::mutex> rGuard(m_rRIDelQueueLock);
+    std::lock_guard<std::mutex> rGuard(m_rRIDelQueueLock);
     
     //create copy
     RecordIndex rRecordIndex;
@@ -62,11 +62,11 @@ INLINE static bool _S_SortWriteInfoForWrite(const WriteInfo &rWriteInfo1, const 
 }
 
 NOINLINE static bool _S_DiskWriter_ProcessQueue(DiskWriter::DirtyXQueue *pQueue,
-                                                tbb::mutex &rQueueLock,
+                                                std::mutex &rQueueLock,
                                                 DiskWriter::DirtyXProcess &rAllItemsToProcess)
 {
     //lock
-    std::lock_guard<tbb::mutex> rQGuard(rQueueLock);
+    std::lock_guard<std::mutex> rQGuard(rQueueLock);
     
     //fill items to process
     if(pQueue->size())
@@ -169,7 +169,7 @@ void DiskWriter::ClearInDiskQueueFlag(DiskWriter::DirtyXProcess &rProcessedItems
         {
             //cannot delete this record by MemoryWatcher if is wating in disk queue
             {
-                std::lock_guard<tbb::mutex> rQGuard(m_rQueueLock);
+                std::lock_guard<std::mutex> rQGuard(m_rQueueLock);
                 if(m_pQueue->containsKey(rWriteAccessor->first) == false)
                 {
                     //unset InDiskWriteQueue flag
@@ -265,7 +265,7 @@ void DiskWriter::Process()
                     //update index on disk if changed
                     if(rWriteAccessor->second->m_flags & eRIF_Dirty)
                     {
-                        std::lock_guard<tbb::mutex> rGuard(m_rStorage.m_rDataIndexDiskWriterLock);
+                        std::lock_guard<std::mutex> rGuard(m_rStorage.m_rDataIndexDiskWriterLock);
                         m_rStorage.m_pDataIndexDiskWriter->WriteRecordIndexToDisk(hIndexFile, rWriteAccessor);
                         rWriteAccessor->second->m_flags &= ~eRIF_Dirty;
                     }
@@ -322,7 +322,7 @@ void DiskWriter::Process()
 
 void DiskWriter::Remove(const uint64 &x)
 {
-    std::lock_guard<tbb::mutex> rQGuard(m_rQueueLock);
+    std::lock_guard<std::mutex> rQGuard(m_rQueueLock);
     m_pQueue->remove(x);
 }
 
@@ -360,10 +360,10 @@ void DiskWriter::ReallocDataFile(const HANDLE &hDataFile, const size_t &minSize,
 
 
 NOINLINE static void _S_DiskWriter_GetItemsFromIndexDelQueue(DiskWriter::RIDelQueue *pRIDelQueue,
-                                                             tbb::mutex &rRIDelQueueLock,
+                                                             std::mutex &rRIDelQueueLock,
                                                              Vector<RecordIndex, uint64> &rDeleteQueue)
 {
-    std::lock_guard<tbb::mutex> rRIDel_Guard(rRIDelQueueLock);
+    std::lock_guard<std::mutex> rRIDel_Guard(rRIDelQueueLock);
     if(pRIDelQueue->size())
     {
         rDeleteQueue.reserve(pRIDelQueue->size());
@@ -400,7 +400,7 @@ void DiskWriter::ProcessIndexDeleteQueue()
             
             //delete record index from disk
             {
-                std::lock_guard<tbb::mutex> rDI_Guard(m_rStorage.m_rDataIndexDiskWriterLock);
+                std::lock_guard<std::mutex> rDI_Guard(m_rStorage.m_rDataIndexDiskWriterLock);
                 m_rStorage.m_pDataIndexDiskWriter->EraseRecord(hIndexFile, rRecordIndex);
             }
         }

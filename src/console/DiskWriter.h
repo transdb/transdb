@@ -55,14 +55,14 @@ public:
     
 	bool HasTasks()
 	{
-        std::lock_guard<tbb::mutex> rQGuard(m_rQueueLock);
-        std::lock_guard<tbb::mutex> rRIDel_Guard(m_rRIDelQueueLock);
+        std::lock_guard<std::mutex> rQGuard(m_rQueueLock);
+        std::lock_guard<std::mutex> rRIDel_Guard(m_rRIDelQueueLock);
 		return m_pQueue->size() || m_pRIDelQueue->size();
 	}
     
     size_t GetQueueSize()
     {
-        std::lock_guard<tbb::mutex> rQGuard(m_rQueueLock);
+        std::lock_guard<std::mutex> rQGuard(m_rQueueLock);
         size_t size = m_pQueue->size();
         return size;
     }
@@ -93,12 +93,12 @@ private:
     //declarations
     DirtyXQueue         *m_pQueue;
     RIDelQueue          *m_pRIDelQueue;
-    tbb::mutex          m_rQueueLock;
-    tbb::mutex          m_rRIDelQueueLock;    
+    std::mutex          m_rQueueLock;
+    std::mutex          m_rRIDelQueueLock;
     Storage				&m_rStorage;
-    tbb::atomic<uint64> m_sumDiskWriteTime;
-    tbb::atomic<uint64> m_lastNumOfItemsInProcess;
-    tbb::atomic<uint64> m_itemsToProcessSize;
+    std::atomic<uint64> m_sumDiskWriteTime;
+    std::atomic<uint64> m_lastNumOfItemsInProcess;
+    std::atomic<uint64> m_itemsToProcessSize;
 };
 
 #endif

@@ -98,21 +98,21 @@ protected:
 	// Called when connection is opened.
 	void _OnConnect();
   
-	SOCKET m_fd;
+	SOCKET              m_fd;
 
-	CircularBuffer m_readBuffer;
-	CircularBuffer m_writeBuffer;
+	CircularBuffer      m_readBuffer;
+	CircularBuffer      m_writeBuffer;
 
-	Mutex m_writeMutex;
-	Mutex m_readMutex;
+	Mutex               m_writeMutex;
+	Mutex               m_readMutex;
 
 	// we are connected? stop from posting events.
-    volatile bool m_connected;
+    std::atomic<bool>   m_connected;
 
     // We are deleted? Stop us from posting events.
-    volatile bool m_deleted;
+    std::atomic<bool>   m_deleted;
 
-	sockaddr_in m_client;
+	sockaddr_in         m_client;
 
 public:
 	// Set completion port that this socket will be assigned to.
@@ -132,15 +132,15 @@ public:
 		}
 	}
 
-	OverlappedStruct m_readEvent;
-	OverlappedStruct m_writeEvent;
+	OverlappedStruct    m_readEvent;
+	OverlappedStruct    m_writeEvent;
 
 private:
 	// Completion port socket is assigned to
-	HANDLE m_completionPort;
+	HANDLE              m_completionPort;
 	
 	// Write lock, stops multiple write events from being posted.
-	volatile long m_writeLock;
+	std::atomic<long>   m_writeLock;
 	
 	// Assigns the socket to his completion port.
 	void AssignToCompletionPort();

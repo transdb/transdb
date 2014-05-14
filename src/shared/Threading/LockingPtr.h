@@ -26,12 +26,12 @@ template <typename T>
 class LockingPtr
 {
 public:
-	LockingPtr(volatile T& obj, MutexProto& rMutex) : m_obj(const_cast<T*>(&obj)), m_pMutex(&rMutex)
+	LockingPtr(volatile T& obj, std::mutex& rMutex) : m_obj(const_cast<T*>(&obj)), m_pMutex(&rMutex)
 	{
-		m_pMutex->Acquire();
+		m_pMutex->lock();
 	}
 
-	LockingPtr(volatile T& obj, MutexProto* pMutex) : m_obj(const_cast<T*>(&obj)), m_pMutex(pMutex)
+	LockingPtr(volatile T& obj, std::mutex* pMutex) : m_obj(const_cast<T*>(&obj)), m_pMutex(pMutex)
 	{
 		
 	}
@@ -40,7 +40,7 @@ public:
 	{
 		if(m_pMutex)
 		{
-			m_pMutex->Release();
+			m_pMutex->unlock();
 		}
 	}
 
@@ -56,7 +56,7 @@ public:
 
 private:
 	T*				m_obj;
-	MutexProto*		m_pMutex;
+    std::mutex*		m_pMutex;
 	LockingPtr(const LockingPtr&);
 	LockingPtr& operator=(const LockingPtr&);
 };

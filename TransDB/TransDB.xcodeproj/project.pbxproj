@@ -67,7 +67,6 @@
 		8DFE27E315E22C35007F75A3 /* Singleton.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE277E15E22BA8007F75A3 /* Singleton.h */; };
 		8DFE27E415E22C35007F75A3 /* Structs.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE277F15E22BA8007F75A3 /* Structs.h */; };
 		8DFE27E515E22C35007F75A3 /* LockingPtr.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE278115E22BA8007F75A3 /* LockingPtr.h */; };
-		8DFE27E615E22C35007F75A3 /* Mutex.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE278315E22BA8007F75A3 /* Mutex.h */; };
 		8DFE27E715E22C35007F75A3 /* ThreadContext.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE278415E22BA8007F75A3 /* ThreadContext.h */; };
 		8DFE27E815E22C35007F75A3 /* Threading.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE278515E22BA8007F75A3 /* Threading.h */; };
 		8DFE27E915E22C35007F75A3 /* ThreadPool.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE278715E22BA8007F75A3 /* ThreadPool.h */; };
@@ -87,7 +86,6 @@
 		8DFE27F715E22C46007F75A3 /* SocketOpsWin32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE277215E22BA8007F75A3 /* SocketOpsWin32.cpp */; };
 		8DFE27F815E22C46007F75A3 /* SocketWindows.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE277315E22BA8007F75A3 /* SocketWindows.cpp */; };
 		8DFE27F915E22C46007F75A3 /* GeewaPacket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE277715E22BA8007F75A3 /* GeewaPacket.cpp */; };
-		8DFE27FB15E22C46007F75A3 /* Mutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE278215E22BA8007F75A3 /* Mutex.cpp */; };
 		8DFE27FC15E22C46007F75A3 /* ThreadPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE278615E22BA8007F75A3 /* ThreadPool.cpp */; };
 		8DFE280515E22C6F007F75A3 /* crc32.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE27A015E22BC1007F75A3 /* crc32.h */; };
 		8DFE280615E22C6F007F75A3 /* deflate.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE27A215E22BC1007F75A3 /* deflate.h */; };
@@ -250,8 +248,6 @@
 		8DFE277E15E22BA8007F75A3 /* Singleton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Singleton.h; sourceTree = "<group>"; };
 		8DFE277F15E22BA8007F75A3 /* Structs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Structs.h; sourceTree = "<group>"; };
 		8DFE278115E22BA8007F75A3 /* LockingPtr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LockingPtr.h; sourceTree = "<group>"; };
-		8DFE278215E22BA8007F75A3 /* Mutex.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mutex.cpp; sourceTree = "<group>"; };
-		8DFE278315E22BA8007F75A3 /* Mutex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Mutex.h; sourceTree = "<group>"; };
 		8DFE278415E22BA8007F75A3 /* ThreadContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ThreadContext.h; sourceTree = "<group>"; };
 		8DFE278515E22BA8007F75A3 /* Threading.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Threading.h; sourceTree = "<group>"; };
 		8DFE278615E22BA8007F75A3 /* ThreadPool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ThreadPool.cpp; sourceTree = "<group>"; };
@@ -618,8 +614,6 @@
 			isa = PBXGroup;
 			children = (
 				8DFE278115E22BA8007F75A3 /* LockingPtr.h */,
-				8DFE278215E22BA8007F75A3 /* Mutex.cpp */,
-				8DFE278315E22BA8007F75A3 /* Mutex.h */,
 				8DFE278415E22BA8007F75A3 /* ThreadContext.h */,
 				8DFE278515E22BA8007F75A3 /* Threading.h */,
 				8DFE278615E22BA8007F75A3 /* ThreadPool.cpp */,
@@ -724,7 +718,6 @@
 				8DFE27E315E22C35007F75A3 /* Singleton.h in Headers */,
 				8DFE27E415E22C35007F75A3 /* Structs.h in Headers */,
 				8DFE27E515E22C35007F75A3 /* LockingPtr.h in Headers */,
-				8DFE27E615E22C35007F75A3 /* Mutex.h in Headers */,
 				8DFE27E715E22C35007F75A3 /* ThreadContext.h in Headers */,
 				8DFE27E815E22C35007F75A3 /* Threading.h in Headers */,
 				8DFE27E915E22C35007F75A3 /* ThreadPool.h in Headers */,
@@ -885,7 +878,6 @@
 				8DFE27F715E22C46007F75A3 /* SocketOpsWin32.cpp in Sources */,
 				8DFE27F815E22C46007F75A3 /* SocketWindows.cpp in Sources */,
 				8DFE27F915E22C46007F75A3 /* GeewaPacket.cpp in Sources */,
-				8DFE27FB15E22C46007F75A3 /* Mutex.cpp in Sources */,
 				8DFE27FC15E22C46007F75A3 /* ThreadPool.cpp in Sources */,
 				8DE1A22E1671ED9000159613 /* CrashHandler.cpp in Sources */,
 			);
@@ -916,6 +908,7 @@
 		8DFE273C15E22B6C007F75A3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -943,6 +936,7 @@
 		8DFE273D15E22B6C007F75A3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";

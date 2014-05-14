@@ -53,7 +53,7 @@ void BlockManager::DeallocBlocks()
     //dealloc blocks
     BlockSize_T *pBlock;
     
-    std::lock_guard<tbb::mutex> rBGuard(m_rStorage.m_rBlockMemPoolLock);
+    std::lock_guard<std::mutex> rBGuard(m_rStorage.m_rBlockMemPoolLock);
     for(uint16 i = 0;i < m_rBlocks.size();++i)
     {
         pBlock = (BlockSize_T*)GetBlock(i);
@@ -71,7 +71,7 @@ void BlockManager::ReallocBlocks()
     
     //get new block
     {
-        std::lock_guard<tbb::mutex> rBGuard(m_rStorage.m_rBlockMemPoolLock);        
+        std::lock_guard<std::mutex> rBGuard(m_rStorage.m_rBlockMemPoolLock);        
         pNewBlock = (uint8*)m_rStorage.m_rBlockMemPool.allocate();
     }
     

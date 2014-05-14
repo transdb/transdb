@@ -45,8 +45,8 @@ public:
     
     //ping
     void SendPing();
-    tbb::atomic<time_t> m_lastPong;
-    tbb::atomic<time_t> m_lastPing;
+    std::atomic<time_t> m_lastPong;
+    std::atomic<time_t> m_lastPing;
     
 private:
     OUTPACKET_RESULT _OutPacket(const uint16 &opcode, const size_t &len, const void* data);
@@ -57,7 +57,7 @@ private:
     uint16                  m_opcode;
     bool                    m_nagleEnabled;
     volatile PacketQueue    m_packetQueue;
-    Mutex                   m_packetQueueLock;
+    std::mutex              m_packetQueueLock;
     ClientSocketBuffer      m_rClientSocketBuffer;
 };
 

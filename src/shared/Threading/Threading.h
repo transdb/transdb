@@ -23,9 +23,6 @@
 //defines
 #include "../Defines.h"
 
-// Platform Specific Lock Implementation
-#include "Mutex.h"
-
 // Platform Independant Guard
 #include "LockingPtr.h"
 

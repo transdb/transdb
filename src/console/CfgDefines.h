@@ -40,22 +40,22 @@ extern uint64 g_IndexBlockCacheSize;
 extern int g_DefragAfterRecordDelete;
 
 //socket ID gen
-extern tbb::atomic<uint64> g_SocketID;
+extern std::atomic<uint64> g_SocketID;
 
 //start time
 extern time_t g_StartTime;
 
 //for statistics
-extern tbb::atomic<uint64> g_NumOfReadsFromDisk;
-extern tbb::atomic<uint64> g_NumOfReadsFromCache;
-extern tbb::atomic<uint64> g_NumOfWritesToDisk;
-extern tbb::atomic<size_t> g_ReceivedBytes;
-extern tbb::atomic<size_t> g_SendedBytes;
-extern tbb::atomic<size_t> g_NumOfRecordCompressions;
-extern tbb::atomic<size_t> g_NumOfRecordDecompressions;
-extern tbb::atomic<size_t> g_NumOfRecordDeframentations;
-extern tbb::atomic<uint64> g_AvgDiskReadTime;
-extern tbb::atomic<uint64> g_AvgDiskWriteTime;
+extern std::atomic<uint64> g_NumOfReadsFromDisk;
+extern std::atomic<uint64> g_NumOfReadsFromCache;
+extern std::atomic<uint64> g_NumOfWritesToDisk;
+extern std::atomic<size_t> g_ReceivedBytes;
+extern std::atomic<size_t> g_SendedBytes;
+extern std::atomic<size_t> g_NumOfRecordCompressions;
+extern std::atomic<size_t> g_NumOfRecordDecompressions;
+extern std::atomic<size_t> g_NumOfRecordDeframentations;
+extern std::atomic<uint64> g_AvgDiskReadTime;
+extern std::atomic<uint64> g_AvgDiskWriteTime;
 
 //zlib
 #define GZIP_ENCODING				16

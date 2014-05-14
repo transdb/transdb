@@ -19,42 +19,42 @@
 
 #include "main.h"
 
-volatile long g_stopEvent = 0;
+std::atomic<bool> g_stopEvent(false);
 
 void Launcher::HookSignals()
 {
-	signal(SIGINT, Launcher::OnSignal);
-	signal(SIGTERM, Launcher::OnSignal);
-	signal(SIGABRT, Launcher::OnSignal);
-#ifdef WIN32	
-	signal(SIGBREAK, Launcher::OnSignal);
-#endif	
+	signal(SIGINT, &Launcher::OnSignal);
+	signal(SIGTERM, &Launcher::OnSignal);
+	signal(SIGABRT, &Launcher::OnSignal);
+#ifdef WIN32
+	signal(SIGBREAK, &Launcher::OnSignal);
+#endif
 }
 
 void Launcher::UnhookSignals()
 {
-	signal(SIGINT, 0);
-	signal(SIGTERM, 0);
-	signal(SIGABRT, 0);
+	signal(SIGINT, NULL);
+	signal(SIGTERM, NULL);
+	signal(SIGABRT, NULL);
 #ifdef WIN32
-	signal(SIGBREAK, 0);
-#endif	
+	signal(SIGBREAK, NULL);
+#endif
 }
 
 void Launcher::OnSignal(int s)
 {
 	switch(s)
 	{
-	case SIGINT:
-	case SIGTERM:
-	case SIGABRT:
-#ifdef WIN32	
-	case SIGBREAK:
-#endif	
-		Sync_Add(&g_stopEvent);
-		break;
+        case SIGINT:
+        case SIGTERM:
+        case SIGABRT:
+#ifdef WIN32
+        case SIGBREAK:
+#endif
+            g_stopEvent = true;
+            break;
 	}
-
+    
 	signal(s, OnSignal);
 }
 
@@ -62,12 +62,12 @@ void Launcher::run()
 {
 	time_t curTime = 0;
 
-	while(g_stopEvent == 0)
+	while(g_stopEvent == false)
 	{
 		//check every 5mins
 		if(!((++m_loopCounter) % 10000))
 		{
-			ThreadPool.ShowStats();
+//			ThreadPool.ShowStats();
 			ThreadPool.IntegrityCheck();
 		}
 

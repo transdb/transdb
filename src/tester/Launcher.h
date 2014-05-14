@@ -53,6 +53,6 @@ private:
 	uint32 m_loopCounter;
 };
 
-extern volatile long g_stopEvent;
+extern std::atomic<bool> g_stopEvent;
 
 #endif

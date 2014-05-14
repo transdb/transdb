@@ -19,25 +19,25 @@
 
 #include "StdAfx.h"
 
-volatile long g_stopEvent = 0;
+std::atomic<bool> g_stopEvent(false);
 
 void Launcher::HookSignals()
 {
-	signal(SIGINT, Launcher::OnSignal);
-	signal(SIGTERM, Launcher::OnSignal);
-	signal(SIGABRT, Launcher::OnSignal);
+	signal(SIGINT, &Launcher::OnSignal);
+	signal(SIGTERM, &Launcher::OnSignal);
+	signal(SIGABRT, &Launcher::OnSignal);
 #ifdef WIN32	
-	signal(SIGBREAK, Launcher::OnSignal);
+	signal(SIGBREAK, &Launcher::OnSignal);
 #endif	
 }
 
 void Launcher::UnhookSignals()
 {
-	signal(SIGINT, 0);
-	signal(SIGTERM, 0);
-	signal(SIGABRT, 0);
+	signal(SIGINT, NULL);
+	signal(SIGTERM, NULL);
+	signal(SIGABRT, NULL);
 #ifdef WIN32
-	signal(SIGBREAK, 0);
+	signal(SIGBREAK, NULL);
 #endif	
 }
 
@@ -51,7 +51,7 @@ void Launcher::OnSignal(int s)
 #ifdef WIN32	
 	case SIGBREAK:
 #endif	
-		Sync_Add(&g_stopEvent);
+		g_stopEvent = true;
 		break;
 	}
 
@@ -64,7 +64,7 @@ void Launcher::run()
     static const uint32 modThreadPoolCheck  = 300 * (1000 / waitTime);
     
 	time_t curTime;
-	while(g_stopEvent == 0)
+	while(g_stopEvent == false)
 	{
 #ifdef WIN32
 		if(g_ServiceStatus == 0)
@@ -74,9 +74,9 @@ void Launcher::run()
 		//check every 5mins
 		if(!((++m_loopCounter) % modThreadPoolCheck))
 		{
-#ifdef DEBUG
-			ThreadPool.ShowStats();
-#endif
+//#ifdef DEBUG
+//			ThreadPool.ShowStats();
+//#endif
 			ThreadPool.IntegrityCheck();
 		}
 
