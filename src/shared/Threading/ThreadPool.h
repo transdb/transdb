@@ -72,7 +72,9 @@ typedef std::set<Thread*>           ThreadSet;
 
 class CThreadPool
 {
+private:
     friend class Thread;
+    friend class Worker;
     
 private:
     std::atomic<uint32>     m_threadsRequestedSinceLastCheck;
@@ -86,7 +88,7 @@ private:
 	ThreadSet               m_freeThreads;
     
 public:
-	CThreadPool();
+	explicit CThreadPool();
 	~CThreadPool();
 
 	// call every 2 minutes or so.
@@ -98,42 +100,22 @@ public:
 	// shutdown all threads
 	void Shutdown();
 	
-	// return true - suspend ourselves, and wait for a future task.
-	// return false - exit, we're shutting down or no longer needed.
-	bool ThreadExit(Thread * t);
-
-	// creates a thread, returns a handle to it.
-	Thread * StartThread(ThreadContext *pExecutionTarget);
-
 	// grabs/spawns a thread, and tells it to execute a task.
 	void ExecuteTask(ThreadContext *pExecutionTarget);
 
 	// prints some neat debug stats
 	void ShowStats();
 
+private:
+	// return true - suspend ourselves, and wait for a future task.
+	// return false - exit, we're shutting down or no longer needed.
+	bool ThreadExit(std::unique_lock<std::mutex> &rGuard, Thread * t);
+    
+	// creates a thread, returns a handle to it.
+	Thread * StartThread(std::unique_lock<std::mutex> &rGuard, ThreadContext *pExecutionTarget);
+    
 	// kills x free threads
-	void KillFreeThreads(uint32 count);
-
-	// resets the gobble counter
-	void Gobble() 
-    { 
-        std::lock_guard<std::mutex> rGuard(m_mutex);
-        m_threadsEaten = (int32)m_freeThreads.size();
-    }
-
-	// gets active thread count
-	uint32 GetActiveThreadCount()
-    {
-        std::lock_guard<std::mutex> rGuard(m_mutex);
-        return (uint32)m_activeThreads.size();
-    }
-
-	// gets free thread count
-	uint32 GetFreeThreadCount() 
-    {
-        std::lock_guard<std::mutex> rGuard(m_mutex);
-        return (uint32)m_freeThreads.size();
-    }
+	void KillFreeThreads(std::unique_lock<std::mutex> &rGuard, uint32 count);
 };
 
 extern CThreadPool ThreadPool;
