@@ -79,9 +79,7 @@ void HandleReadComplete(Socket * s, size_t len)
 		s->m_readEvent.Unmark();
 		if(len)
 		{
-			s->GetReadBuffer().IncrementWritten(len);
-			s->OnRead();
-			s->SetupReadEvent();
+            s->ReadCallback(len);
 		}
 		else
 			s->Delete();	  // Queue deletion.
