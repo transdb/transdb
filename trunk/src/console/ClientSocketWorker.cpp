@@ -91,7 +91,7 @@ void ClientSocketWorker::DestroyWorkerThreads()
         while(m_rTaskDataQueue.size() != waitSize)
         {
             Log.Notice(__FUNCTION__, "Waiting for: %d tasks to finish.", (int32)m_rTaskDataQueue.size());
-            Sleep(5000);
+            std::this_thread::sleep_for(std::chrono::milliseconds(5000));
         }
         
         //read tasks
@@ -99,7 +99,7 @@ void ClientSocketWorker::DestroyWorkerThreads()
         while(m_rReadTaskDataQueue.size() !=  waitSize)
         {
             Log.Notice(__FUNCTION__, "Waiting for: %d read tasks to finish.", (int32)m_rReadTaskDataQueue.size());
-            Sleep(5000);
+            std::this_thread::sleep_for(std::chrono::milliseconds(5000));
         }
         
         Log.Notice(__FUNCTION__, "Tasks finished. Calling abort.");
