@@ -23,13 +23,9 @@
 #define THREAD_RESERVE 4
 CThreadPool ThreadPool;
 
-CThreadPool::CThreadPool()
+CThreadPool::CThreadPool() : m_threadsExitedSinceLastCheck(0), m_threadsRequestedSinceLastCheck(0), m_threadsEaten(0), m_threadsToExit(0)
 {
-	m_threadsExitedSinceLastCheck       = 0;
-	m_threadsRequestedSinceLastCheck    = 0;
-	m_threadsEaten                      = 0;
-	m_threadsFreedSinceLastCheck		= 0;
-	m_threadsToExit                     = 0;
+
 }
 
 CThreadPool::~CThreadPool()
@@ -126,7 +122,7 @@ void CThreadPool::Startup()
 void CThreadPool::ShowStats()
 {
     //lock
-    std::lock_guard<std::recursive_mutex> rGuard(mutex);
+    std::unique_lock<std::mutex> rGuard(m_mutex);
     
     float ratio = float(float(m_threadsRequestedSinceLastCheck+1) / float(m_threadsExitedSinceLastCheck+1) * 100.0f);
     uint32 threadsRequestedSinceLastCheck = m_threadsRequestedSinceLastCheck;
@@ -190,7 +186,6 @@ void CThreadPool::IntegrityCheck()
 
 	m_threadsExitedSinceLastCheck = 0;
 	m_threadsRequestedSinceLastCheck = 0;
-	m_threadsFreedSinceLastCheck = 0;
 }
 
 void CThreadPool::KillFreeThreads(std::unique_lock<std::mutex> &rGuard, uint32 count)
@@ -244,7 +239,7 @@ void CThreadPool::Shutdown()
 	}
 }
 
-static void thread_proc(Thread *t)
+void Thread::thread_proc(Thread *t)
 {
     //save on stack
 	uint32 tid = t->GetId();
@@ -260,7 +255,6 @@ static void thread_proc(Thread *t)
 			{
 				delete t->m_pExecutionTarget.load();
 			}
-
 			t->m_pExecutionTarget = NULL;
 		}
 
@@ -291,7 +285,7 @@ Thread * CThreadPool::StartThread(std::unique_lock<std::mutex> &rGuard, ThreadCo
 	Thread * t = new Thread(*this, pExecutionTarget);
     
     //start  thread_proc with Thread class as param
-    std::thread rThread(&thread_proc, t);
+    std::thread rThread(&Thread::thread_proc, t);
     rThread.detach();
     
     //return

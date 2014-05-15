@@ -85,7 +85,7 @@ public:
     void CloseAll();
 
     /// spawns worker threads
-    void SpawnWorkerThreads(uint32 count);
+    void SpawnWorkerThreads();
 		
 	//epoll fd
 	int GetEpollFd()		{ return m_epoll_fd; }

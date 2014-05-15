@@ -30,7 +30,6 @@
 		8DAC6D51188D3BE3001851BB /* Vector.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DAC6D50188D3BE3001851BB /* Vector.h */; };
 		8DB34A1416A4203800BC17C4 /* MemoryWatcher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DB34A1216A4203800BC17C4 /* MemoryWatcher.cpp */; };
 		8DBBC27716071D780006752A /* Common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DBBC27516071D780006752A /* Common.cpp */; };
-		8DC3C713190528BE00E66663 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 8DC3C712190528BE00E66663 /* Makefile */; };
 		8DC9C51115F4F62B001058CC /* IndexBlock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DC9C51015F4F62B001058CC /* IndexBlock.cpp */; };
 		8DD81C5917213E0C00FE109B /* IO.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DD81C5717213E0C00FE109B /* IO.cpp */; };
 		8DDB5436173268E400A69B7D /* cpuid.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DDB5435173268E400A69B7D /* cpuid.h */; };
@@ -846,7 +845,6 @@
 				8D04CC5315FDEBEE00400092 /* ServiceWin32.cpp in Sources */,
 				8D0BAFF415FE123900E490F9 /* ConfigWatcher.cpp in Sources */,
 				8DBBC27716071D780006752A /* Common.cpp in Sources */,
-				8DC3C713190528BE00E66663 /* Makefile in Sources */,
 				8D691523165101D7002D4A28 /* ClientSocketWorker.cpp in Sources */,
 				8D69152716510D56002D4A28 /* ClientSocketWorkerTask.cpp in Sources */,
 				8D997D21166CB34200A5F84B /* StatGenerator.cpp in Sources */,

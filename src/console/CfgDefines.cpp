@@ -32,7 +32,6 @@ int     g_PingTimeout               = 60;
 int     g_PingSendInterval          = 15;
 uint64	g_LRUCacheMemReserve		= 4*1024*1024;
 int     g_MemoryPoolsRecycleTimer   = 60*60;
-int     g_NetworkThreads            = 1;
 int     g_MaxParallelTasks          = 4;
 int     g_MaxParallelReadTasks      = 4;
 int     g_MaxTasksInQueue           = 100;
@@ -130,7 +129,6 @@ void LoadConfig()
     GET_CONFIG_VALUE(status, GetInt, "PublicSocket", "WriteBufferSize", &writeBufferSize);
     GET_CONFIG_VALUE(status, GetInt, "PublicSocket", "PingTimeout", &g_PingTimeout);
     GET_CONFIG_VALUE(status, GetInt, "PublicSocket", "PingSendInterval", &g_PingSendInterval);
-    GET_CONFIG_VALUE(status, GetInt, "PublicSocket", "NetworkThreads", &g_NetworkThreads);
     GET_CONFIG_VALUE(status, GetInt, "PublicSocket", "MaxParallelTasks", &g_MaxParallelTasks);
     GET_CONFIG_VALUE(status, GetInt, "PublicSocket", "MaxParallelReadTasks", &g_MaxParallelReadTasks);
     GET_CONFIG_VALUE(status, GetInt, "PublicSocket", "MaxTasksInQueue", &g_MaxTasksInQueue);

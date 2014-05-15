@@ -24,13 +24,27 @@
 
 class CThreadPool;
 
+static INLINE uint32 GenerateThreadId()
+{
+    static std::atomic<uint32> g_threadid_count(1);
+    return ++g_threadid_count;
+}
+
 class Thread
 {
+    friend class CThreadPool;
+    
 public:
-	explicit Thread(CThreadPool &rThreadPool, ThreadContext *pExecTarget) : m_rThreadPool(rThreadPool), m_suspended(false), m_pExecutionTarget(pExecTarget)
+	explicit Thread(CThreadPool &rThreadPool, ThreadContext *pExecTarget) : m_rThreadPool(rThreadPool),
+                                                                            m_pExecutionTarget(pExecTarget),
+                                                                            m_signaled(false),
+                                                                            m_threadId(GenerateThreadId())
 	{
-        
+
 	}
+    
+    //thread start func
+    static void thread_proc(Thread *t);
     
 	void Suspend(std::unique_lock<std::mutex> &rTP_Mutex)
 	{
@@ -40,52 +54,47 @@ public:
         rTP_Mutex.unlock();
         
         //used to avoid spurious wakeups
-        m_suspended = true;
-        do
-        {
-            m_rCond.wait(rLock);
-            //
-        }while(m_suspended);
+        m_rCond.wait(rLock, [=]{ return m_signaled.load(); });
+        m_signaled = false;
 	}
 	
 	void Resume()
 	{
         std::unique_lock<std::mutex> rLock(m_rCondMutex);
-        m_suspended = false;
+        m_signaled = true;
         m_rCond.notify_one();
 	}
     
     uint32 GetId() const
 	{
-//        std::thread::id tID = std::this_thread::get_id();
-		return 0;
+		return m_threadId;
 	}
     
+private:
     CThreadPool                     &m_rThreadPool;
-    std::atomic<bool>               m_suspended;
     std::atomic<ThreadContext*>     m_pExecutionTarget;
+    std::atomic<bool>               m_signaled;
+    uint32                          m_threadId;
     std::condition_variable         m_rCond;
     std::mutex                      m_rCondMutex;
 };
 
-typedef std::set<Thread*>           ThreadSet;
 
 class CThreadPool
 {
-private:
+    typedef std::set<Thread*>   ThreadSet;
+
     friend class Thread;
-    friend class Worker;
     
 private:
-    std::atomic<uint32>     m_threadsRequestedSinceLastCheck;
-	std::atomic<uint32>     m_threadsFreedSinceLastCheck;
-	std::atomic<uint32>     m_threadsExitedSinceLastCheck;
-	std::atomic<uint32>     m_threadsToExit;
-	std::atomic<int32>      m_threadsEaten;
-	std::mutex              m_mutex;
+    uint32      m_threadsRequestedSinceLastCheck;
+	uint32      m_threadsExitedSinceLastCheck;
+	uint32      m_threadsToExit;
+	int32       m_threadsEaten;
+	std::mutex  m_mutex;
 
-    ThreadSet               m_activeThreads;
-	ThreadSet               m_freeThreads;
+    ThreadSet   m_activeThreads;
+	ThreadSet   m_freeThreads;
     
 public:
 	explicit CThreadPool();
