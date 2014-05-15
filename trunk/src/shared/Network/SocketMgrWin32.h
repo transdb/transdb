@@ -42,16 +42,14 @@ public:
     
 	void AddSocket(Socket * s)
 	{
-		m_socketLock.Acquire();
-		m_sockets.insert(s);
-		m_socketLock.Release();
+		LockingPtr<SocketSet> pSockets(m_sockets, m_socketLock);
+		pSockets->insert(s);
 	}
 
 	void RemoveSocket(Socket * s)
 	{
-		m_socketLock.Acquire();
-		m_sockets.erase(s);
-		m_socketLock.Release();
+		LockingPtr<SocketSet> pSockets(m_sockets, m_socketLock);
+		pSockets->erase(s);
 	}
 
 	void ShutdownThreads();
@@ -59,7 +57,7 @@ public:
 private:
 	HANDLE              m_completionPort;
 	volatile SocketSet  m_sockets;
-	Mutex               m_socketLock;
+	std::mutex			m_socketLock;
 };
 
 #define sSocketMgr SocketMgr::getSingleton()

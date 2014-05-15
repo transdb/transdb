@@ -39,7 +39,7 @@ static bool StartSharedLib()
     ThreadPool.Startup();
     
     //start network mgr
-    sSocketMgr.SpawnWorkerThreads(1);
+    sSocketMgr.SpawnWorkerThreads();
     
     return true;
 }

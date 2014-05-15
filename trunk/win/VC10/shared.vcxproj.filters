@@ -16,9 +16,6 @@
     <ClCompile Include="..\..\src\shared\Packets\GeewaPacket.cpp">
       <Filter>Packets</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\shared\Threading\Mutex.cpp">
-      <Filter>Threading</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\shared\Threading\ThreadPool.cpp">
       <Filter>Threading</Filter>
     </ClCompile>
@@ -86,9 +83,6 @@
     </ClInclude>
     <ClInclude Include="..\..\src\shared\Packets\StackBuffer.h">
       <Filter>Packets</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\shared\Threading\Mutex.h">
-      <Filter>Threading</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\shared\Threading\ThreadPool.h">
       <Filter>Threading</Filter>

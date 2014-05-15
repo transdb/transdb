@@ -17,7 +17,7 @@ bool WinServiceInstall();
 bool WinServiceUninstall();
 bool WinServiceRun();
 
-extern volatile long g_ServiceStatus;
+extern std::atomic<long> g_ServiceStatus;
 
 #endif                                                      // _WIN32_SERVICE_
 #endif                                                      // WIN32

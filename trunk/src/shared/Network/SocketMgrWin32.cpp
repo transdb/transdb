@@ -103,14 +103,15 @@ void HandleWriteComplete(Socket * s, size_t len)
 
 void SocketMgr::CloseAll()
 {
+	LockingPtr<SocketSet> pSockets(m_sockets, NULL);
 	list<Socket*> tokill;
 
-	m_socketLock.Acquire();
-	for(SocketSet::iterator itr = m_sockets.begin(); itr != m_sockets.end(); ++itr)
+	m_socketLock.lock();
+	for (SocketSet::iterator itr = pSockets->begin(); itr != pSockets->end(); ++itr)
 	{
 		tokill.push_back(*itr);
 	}
-	m_socketLock.Release();
+	m_socketLock.unlock();
 	
 	for(list<Socket*>::iterator itr = tokill.begin(); itr != tokill.end(); ++itr)
 	{
@@ -120,9 +121,9 @@ void SocketMgr::CloseAll()
 	size_t size = 0;
 	do
 	{
-		m_socketLock.Acquire();
-		size = m_sockets.size();
-		m_socketLock.Release();
+		m_socketLock.lock();
+		size = pSockets->size();
+		m_socketLock.unlock();
 	}while(size);
 }
 

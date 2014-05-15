@@ -58,7 +58,7 @@ public:
 	bool Send(const uint8 * Bytes, size_t Size);
 
 	// Burst system - Locks the sending mutex.
-	void BurstBegin() { m_writeMutex.Acquire(); }
+	void BurstBegin() { m_writeMutex.lock(); }
 
 	// Burst system - Adds bytes to output buffer.
 	bool BurstSend(const uint8 * Bytes, size_t Size);
@@ -67,7 +67,7 @@ public:
 	void BurstPush();
 
 	// Burst system - Unlocks the sending mutex.
-	void BurstEnd() { m_writeMutex.Release(); }
+	void BurstEnd() { m_writeMutex.unlock(); }
 
 /* Client Operations */
 
@@ -103,8 +103,8 @@ protected:
 	CircularBuffer      m_readBuffer;
 	CircularBuffer      m_writeBuffer;
 
-	Mutex               m_writeMutex;
-	Mutex               m_readMutex;
+	std::mutex          m_writeMutex;
+	std::mutex          m_readMutex;
 
 	// we are connected? stop from posting events.
     std::atomic<bool>   m_connected;
@@ -116,11 +116,22 @@ protected:
 
 public:
 	// Set completion port that this socket will be assigned to.
-	void SetCompletionPort(HANDLE cp) { m_completionPort = cp; }
+	void SetCompletionPort(HANDLE cp) 
+	{ 
+		m_completionPort = cp; 
+	}
 	
 	// Atomic wrapper functions for increasing read/write locks
-	void IncSendLock() { InterlockedIncrement(&m_writeLock); }
-	void DecSendLock() { InterlockedDecrement(&m_writeLock); }
+	void IncSendLock() 
+	{ 
+		++m_writeLock; 
+	}
+
+	void DecSendLock() 
+	{ 
+		--m_writeLock; 
+	}
+
 	bool AcquireSendLock()
 	{
 		if(m_writeLock)

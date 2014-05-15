@@ -46,7 +46,6 @@
     <ClCompile Include="..\..\src\shared\Network\SocketWindows.cpp" />
     <ClCompile Include="..\..\src\shared\Packets\GeewaPacket.cpp" />
     <ClCompile Include="..\..\src\shared\StackWalker.cpp" />
-    <ClCompile Include="..\..\src\shared\Threading\Mutex.cpp" />
     <ClCompile Include="..\..\src\shared\Threading\ThreadPool.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -87,7 +86,6 @@
     <ClInclude Include="..\..\src\shared\StackWalker.h" />
     <ClInclude Include="..\..\src\shared\Structs.h" />
     <ClInclude Include="..\..\src\shared\Threading\LockingPtr.h" />
-    <ClInclude Include="..\..\src\shared\Threading\Mutex.h" />
     <ClInclude Include="..\..\src\shared\Threading\ThreadContext.h" />
     <ClInclude Include="..\..\src\shared\Threading\Threading.h" />
     <ClInclude Include="..\..\src\shared\Threading\ThreadPool.h" />
