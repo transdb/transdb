@@ -215,7 +215,7 @@ void CThreadPool::Shutdown()
 
         for(ThreadSet::iterator itr = m_activeThreads.begin(); itr != m_activeThreads.end(); ++itr)
         {
-            if((*itr)->m_pExecutionTarget != NULL)
+            if((*itr)->m_pExecutionTarget.load() != NULL)
             {
                 (*itr)->m_pExecutionTarget.load()->OnShutdown();
             }
@@ -243,13 +243,13 @@ void Thread::thread_proc(Thread *t)
 {
     //save on stack
 	uint32 tid = t->GetId();
-	bool ht = (t->m_pExecutionTarget != NULL);
+	bool ht = (t->m_pExecutionTarget.load() != NULL);
 
 	Log.Debug("ThreadPool", "Thread %u started.", tid);
 	
 	for(;;)
 	{
-		if(t->m_pExecutionTarget != NULL)
+		if(t->m_pExecutionTarget.load() != NULL)
 		{
 			if(t->m_pExecutionTarget.load()->run())
 			{

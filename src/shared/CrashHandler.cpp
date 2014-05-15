@@ -39,7 +39,7 @@ void OutputCrashLogLine(const char * format, ...)
 
 #ifdef WIN32
 
-Mutex m_crashLock;
+std::mutex m_crashLock;
 
 /* *
    @file CrashHandler.h
@@ -258,7 +258,7 @@ void CStackWalker::OnOutput(LPCSTR szText)
 int __cdecl HandleCrash(PEXCEPTION_POINTERS pExceptPtrs)
 {
 	/* only allow one thread to crash. */
-	if(!m_crashLock.AttemptAcquire())
+	if(!m_crashLock.try_lock())
 	{
 		TerminateThread(GetCurrentThread(), static_cast<DWORD>(-1));
 		return EXCEPTION_EXECUTE_HANDLER;
@@ -318,7 +318,7 @@ int __cdecl HandleCrash(PEXCEPTION_POINTERS pExceptPtrs)
 		CloseHandle(hDump);
 	}
 
-	m_crashLock.Release();
+	m_crashLock.unlock();
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 

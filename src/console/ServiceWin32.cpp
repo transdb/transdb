@@ -29,7 +29,7 @@ extern string g_serviceDescription;
 *  1 - running
 *  2 - paused
 */
-volatile long g_ServiceStatus = -1;
+std::atomic<long> g_ServiceStatus(-1);
 
 SERVICE_STATUS serviceStatus;
 
@@ -168,14 +168,14 @@ void WINAPI ServiceControlHandler(DWORD controlCode)
             serviceStatus.dwCurrentState = SERVICE_STOP_PENDING;
             SetServiceStatus(serviceStatusHandle, &serviceStatus);
             
-            Sync_Set(&g_ServiceStatus, 0);
+            g_ServiceStatus = 0;
             return;
             
         case SERVICE_CONTROL_CONTINUE:
             serviceStatus.dwCurrentState = SERVICE_RUNNING;
             SetServiceStatus(serviceStatusHandle, &serviceStatus);
 
-            Sync_Set(&g_ServiceStatus, 1);
+            g_ServiceStatus = 1;
             break;
             
         default:
@@ -233,7 +233,7 @@ void WINAPI ServiceMain(DWORD argc, char* argv[])
         // service main cycle //
         ////////////////////////
         
-        Sync_Set(&g_ServiceStatus, 1);
+        g_ServiceStatus = 1;
         argc = 1;
         main(argc , argv);
         
