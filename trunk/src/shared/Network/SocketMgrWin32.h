@@ -32,10 +32,14 @@ public:
 	SocketMgr();
 	~SocketMgr();
 
-	HANDLE GetCompletionPort() { return m_completionPort; }
-	void SpawnWorkerThreads(uint32 count);
+	void SpawnWorkerThreads();
 	void CloseAll();
-	void ShowStatus();
+
+    HANDLE GetCompletionPort()
+    {
+        return m_completionPort;
+    }
+    
 	void AddSocket(Socket * s)
 	{
 		m_socketLock.Acquire();
@@ -54,9 +58,8 @@ public:
 
 private:
 	HANDLE              m_completionPort;
-	SocketSet           m_sockets;
+	volatile SocketSet  m_sockets;
 	Mutex               m_socketLock;
-	std::atomic<long>	m_threadcount;
 };
 
 #define sSocketMgr SocketMgr::getSingleton()

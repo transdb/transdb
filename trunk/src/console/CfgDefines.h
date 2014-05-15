@@ -30,7 +30,6 @@ extern int g_PingTimeout;
 extern int g_PingSendInterval;
 extern uint64 g_LRUCacheMemReserve;
 extern int g_MemoryPoolsRecycleTimer;
-extern int g_NetworkThreads;
 extern int g_MaxParallelTasks;
 extern int g_MaxParallelReadTasks;
 extern int g_MaxTasksInQueue;

@@ -42,6 +42,7 @@ public:
 
 	void Terminate() 
 	{
+        std::unique_lock<std::mutex> rLock(m_rCondMutex);
         m_threadRunning = false;
         m_rCond.notify_one();
 	}

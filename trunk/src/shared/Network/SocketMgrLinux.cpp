@@ -92,13 +92,9 @@ void SocketMgr::CloseAll()
 	}while(size);
 }
 
-void SocketMgr::SpawnWorkerThreads(uint32 count)
+void SocketMgr::SpawnWorkerThreads()
 {
-	count = 1;	
-    for(uint32 i = 0; i < count; ++i)
-	{
-        ThreadPool.ExecuteTask(new SocketWorkerThread());
-	}
+    ThreadPool.ExecuteTask(new SocketWorkerThread());
 }
 
 SocketWorkerThread::SocketWorkerThread()

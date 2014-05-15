@@ -106,20 +106,13 @@ void SocketMgr::CloseAll()
 	}while(size);
 }
 
-void SocketMgr::SpawnWorkerThreads(uint32 count)
+void SocketMgr::SpawnWorkerThreads()
 {
-    if(count == 0)
-    {
-        int numOfCPU = (int)sysconf(_SC_NPROCESSORS_ONLN);
-        if(numOfCPU <= 0)
-            numOfCPU = 1;
-        
-        m_eventSize = numOfCPU * 2;
-    }
-    else
-    {
-        m_eventSize = count;
-    }
+    int numOfCPU = (int)sysconf(_SC_NPROCESSORS_ONLN);
+    if(numOfCPU <= 0)
+        numOfCPU = 1;
+    
+    m_eventSize = numOfCPU * 2;
     
     ThreadPool.ExecuteTask(new SocketWorkerThread());
 }

@@ -95,19 +95,18 @@
 
 void StartSharedLib()
 {
-    //network subsystem
-    Log.Notice("Network", "Starting subsystem...");
-    new SocketMgr;
-    new SocketGarbageCollector;
-    Log.Notice("Network", "Starting subsystem... done");
-    
     //start thread pool
     Log.Notice("ThreadPool", "Starting subsystem...");
     ThreadPool.Startup();
     Log.Notice("ThreadPool", "Starting subsystem... done");
-    
+ 
+    //network subsystem
+    Log.Notice("Network", "Starting subsystem...");
+    new SocketMgr;
+    new SocketGarbageCollector;
     //start network mgr
-    sSocketMgr.SpawnWorkerThreads(g_NetworkThreads);
+    sSocketMgr.SpawnWorkerThreads();
+    Log.Notice("Network", "Starting subsystem... done");
     
 	//init CRC32
     g_CRC32 = new CRC_32();

@@ -77,7 +77,7 @@ public:
     void CloseAll();
     
     /// spawns worker threads
-    void SpawnWorkerThreads(uint32 count);
+    void SpawnWorkerThreads();
     
 	//epoll fd
 	int GetKqFd()           { return m_kq_fd; }

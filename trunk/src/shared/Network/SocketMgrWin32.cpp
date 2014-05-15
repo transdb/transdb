@@ -29,8 +29,7 @@ SocketMgr::SocketMgr()
 	WSADATA wsaData;
 	WSAStartup(MAKEWORD(2,2), &wsaData);
 
-	m_completionPort	= CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, (ULONG_PTR)0, 0);
-	m_threadcount		= 0;
+	m_completionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, (ULONG_PTR)0, 0);
 }
 
 SocketMgr::~SocketMgr()
@@ -38,21 +37,9 @@ SocketMgr::~SocketMgr()
 	CloseHandle(m_completionPort);
 }
 
-void SocketMgr::SpawnWorkerThreads(uint32 count)
+void SocketMgr::SpawnWorkerThreads()
 {
-	SYSTEM_INFO si;
-	GetSystemInfo(&si);
-
-	if(count == 0)
-		m_threadcount = si.dwNumberOfProcessors;
-	else
-		m_threadcount = count;
-
-	Log.Notice(__FUNCTION__, "Spawning %u worker threads.", m_threadcount);
-	for(long x = 0; x < m_threadcount; ++x)
-	{
-		ThreadPool.ExecuteTask(new SocketWorkerThread());
-	}
+    ThreadPool.ExecuteTask(new SocketWorkerThread());
 }
 
 bool SocketWorkerThread::run()
@@ -143,18 +130,8 @@ void SocketMgr::CloseAll()
 
 void SocketMgr::ShutdownThreads()
 {
-	for(long i = 0; i < m_threadcount; ++i)
-	{
-		OverlappedStruct * ov = new OverlappedStruct(SOCKET_IO_THREAD_SHUTDOWN);
-		PostQueuedCompletionStatus(m_completionPort, 0, (ULONG_PTR)0, &ov->m_overlap);
-	}
-}
-
-void SocketMgr::ShowStatus()
-{
-	m_socketLock.Acquire();
-	//sLog.outString("_sockets.size(): %d", m_sockets.size());
-	m_socketLock.Release();
+    OverlappedStruct * ov = new OverlappedStruct(SOCKET_IO_THREAD_SHUTDOWN);
+    PostQueuedCompletionStatus(m_completionPort, 0, (ULONG_PTR)0, &ov->m_overlap);
 }
 
 #endif
