@@ -27,8 +27,8 @@
 #include "../shared/Memory/MemoryAllocator.h"
 #include "../shared/Packets/GeewaPacket.h"
 #include "../shared/CrashHandler.h"
-#include "../shared/Containers/HashMap.h"
 #include "../shared/Containers/Vector.h"
+#include "../shared/Containers/HashMap.h"
 
 //zlib
 #include "../zlib/zlib.h"

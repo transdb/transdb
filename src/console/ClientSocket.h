@@ -11,6 +11,14 @@
 
 using namespace SocketEnums;
 
+#pragma pack(push, 1)
+struct PackerHeader
+{
+    uint32  m_size;
+    uint16  m_opcode;
+};
+#pragma pack(pop)
+
 typedef Vector<uint8> ClientSocketBuffer;
 
 class ClientSocket : public Socket
