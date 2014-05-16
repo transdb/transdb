@@ -64,7 +64,6 @@
 		8DFE27E015E22C35007F75A3 /* Packets.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE277915E22BA8007F75A3 /* Packets.h */; };
 		8DFE27E115E22C35007F75A3 /* StackBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE277A15E22BA8007F75A3 /* StackBuffer.h */; };
 		8DFE27E315E22C35007F75A3 /* Singleton.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE277E15E22BA8007F75A3 /* Singleton.h */; };
-		8DFE27E415E22C35007F75A3 /* Structs.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE277F15E22BA8007F75A3 /* Structs.h */; };
 		8DFE27E515E22C35007F75A3 /* LockingPtr.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE278115E22BA8007F75A3 /* LockingPtr.h */; };
 		8DFE27E715E22C35007F75A3 /* ThreadContext.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE278415E22BA8007F75A3 /* ThreadContext.h */; };
 		8DFE27E815E22C35007F75A3 /* Threading.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE278515E22BA8007F75A3 /* Threading.h */; };
@@ -245,7 +244,6 @@
 		8DFE277915E22BA8007F75A3 /* Packets.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Packets.h; sourceTree = "<group>"; };
 		8DFE277A15E22BA8007F75A3 /* StackBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StackBuffer.h; sourceTree = "<group>"; };
 		8DFE277E15E22BA8007F75A3 /* Singleton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Singleton.h; sourceTree = "<group>"; };
-		8DFE277F15E22BA8007F75A3 /* Structs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Structs.h; sourceTree = "<group>"; };
 		8DFE278115E22BA8007F75A3 /* LockingPtr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LockingPtr.h; sourceTree = "<group>"; };
 		8DFE278415E22BA8007F75A3 /* ThreadContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ThreadContext.h; sourceTree = "<group>"; };
 		8DFE278515E22BA8007F75A3 /* Threading.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Threading.h; sourceTree = "<group>"; };
@@ -531,7 +529,6 @@
 				8DFE275C15E22BA8007F75A3 /* Network */,
 				8DFE277515E22BA8007F75A3 /* Packets */,
 				8DFE277E15E22BA8007F75A3 /* Singleton.h */,
-				8DFE277F15E22BA8007F75A3 /* Structs.h */,
 				8DFE278015E22BA8007F75A3 /* Threading */,
 				8DDB5435173268E400A69B7D /* cpuid.h */,
 			);
@@ -715,7 +712,6 @@
 				8DFE27E015E22C35007F75A3 /* Packets.h in Headers */,
 				8DFE27E115E22C35007F75A3 /* StackBuffer.h in Headers */,
 				8DFE27E315E22C35007F75A3 /* Singleton.h in Headers */,
-				8DFE27E415E22C35007F75A3 /* Structs.h in Headers */,
 				8DFE27E515E22C35007F75A3 /* LockingPtr.h in Headers */,
 				8DFE27E715E22C35007F75A3 /* ThreadContext.h in Headers */,
 				8DFE27E815E22C35007F75A3 /* Threading.h in Headers */,
