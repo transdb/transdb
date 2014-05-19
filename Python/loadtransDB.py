@@ -331,8 +331,8 @@ class LoadTransDB:
             self.httpdThread.start()
             
             #start client socket thread
-            #self.clientSocketThread = threading.Thread(target=client_socket_run, args=[self.stopEvent, transDBListenHost, 9339])
-            #self.clientSocketThread.start()
+            self.clientSocketThread = threading.Thread(target=client_socket_run, args=[self.stopEvent, transDBListenHost, 9339])
+            self.clientSocketThread.start()
     
             #loop until shutdown
             while not self.stopEvent.is_set():
