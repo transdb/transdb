@@ -27,7 +27,8 @@ class Leaderboard:
         self.banTable = [8654585614, 8650784135, 8659413645, 8664423249,
                          8592925224, 8661139638, 8637683649, 8654585614,
                          8640859146, 8619348861, 8617418356, 8656218460,
-                         8654585614, 8671767897]
+                         8654585614, 8671767897, 8623516905, 8620381815,
+                         8604452987, 8671649601, 8670458578]
         #for daily challenges
         #5am GMT
         self.dailyChallangeStartTime = 5
@@ -392,6 +393,7 @@ class Leaderboard:
                         cheater = True
                     if cheater == True:
                         cfunctions.Log_Warning("Possible cheating - userID: "+str(userID)+", userName: "+userName+", score: "+str(score)+", gameTime: "+str(gameTime))
+                        score = randint(1, 20)
             
             #check bantable - set rnd low score
             if userID in self.banTable:
