@@ -127,7 +127,7 @@ void IndexBlock::Init(Storage *pStorage,
 	dataFileSizeTmp = dataFileSize;
     
     //check file exists
-    Common::CheckFileExists(pIndexFilePath, true);
+    CommonFunctions::CheckFileExists(pIndexFilePath, true);
     
     //open index file
     hIndexFile = IO::fopen(pIndexFilePath, IO::IO_RDWR);

@@ -15,7 +15,7 @@ MemoryWatcher::MemoryWatcher(Storage &rStorage) : m_rStorage(rStorage), m_memory
 
 bool MemoryWatcher::run()
 {
-    Common::SetThreadName("MemoryWatcher thread");
+    CommonFunctions::SetThreadName("MemoryWatcher thread");
     
     try
     {

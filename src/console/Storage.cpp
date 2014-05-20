@@ -33,7 +33,7 @@ Storage::Storage(const char *pFileName)
     sprintf(m_pIndexPath, pPathTemplate, g_IndexFilePath.c_str(), pFileName, ".idx");
     
     //check if data file exits if not create it
-    Common::CheckFileExists(m_pDataPath, true);
+    CommonFunctions::CheckFileExists(m_pDataPath, true);
     
 	//open data file
     HANDLE rDataFileHandle;
@@ -617,7 +617,7 @@ bool Storage::CheckBlockManager(const HANDLE &rDataFileHandle, const uint64 &x, 
 
 bool Storage::run()
 {
-    Common::SetThreadName("Storage thread");
+    CommonFunctions::SetThreadName("Storage thread");
     
     try
     {
