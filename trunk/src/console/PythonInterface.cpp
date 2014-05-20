@@ -68,7 +68,7 @@ PythonInterface::PythonInterface() : m_pInstance(NULL), m_lastVersion(g_PythonSc
 
 bool PythonInterface::run()
 {
-    SetThreadName("PythonInterface thread");
+    Common::SetThreadName("PythonInterface thread");
     
     PyObject *pModule;
     PyObject *pName;
@@ -83,7 +83,7 @@ bool PythonInterface::run()
     bool reloadModule = false;
     //parameters
     const char *pConfigPath = g_pConfigWatcher->GetConfigPath();
-    const char *pLogPath = Log.GetFileLog() ? Log.GetFileLog()->GetFileName().c_str() : "";
+    std::string sLogPath = "";
     const char *pFunctionProto = "(sssii)";
    
     while(m_threadRunning)
@@ -176,8 +176,12 @@ bool PythonInterface::run()
             // Call a method of the class with parameters
             pCallMethodResult = PyObject_CallMethod(m_pInstance,
                                                     (char*)g_PythonRunableMethod.c_str(),
-                                                    (char*)pFunctionProto, pConfigPath, pLogPath,
-                                                    g_ListenHost.c_str(), g_ListenPort, g_WebSocketPort);
+                                                    (char*)pFunctionProto,
+                                                    pConfigPath,
+                                                    sLogPath.c_str(),
+                                                    g_ListenHost.c_str(),
+                                                    g_ListenPort,
+                                                    g_WebSocketPort);
             
             //set init
             m_pythonScriptRunning = false;

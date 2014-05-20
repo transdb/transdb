@@ -36,6 +36,8 @@ static const ClientSocketWorkerTaskHandler m_ClientSocketWorkerTaskHandlers[OP_N
     NULL,                                           //S_MSG_GET_FREESPACE   = 22,
     &ClientSocketWorkerTask::HandleWriteDataNum,    //C_MSG_WRITE_DATA_NUM  = 23,
     NULL,                                           //S_MSG_WRITE_DATA_NUM  = 24,
+    &ClientSocketWorkerTask::HandleReadLog,         //C_MSG_READ_LOG        = 23,
+    NULL,                                           //S_MSG_READ_LOG        = 24,
 };
 
 ClientSocketWorkerTask::ClientSocketWorkerTask(Storage &rStorage, bool readerTask) : m_rStorage(rStorage), m_readerThread(readerTask)
@@ -46,9 +48,9 @@ ClientSocketWorkerTask::ClientSocketWorkerTask(Storage &rStorage, bool readerTas
 bool ClientSocketWorkerTask::run()
 {
     if(m_readerThread)
-        SetThreadName("Read ClientSocketWorkerTask thread");
+        Common::SetThreadName("Read ClientSocketWorkerTask thread");
     else
-        SetThreadName("ClientSocketWorkerTask thread");
+        Common::SetThreadName("Write ClientSocketWorkerTask thread");
 
     //open file per thread - read only
     HANDLE rDataFileHandle;
@@ -115,7 +117,6 @@ void ClientSocketWorkerTask::HandleWriteData(const HANDLE &rDataFileHandle, Clie
     uint8 *pRecord;
     uint16 recordSize;
     uint32 writeStatus;
-    ClientSocket *pClientSocket;
     
     //read data from packet
     rClientSocketTaskData >> token >> flags >> userID >> timeStamp;
@@ -124,20 +125,15 @@ void ClientSocketWorkerTask::HandleWriteData(const HANDLE &rDataFileHandle, Clie
     //
     writeStatus = m_rStorage.WriteData(rDataFileHandle, userID, timeStamp, pRecord, recordSize);
     
-    //get socket
-    pClientSocket = g_rClientSocketHolder.GetSocket(rClientSocketTaskData.socketID());
-    if(pClientSocket)
-    {
-        //send back data
-        uint8 buff[32];
-        StackPacket rResponse(S_MSG_WRITE_DATA, buff, sizeof(buff));
-        rResponse << token;
-        rResponse << flags;
-        rResponse << userID;
-        rResponse << timeStamp;
-        rResponse << writeStatus;
-        pClientSocket->SendPacket(rResponse);
-    }
+    //send back data
+    uint8 buff[32];
+    StackPacket rResponse(S_MSG_WRITE_DATA, buff, sizeof(buff));
+    rResponse << token;
+    rResponse << flags;
+    rResponse << userID;
+    rResponse << timeStamp;
+    rResponse << writeStatus;
+    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 
 void ClientSocketWorkerTask::HandleReadData(const HANDLE &rDataFileHandle, ClientSocketTaskData &rClientSocketTaskData)
@@ -146,7 +142,6 @@ void ClientSocketWorkerTask::HandleReadData(const HANDLE &rDataFileHandle, Clien
     uint32 flags;
     uint64 userID;
     uint64 timeStamp;
-    ClientSocket *pClientSocket;
     static const size_t packetSize = sizeof(token)+sizeof(flags)+sizeof(userID)+sizeof(timeStamp);
     
     //buffer for read data
@@ -172,7 +167,7 @@ void ClientSocketWorkerTask::HandleReadData(const HANDLE &rDataFileHandle, Clien
 	//try to compress
 	if(rReadData.size() > (uint32)g_DataSizeForCompression)
 	{
-		compressionStatus = Common::compressGzip(rReadData.contents(), rReadData.size(), rBuffOut);
+		compressionStatus = Common::compressGzip(g_GzipCompressionLevel, rReadData.contents(), rReadData.size(), rBuffOut);
 		if(compressionStatus == Z_OK)
 		{
 			Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rReadData.size(), rBuffOut.size());
@@ -187,19 +182,14 @@ void ClientSocketWorkerTask::HandleReadData(const HANDLE &rDataFileHandle, Clien
         }
 	}
     
-    //get socket
-    pClientSocket = g_rClientSocketHolder.GetSocket(rClientSocketTaskData.socketID());
-    if(pClientSocket)
-    {
-        //send back data
-        Packet rResponse(S_MSG_READ_DATA, packetSize + rReadData.size());
-        rResponse << token;
-        rResponse << flags;
-        rResponse << userID;
-        rResponse << timeStamp;
-        rResponse.append(rReadData);
-        pClientSocket->SendPacket(rResponse);
-    }
+    //send back data
+    Packet rResponse(S_MSG_READ_DATA, packetSize + rReadData.size());
+    rResponse << token;
+    rResponse << flags;
+    rResponse << userID;
+    rResponse << timeStamp;
+    rResponse.append(rReadData);
+    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 
 void ClientSocketWorkerTask::HandleDeleteData(const HANDLE &rDataFileHandle, ClientSocketTaskData &rClientSocketTaskData)
@@ -208,7 +198,6 @@ void ClientSocketWorkerTask::HandleDeleteData(const HANDLE &rDataFileHandle, Cli
     uint32 flags;
     uint64 userID;
     uint64 timeStamp;
-    ClientSocket *pClientSocket;
     
     //read data from packet
     rClientSocketTaskData >> token >> flags >> userID >> timeStamp;
@@ -223,19 +212,14 @@ void ClientSocketWorkerTask::HandleDeleteData(const HANDLE &rDataFileHandle, Cli
         m_rStorage.DeleteData(rDataFileHandle, userID, timeStamp);
     }
     
-    //get socket
-    pClientSocket = g_rClientSocketHolder.GetSocket(rClientSocketTaskData.socketID());
-    if(pClientSocket)
-    {
-        //send back data
-        uint8 buff[32];
-        StackPacket rResponse(S_MSG_DELETE_DATA, buff, sizeof(buff));
-        rResponse << token;
-        rResponse << flags;
-        rResponse << userID;
-        rResponse << timeStamp;
-        pClientSocket->SendPacket(rResponse);
-    }
+    //send back data
+    uint8 buff[32];
+    StackPacket rResponse(S_MSG_DELETE_DATA, buff, sizeof(buff));
+    rResponse << token;
+    rResponse << flags;
+    rResponse << userID;
+    rResponse << timeStamp;
+    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 
 void ClientSocketWorkerTask::HandleGetAllX(const HANDLE &rDataFileHandle, ClientSocketTaskData &rClientSocketTaskData)
@@ -244,7 +228,6 @@ void ClientSocketWorkerTask::HandleGetAllX(const HANDLE &rDataFileHandle, Client
     uint32 flags;
     uint8 *pX;
     uint64 xSize;
-    ClientSocket *pClientSocket;
     static const size_t packetSize = sizeof(token)+sizeof(flags);
     
 	//for compresion
@@ -260,7 +243,7 @@ void ClientSocketWorkerTask::HandleGetAllX(const HANDLE &rDataFileHandle, Client
 	//try to compress
 	if(xSize > (uint32)g_DataSizeForCompression)
 	{
-		compressionStatus = Common::compressGzip(pX, xSize, rBuffOut);
+		compressionStatus = Common::compressGzip(g_GzipCompressionLevel, pX, xSize, rBuffOut);
 		if(compressionStatus == Z_OK)
 		{
 			Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", xSize, rBuffOut.size());
@@ -269,25 +252,20 @@ void ClientSocketWorkerTask::HandleGetAllX(const HANDLE &rDataFileHandle, Client
 		}
 	}
     
-    //get socket
-    pClientSocket = g_rClientSocketHolder.GetSocket(rClientSocketTaskData.socketID());
-    if(pClientSocket)
+    //send back data
+    Packet rResponse(S_MSG_GET_ALL_X, xSize+packetSize);
+    rResponse << token;
+    rResponse << flags;
+    if(xSize)
     {
-        //send back data
-        Packet rResponse(S_MSG_GET_ALL_X, xSize+packetSize);
-        rResponse << token;
-        rResponse << flags;
-        if(xSize)
-        {
-            if(compressionStatus == Z_OK)
-                rResponse.append(rBuffOut);
-            else
-                rResponse.append(pX, xSize);
-            
-            free(pX);
-        }
-        pClientSocket->SendPacket(rResponse);
+        if(compressionStatus == Z_OK)
+            rResponse.append(rBuffOut);
+        else
+            rResponse.append(pX, xSize);
+        
+        free(pX);
     }
+    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 
 void ClientSocketWorkerTask::HandleGetAllY(const HANDLE &rDataFileHandle, ClientSocketTaskData &rClientSocketTaskData)
@@ -295,7 +273,6 @@ void ClientSocketWorkerTask::HandleGetAllY(const HANDLE &rDataFileHandle, Client
     uint32 token;
     uint32 flags;
     uint64 userID;
-    ClientSocket *pClientSocket;
     static const size_t packetSize = sizeof(token)+sizeof(flags)+sizeof(userID);
     
     //buffer for y keys
@@ -314,7 +291,7 @@ void ClientSocketWorkerTask::HandleGetAllY(const HANDLE &rDataFileHandle, Client
 	//try to compress
 	if(rY.size() > (size_t)g_DataSizeForCompression)
 	{
-		compressionStatus = Common::compressGzip(rY.contents(), rY.size(), rBuffOut);
+		compressionStatus = Common::compressGzip(g_GzipCompressionLevel, rY.contents(), rY.size(), rBuffOut);
 		if(compressionStatus == Z_OK)
 		{
 			Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rY.size(), rBuffOut.size());
@@ -329,25 +306,19 @@ void ClientSocketWorkerTask::HandleGetAllY(const HANDLE &rDataFileHandle, Client
         }
 	}
     
-    //get socket
-    pClientSocket = g_rClientSocketHolder.GetSocket(rClientSocketTaskData.socketID());
-    if(pClientSocket)
-    {
-        //send data back
-        Packet rResponse(S_MSG_GET_ALL_Y, rY.size() + packetSize);
-        rResponse << token;
-        rResponse << flags;
-        rResponse << userID;
-        rResponse.append(rY);
-        pClientSocket->SendPacket(rResponse);
-    }
+    //send data back
+    Packet rResponse(S_MSG_GET_ALL_Y, rY.size() + packetSize);
+    rResponse << token;
+    rResponse << flags;
+    rResponse << userID;
+    rResponse.append(rY);
+    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 
 void ClientSocketWorkerTask::HandleStatus(const HANDLE &rDataFileHandle, ClientSocketTaskData &rClientSocketTaskData)
 {
     uint32 token;
     uint32 flags;
-    ClientSocket *pClientSocket;
     ByteBuffer rBuff;
     
     //read data from packet
@@ -363,7 +334,7 @@ void ClientSocketWorkerTask::HandleStatus(const HANDLE &rDataFileHandle, ClientS
 	//try to compress
 	if(rBuff.size() > (uint32)g_DataSizeForCompression)
 	{
-		compressionStatus = Common::compressGzip(rBuff.contents(), rBuff.size(), rBuffOut);
+		compressionStatus = Common::compressGzip(g_GzipCompressionLevel, rBuff.contents(), rBuff.size(), rBuffOut);
 		if(compressionStatus == Z_OK)
 		{
 			Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rBuff.size(), rBuffOut.size());
@@ -377,17 +348,12 @@ void ClientSocketWorkerTask::HandleStatus(const HANDLE &rDataFileHandle, ClientS
         }
 	}
     
-    //get socket
-    pClientSocket = g_rClientSocketHolder.GetSocket(rClientSocketTaskData.socketID());
-    if(pClientSocket)
-    {
-        //send data back
-        Packet rResponse(S_MSG_STATUS, 8 + rBuff.size());
-        rResponse << token;
-        rResponse << flags;
-        rResponse.append(rBuff);
-        pClientSocket->SendPacket(rResponse);
-    }
+    //send data back
+    Packet rResponse(S_MSG_STATUS, 8 + rBuff.size());
+    rResponse << token;
+    rResponse << flags;
+    rResponse.append(rBuff);
+    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 
 void ClientSocketWorkerTask::HandleDeleteX(const HANDLE &rDataFileHandle, ClientSocketTaskData &rClientSocketTaskData)
@@ -397,7 +363,6 @@ void ClientSocketWorkerTask::HandleDeleteX(const HANDLE &rDataFileHandle, Client
     uint8 *pUserIDs;
     size_t usersSize;
     uint64 userID;
-    ClientSocket *pClientSocket;
     ByteBuffer rUsers;
 
 	//for decompresion
@@ -447,16 +412,12 @@ void ClientSocketWorkerTask::HandleDeleteX(const HANDLE &rDataFileHandle, Client
         }
     }
     
-    //get socket
-    pClientSocket = g_rClientSocketHolder.GetSocket(rClientSocketTaskData.socketID());
-    if(pClientSocket)
-    {
-        uint8 buff[32];
-        StackPacket rResponse(S_MSG_DELETE_X, buff, sizeof(buff));
-        rResponse << token;
-        rResponse << flags;
-        pClientSocket->SendPacket(rResponse);
-    }
+    //send data back
+    uint8 buff[32];
+    StackPacket rResponse(S_MSG_DELETE_X, buff, sizeof(buff));
+    rResponse << token;
+    rResponse << flags;
+    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 
 void ClientSocketWorkerTask::HandleDefragmentData(const HANDLE &rDataFileHandle, ClientSocketTaskData &rClientSocketTaskData)
@@ -466,7 +427,6 @@ void ClientSocketWorkerTask::HandleDefragmentData(const HANDLE &rDataFileHandle,
     uint8 *pUserIDs;
     size_t usersSize;
     uint64 userID;
-    ClientSocket *pClientSocket;
     ByteBuffer rUsers;
     
 	//for compresion
@@ -516,16 +476,12 @@ void ClientSocketWorkerTask::HandleDefragmentData(const HANDLE &rDataFileHandle,
         }
     }
     
-    //get socket
-    pClientSocket = g_rClientSocketHolder.GetSocket(rClientSocketTaskData.socketID());
-    if(pClientSocket)
-    {
-        uint8 buff[32];
-        StackPacket rResponse(S_MSG_DEFRAMENT_DATA, buff, sizeof(buff));
-        rResponse << token;
-        rResponse << flags;
-        pClientSocket->SendPacket(rResponse);
-    }
+    //send data back
+    uint8 buff[32];
+    StackPacket rResponse(S_MSG_DEFRAMENT_DATA, buff, sizeof(buff));
+    rResponse << token;
+    rResponse << flags;
+    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 
 void ClientSocketWorkerTask::HandleGetFreeSpace(const HANDLE &rDataFileHandle, ClientSocketTaskData &rClientSocketTaskData)
@@ -533,7 +489,6 @@ void ClientSocketWorkerTask::HandleGetFreeSpace(const HANDLE &rDataFileHandle, C
     uint32 token;
     uint32 flags;
     uint32 dumpFlags; //0 - full dump, 1 - only counts
-    ClientSocket *pClientSocket;
     ByteBuffer rBuff;
     
 	//for compresion
@@ -548,7 +503,7 @@ void ClientSocketWorkerTask::HandleGetFreeSpace(const HANDLE &rDataFileHandle, C
     
     if(rBuff.size() > (uint32)g_DataSizeForCompression)
     {
-        compressionStatus = Common::compressGzip(rBuff.contents(), rBuff.size(), rBuffOut);
+        compressionStatus = Common::compressGzip(g_GzipCompressionLevel, rBuff.contents(), rBuff.size(), rBuffOut);
         if(compressionStatus == Z_OK)
         {
             Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rBuff.size(), rBuffOut.size());
@@ -560,22 +515,17 @@ void ClientSocketWorkerTask::HandleGetFreeSpace(const HANDLE &rDataFileHandle, C
         }
     }
     
-    //get socket
-    pClientSocket = g_rClientSocketHolder.GetSocket(rClientSocketTaskData.socketID());
-    if(pClientSocket)
-    {
-        //send back data
-        Packet rResponse(S_MSG_GET_FREESPACE, sizeof(token)+sizeof(flags)+rBuff.size());
-        rResponse << token;
-        rResponse << flags;
-        
-        if(compressionStatus == Z_OK)
-            rResponse.append(rBuffOut);
-        else
-            rResponse.append(rBuff);
-        
-        pClientSocket->SendPacket(rResponse);
-    }
+    //send back data
+    Packet rResponse(S_MSG_GET_FREESPACE, sizeof(token)+sizeof(flags)+rBuff.size());
+    rResponse << token;
+    rResponse << flags;
+    
+    if(compressionStatus == Z_OK)
+        rResponse.append(rBuffOut);
+    else
+        rResponse.append(rBuff);
+    
+    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 
 void ClientSocketWorkerTask::HandleWriteDataNum(const HANDLE &rDataFileHandle, ClientSocketTaskData &rClientSocketTaskData)
@@ -586,7 +536,6 @@ void ClientSocketWorkerTask::HandleWriteDataNum(const HANDLE &rDataFileHandle, C
     size_t dataSize;
     uint8 *pData;
     ByteBuffer rData;
-    ClientSocket *pClientSocket;
     uint32 writeStatus = 0;
     
 	//for decompresion
@@ -643,21 +592,58 @@ void ClientSocketWorkerTask::HandleWriteDataNum(const HANDLE &rDataFileHandle, C
         }
     }
     
-    //get socket
-    pClientSocket = g_rClientSocketHolder.GetSocket(rClientSocketTaskData.socketID());
-    if(pClientSocket)
-    {
-        uint8 buff[32];
-        StackPacket rResponse(S_MSG_WRITE_DATA_NUM, buff, sizeof(buff));
-        rResponse << token;
-        rResponse << flags;
-        rResponse << userID;
-        rResponse << writeStatus;
-        pClientSocket->SendPacket(rResponse);
-    }
+    //send back data
+    uint8 buff[32];
+    StackPacket rResponse(S_MSG_WRITE_DATA_NUM, buff, sizeof(buff));
+    rResponse << token;
+    rResponse << flags;
+    rResponse << userID;
+    rResponse << writeStatus;
+    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 
-
+void ClientSocketWorkerTask::HandleReadLog(const HANDLE &rDataFileHandle, ClientSocketTaskData &rClientSocketTaskData)
+{
+    uint32 token;
+    uint32 flags;
+    ByteBuffer rBuff;
+    
+	//for compresion
+	int compressionStatus = Z_ERRNO;
+	ByteBuffer rBuffOut;
+    
+    //read data from packet
+    rClientSocketTaskData >> token >> flags;
+    
+    //read log file from disk
+    Log.GetFileLogContent(rBuff);
+    
+    if(rBuff.size() > (uint32)g_DataSizeForCompression)
+    {
+        compressionStatus = Common::compressGzip(g_GzipCompressionLevel, rBuff.contents(), rBuff.size(), rBuffOut);
+        if(compressionStatus == Z_OK)
+        {
+            Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rBuff.size(), rBuffOut.size());
+            flags = ePF_COMPRESSED;
+        }
+        else
+        {
+            Log.Error(__FUNCTION__, "Data compression failed.");
+        }
+    }
+    
+    //send back data
+    Packet rResponse(S_MSG_READ_LOG, sizeof(token)+sizeof(flags)+rBuff.size());
+    rResponse << token;
+    rResponse << flags;
+    
+    if(compressionStatus == Z_OK)
+        rResponse.append(rBuffOut);
+    else
+        rResponse.append(rBuff);
+    
+    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
+}
 
 
 

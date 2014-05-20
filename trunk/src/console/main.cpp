@@ -114,7 +114,7 @@ void StartSharedLib()
 
 int main(int argc, const char * argv[])
 {
-	SetThreadName("Main Thread");
+	Common::SetThreadName("Main Thread");
    
 #ifdef WIN32
 	//start crash handler
@@ -230,7 +230,7 @@ int main(int argc, const char * argv[])
     //open log file
     if(!sLogPath.empty())
     {
-        string sFullLogPath = FormatOutputString(sLogPath.c_str(), "transdb", true);
+        string sFullLogPath = Common::FormatOutputString(sLogPath.c_str(), "transdb", true);
         Log.CreateFileLog(sFullLogPath);
     }
 #endif

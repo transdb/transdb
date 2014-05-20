@@ -617,7 +617,7 @@ bool Storage::CheckBlockManager(const HANDLE &rDataFileHandle, const uint64 &x, 
 
 bool Storage::run()
 {
-    SetThreadName("Storage thread");
+    Common::SetThreadName("Storage thread");
     
     try
     {
