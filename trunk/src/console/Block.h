@@ -276,9 +276,9 @@ public:
         recordSizeLocal = pRDF->m_recordLength;
         
         //check if gzipped
-        if(Common::isGziped(pRecordLocal))
+        if(CommonFunctions::isGziped(pRecordLocal))
         {
-            status = Common::decompressGzip(pRecordLocal, recordSizeLocal, rOut);
+            status = CommonFunctions::decompressGzip(pRecordLocal, recordSizeLocal, rOut);
             if(status == Z_OK)
             {
                 pRecordLocal = (uint8*)rOut.contents();
@@ -322,9 +322,9 @@ public:
             recordSizeLocal = pRDF->m_recordLength;
             
             //unzip + rewrite variables
-            if(Common::isGziped(pRecordLocal))
+            if(CommonFunctions::isGziped(pRecordLocal))
             {
-                status = Common::decompressGzip(pRecordLocal, recordSizeLocal, rOut);
+                status = CommonFunctions::decompressGzip(pRecordLocal, recordSizeLocal, rOut);
                 if(status == Z_OK)
                 {
                     pRecordLocal = (uint8*)rOut.contents();

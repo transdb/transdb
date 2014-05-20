@@ -19,7 +19,6 @@ from templates import *
 
 HTML = "text/html"
 CSS = "text/css"
-g_logPath = None
 g_confPath = None
 g_authKey = base64.b64encode("transdb:A1b2C3d4")
 
@@ -106,9 +105,7 @@ class TransDBHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def log(self, body=None):
         """ TransDB logs. """
         try:
-            with open(g_logPath, "r") as src :
-                logString = src.read()
-            
+            logString = transDB.readLog()
             logString = "<pre>" + logString + "</pre>"
             buff = render("log", {'title':"TransDB Log", 'log':logString})
         except (KeyError, RuntimeError, IOError) as e :
@@ -308,12 +305,10 @@ class LoadTransDB:
         self.clientSocketThread = None
         self.stopEvent = threading.Event()
 
-    def run(self, configPath, logPath, transDBListenHost, transDBListenPort, webServiceListenPort):
+    def run(self, configPath, transDBListenHost, transDBListenPort, webServiceListenPort):
         try:
             #save values
-            global g_logPath
             global g_confPath
-            g_logPath = logPath
             g_confPath = configPath
             
             #start client socket thread - windows ip connect fix

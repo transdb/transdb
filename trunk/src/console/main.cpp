@@ -114,7 +114,7 @@ void StartSharedLib()
 
 int main(int argc, const char * argv[])
 {
-	Common::SetThreadName("Main Thread");
+	CommonFunctions::SetThreadName("Main Thread");
    
 #ifdef WIN32
 	//start crash handler
@@ -230,7 +230,7 @@ int main(int argc, const char * argv[])
     //open log file
     if(!sLogPath.empty())
     {
-        string sFullLogPath = Common::FormatOutputString(sLogPath.c_str(), "transdb", true);
+        string sFullLogPath = CommonFunctions::FormatOutputString(sLogPath.c_str(), "transdb", true);
         Log.CreateFileLog(sFullLogPath);
     }
 #endif
@@ -255,7 +255,7 @@ int main(int argc, const char * argv[])
         char buff[buff_size];
         long pid = static_cast<long>(getpid());
         //create file
-        Common::CheckFileExists(sPidFilePath.c_str(), true);
+        CommonFunctions::CheckFileExists(sPidFilePath.c_str(), true);
         //open file
         HANDLE hFile = IO::fopen(sPidFilePath.c_str(), IO::IO_WRITE_ONLY);
         if(hFile == INVALID_HANDLE_VALUE)

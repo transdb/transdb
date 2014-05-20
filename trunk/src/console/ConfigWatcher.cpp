@@ -17,18 +17,18 @@ ConfigWatcher::ConfigWatcher(const std::string &sConfigPath) : m_configPath(sCon
 
 bool ConfigWatcher::run()
 {
-    Common::SetThreadName("ConfigWatcher thread");
+    CommonFunctions::SetThreadName("ConfigWatcher thread");
     
     ByteBuffer rBuff;
     time_t lastFileModification;
     time_t lastFileModificationNew;
     
     //
-    lastFileModification = Common::GetLastFileModificationTime(m_configPath.c_str());
+    lastFileModification = CommonFunctions::GetLastFileModificationTime(m_configPath.c_str());
     
 	while(m_threadRunning)
 	{
-        lastFileModificationNew = Common::GetLastFileModificationTime(m_configPath.c_str());
+        lastFileModificationNew = CommonFunctions::GetLastFileModificationTime(m_configPath.c_str());
         if(lastFileModificationNew != lastFileModification)
         {
             //save last access time
