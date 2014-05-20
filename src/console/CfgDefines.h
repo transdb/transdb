@@ -57,8 +57,6 @@ extern std::atomic<uint64> g_AvgDiskReadTime;
 extern std::atomic<uint64> g_AvgDiskWriteTime;
 
 //zlib
-#define GZIP_ENCODING				16
-#define ZLIB_CHUNK                  16384
 extern int g_GzipCompressionLevel;
 extern int g_ZlibBufferSize;
 extern int g_DataSizeForCompression;

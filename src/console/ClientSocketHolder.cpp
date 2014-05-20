@@ -23,11 +23,11 @@ ClientSocketHolder::~ClientSocketHolder()
 uint64 ClientSocketHolder::GetAllSocketPacketQueueSize()
 {
     uint64 count = 0;
-    LockingPtr<ClientSocketMap> pClientSockets(m_clientSockets, m_lock);
-    if(pClientSockets->size())
+    std::lock_guard<std::recursive_mutex> rGuard(m_lock);
+    if(!m_clientSockets.empty())
     {
         ClientSocketMap::iterator itr, itr2;
-        for(itr = pClientSockets->begin();itr != pClientSockets->end();)
+        for(itr = m_clientSockets.begin();itr != m_clientSockets.end();)
         {
             itr2 = itr++;
             count += itr2->second->GetQueueSize();
@@ -38,40 +38,48 @@ uint64 ClientSocketHolder::GetAllSocketPacketQueueSize()
 
 void ClientSocketHolder::AddSocket(ClientSocket *pClientSocket)
 {
-    LockingPtr<ClientSocketMap> pClientSockets(m_clientSockets, m_lock);
-    pClientSockets->insert(ClientSocketMap::value_type(pClientSocket->GetSocketID(), pClientSocket));
+    std::lock_guard<std::recursive_mutex> rGuard(m_lock);
+    m_clientSockets.insert(ClientSocketMap::value_type(pClientSocket->GetSocketID(), pClientSocket));
 }
 
 void ClientSocketHolder::RemoveSocket(ClientSocket *pClientSocket)
 {
-    LockingPtr<ClientSocketMap> pClientSockets(m_clientSockets, m_lock);
-    pClientSockets->erase(pClientSocket->GetSocketID());
+    std::lock_guard<std::recursive_mutex> rGuard(m_lock);
+    m_clientSockets.erase(pClientSocket->GetSocketID());
 }
 
-ClientSocket *ClientSocketHolder::GetSocket(const uint64 &socketID)
+void ClientSocketHolder::SendPacket(const uint64 &socketID, const Packet &rPacket)
 {
-    LockingPtr<ClientSocketMap> pClientSockets(m_clientSockets, m_lock);
-    ClientSocketMap::iterator itr;
-    
-    itr = pClientSockets->find(socketID);
-    if(itr != pClientSockets->end())
-        return itr->second;
-    else
-        return NULL;
+    std::lock_guard<std::recursive_mutex> rGuard(m_lock);
+    ClientSocketMap::iterator itr = m_clientSockets.find(socketID);
+    if(itr != m_clientSockets.end())
+    {
+        itr->second->OutPacket(rPacket.GetOpcode(), rPacket.size(), (rPacket.size() ? (const void*)rPacket.contents() : NULL));
+    }
+}
+
+void ClientSocketHolder::SendPacket(const uint64 &socketID, const StackPacket &rPacket)
+{
+    std::lock_guard<std::recursive_mutex> rGuard(m_lock);
+    ClientSocketMap::iterator itr = m_clientSockets.find(socketID);
+    if(itr != m_clientSockets.end())
+    {
+        itr->second->OutPacket(rPacket.GetOpcode(), rPacket.GetSize(), (rPacket.GetSize() ? (const void*)rPacket.GetBufferPointer() : NULL));
+    }
 }
 
 void ClientSocketHolder::Update()
 {
     //called every 500ms
-    LockingPtr<ClientSocketMap> pClientSockets(m_clientSockets, m_lock);
-    if(pClientSockets->size())
+    std::lock_guard<std::recursive_mutex> rGuard(m_lock);
+    if(!m_clientSockets.empty())
     {
         time_t t = UNIXTIME;
         ClientSocket *pSocket;
         ClientSocketMap::iterator itr, itr2;
         
         //ping + process queue
-        for(itr = pClientSockets->begin();itr != pClientSockets->end();)
+        for(itr = m_clientSockets.begin();itr != m_clientSockets.end();)
         {
             itr2 = itr++;
             pSocket = itr2->second;
@@ -94,3 +102,4 @@ void ClientSocketHolder::Update()
         }
     }
 }
+

@@ -36,6 +36,8 @@ static const ClientSocketHandler m_ClientSocketHandlers[OP_NUM] =
     NULL,                                       //S_MSG_GET_FREESPACE   = 22,
     &ClientSocket::QueuePacket,                 //C_MSG_WRITE_DATA_NUM  = 23,
     NULL,                                       //S_MSG_WRITE_DATA_NUM  = 24,
+    &ClientSocket::QueueReadPacket,             //C_MSG_READ_LOG        = 25,
+    NULL,                                       //S_MSG_READ_LOG        = 26,
 };
 
 static const char *g_OpcodeNames[OP_NUM] =
@@ -77,6 +79,9 @@ static const char *g_OpcodeNames[OP_NUM] =
     
     "C_MSG_WRITE_DATA_NUM",
     "S_MSG_WRITE_DATA_NUM",
+    
+    "C_MSG_READ_LOG",
+    "S_MSG_READ_LOG",
 };
 
 ClientSocket::ClientSocket(SOCKET fd) : Socket(fd, g_SocketReadBufferSize, g_SocketWriteBufferSize)
@@ -180,16 +185,6 @@ void ClientSocket::OnConnect()
 void ClientSocket::OnDisconnect()
 {
     g_rClientSocketHolder.RemoveSocket(this);
-}
-
-void ClientSocket::SendPacket(const Packet &rPacket)
-{
-	OutPacket(rPacket.GetOpcode(), rPacket.size(), (rPacket.size() ? (const void*)rPacket.contents() : NULL));
-}
-
-void ClientSocket::SendPacket(const StackPacket &rPacket)
-{
-	OutPacket(rPacket.GetOpcode(), rPacket.GetSize(), (rPacket.GetSize() ? (const void*)rPacket.GetBufferPointer() : NULL));
 }
 
 void ClientSocket::OutPacket(const uint16 &opcode, const size_t &len, const void* data)
@@ -357,7 +352,7 @@ void ClientSocket::HandleGetActivityID(ClientSocketBuffer &rPacket)
     rResponse << token;
     rResponse << flags;
     rResponse << g_ActivityID;
-    SendPacket(rResponse);
+    OutPacket(rResponse.GetOpcode(), rResponse.size(), (const void*)rResponse.contents());
 }
 
 void ClientSocket::SendPing()

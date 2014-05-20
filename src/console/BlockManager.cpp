@@ -109,7 +109,7 @@ uint32 BlockManager::WriteRecord(const uint64 &recordkey, const uint8 *pRecord, 
     //try to compress
     if(recordSizeLocal > g_RecordSizeForCompression)
     {
-        cStatus = Common::compressGzip(pRecord, recordSizeLocal, rOut);
+        cStatus = Common::compressGzip(g_GzipCompressionLevel, pRecord, recordSizeLocal, rOut);
         if(cStatus == Z_OK)
         {
             if(rOut.size() < recordSizeLocal)

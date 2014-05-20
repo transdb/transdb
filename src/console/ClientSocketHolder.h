@@ -17,17 +17,23 @@ public:
     explicit ClientSocketHolder();
     ~ClientSocketHolder();
     
+    //add remove socket
     void AddSocket(ClientSocket *pClientSocket);
     void RemoveSocket(ClientSocket *pClientSocket);
-    ClientSocket *GetSocket(const uint64 &socketID);
+    
+    //send packet
+    void SendPacket(const uint64 &socketID, const Packet &rPacket);
+    void SendPacket(const uint64 &socketID, const StackPacket &rPacket);
+    
+    //for stats
     uint64 GetAllSocketPacketQueueSize();
     
+    //update for inactive socket disconnection
     void Update();
     
-    
 private:
-    volatile ClientSocketMap                    m_clientSockets;
-    std::mutex                                  m_lock;
+    ClientSocketMap         m_clientSockets;
+    std::recursive_mutex    m_lock;
 };
 
 extern ClientSocketHolder g_rClientSocketHolder;

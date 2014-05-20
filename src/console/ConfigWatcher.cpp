@@ -17,7 +17,7 @@ ConfigWatcher::ConfigWatcher(const std::string &sConfigPath) : m_configPath(sCon
 
 bool ConfigWatcher::run()
 {
-    SetThreadName("ConfigWatcher thread");
+    Common::SetThreadName("ConfigWatcher thread");
     
     ByteBuffer rBuff;
     time_t lastFileModification;

@@ -46,9 +46,7 @@ public:
     //ID
     INLINE const uint64 &GetSocketID() const    { return m_socketID; }
     
-    //senders
-	void SendPacket(const Packet &rPacket);
-	void SendPacket(const StackPacket &rPacket);
+    //sender
     void OutPacket(const uint16 &opcode, const size_t &len, const void* data);
     
     //ping

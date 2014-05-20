@@ -29,9 +29,8 @@
 #include "../shared/CrashHandler.h"
 #include "../shared/Containers/Vector.h"
 #include "../shared/Containers/HashMap.h"
-
-//zlib
-#include "../zlib/zlib.h"
+#include "../shared/IO/IO.h"
+#include "../shared/CommonFunctions.h"
 
 //Intel TBB
 #define TBB_PREVIEW_MEMORY_POOL 1
@@ -51,12 +50,6 @@
 
 //stat generator support
 #include "StatGenerator.h"
-
-//IO
-#include "IO.h"
-
-//common
-#include "Common.h"
 
 //block
 #include "Block.h"
