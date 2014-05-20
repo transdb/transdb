@@ -83,11 +83,7 @@ void Launcher::run()
 		sSocketGarbageCollector.Update();
 
 		//wait
-#ifdef WIN32		
-		WaitForSingleObject(m_Handle, 50);
-#else
-		Sleep(50);
-#endif
+		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	}
 
 	Log.Notice(__FUNCTION__, "Server shutdown in progress.");
