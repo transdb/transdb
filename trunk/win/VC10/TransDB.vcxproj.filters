@@ -14,11 +14,9 @@
     <ClCompile Include="..\..\src\console\LRUCache.cpp" />
     <ClCompile Include="..\..\src\console\ServiceWin32.cpp" />
     <ClCompile Include="..\..\src\console\ConfigWatcher.cpp" />
-    <ClCompile Include="..\..\src\console\Common.cpp" />
     <ClCompile Include="..\..\src\console\ClientSocketWorker.cpp" />
     <ClCompile Include="..\..\src\console\ClientSocketWorkerTask.cpp" />
     <ClCompile Include="..\..\src\console\MemoryWatcher.cpp" />
-    <ClCompile Include="..\..\src\console\IO.cpp" />
     <ClCompile Include="..\..\src\console\PythonInterface.cpp" />
     <ClCompile Include="..\..\src\console\CfgDefines.cpp" />
     <ClCompile Include="..\..\src\console\StatGenerator.cpp" />
@@ -36,12 +34,10 @@
     <ClInclude Include="..\..\src\console\LRUCache.h" />
     <ClInclude Include="..\..\src\console\ServiceWin32.h" />
     <ClInclude Include="..\..\src\console\ConfigWatcher.h" />
-    <ClInclude Include="..\..\src\console\Common.h" />
     <ClInclude Include="..\..\src\console\ClientSocketWorker.h" />
     <ClInclude Include="..\..\src\console\ClientSocketWorkerTask.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="..\..\src\console\MemoryWatcher.h" />
-    <ClInclude Include="..\..\src\console\IO.h" />
     <ClInclude Include="..\..\src\console\svnversion.h" />
     <ClInclude Include="..\..\src\console\PythonInterface.h" />
     <ClInclude Include="..\..\src\console\CfgDefines.h" />

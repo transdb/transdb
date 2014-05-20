@@ -208,7 +208,7 @@ int main(int argc, const char * argv[])
                     sLogPath.append("\\logs");
                 }
 				//open log file
-                string sFullLogPath = FormatOutputString(sLogPath.c_str(), "transdb", true);
+				string sFullLogPath = CommonFunctions::FormatOutputString(sLogPath.c_str(), "transdb", true);
                 Log.CreateFileLog(sFullLogPath);
                 //
                 if(WinServiceRun())

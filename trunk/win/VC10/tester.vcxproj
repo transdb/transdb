@@ -135,9 +135,6 @@
     <ProjectReference Include="shared.vcxproj">
       <Project>{432d025f-ac3d-4a9a-a7c5-6fb30a12ab4c}</Project>
     </ProjectReference>
-    <ProjectReference Include="zlib.vcxproj">
-      <Project>{4f4f3ea7-6d1a-4533-a4ed-c2f99d560992}</Project>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\tester\ClientSocket.cpp" />

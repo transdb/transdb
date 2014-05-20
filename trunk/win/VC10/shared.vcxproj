@@ -33,6 +33,7 @@
     <ClCompile Include="..\..\src\shared\Config\Config.cpp" />
     <ClCompile Include="..\..\src\shared\CrashHandler.cpp" />
     <ClCompile Include="..\..\src\shared\Defines.cpp" />
+    <ClCompile Include="..\..\src\shared\IO\IO.cpp" />
     <ClCompile Include="..\..\src\shared\Logs\Log.cpp" />
     <ClCompile Include="..\..\src\shared\Network\CircularBuffer.cpp" />
     <ClCompile Include="..\..\src\shared\Network\SocketGarbageCollector.cpp" />
@@ -47,6 +48,18 @@
     <ClCompile Include="..\..\src\shared\Packets\GeewaPacket.cpp" />
     <ClCompile Include="..\..\src\shared\StackWalker.cpp" />
     <ClCompile Include="..\..\src\shared\Threading\ThreadPool.cpp" />
+    <ClCompile Include="..\..\src\shared\zlib\adler32.c" />
+    <ClCompile Include="..\..\src\shared\zlib\compress.c" />
+    <ClCompile Include="..\..\src\shared\zlib\crc32.c" />
+    <ClCompile Include="..\..\src\shared\zlib\deflate.c" />
+    <ClCompile Include="..\..\src\shared\zlib\gzclose.c" />
+    <ClCompile Include="..\..\src\shared\zlib\infback.c" />
+    <ClCompile Include="..\..\src\shared\zlib\inffast.c" />
+    <ClCompile Include="..\..\src\shared\zlib\inflate.c" />
+    <ClCompile Include="..\..\src\shared\zlib\inftrees.c" />
+    <ClCompile Include="..\..\src\shared\zlib\trees.c" />
+    <ClCompile Include="..\..\src\shared\zlib\uncompr.c" />
+    <ClCompile Include="..\..\src\shared\zlib\zutil.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\shared\Auth\Crypt.h" />
@@ -62,6 +75,7 @@
     <ClInclude Include="..\..\src\shared\crc32.h" />
     <ClInclude Include="..\..\src\shared\Defines.h" />
     <ClInclude Include="..\..\src\shared\Enums.h" />
+    <ClInclude Include="..\..\src\shared\IO\IO.h" />
     <ClInclude Include="..\..\src\shared\Logs\Log.h" />
     <ClInclude Include="..\..\src\shared\Memory\MemoryAllocator.h" />
     <ClInclude Include="..\..\src\shared\Network\BaseSocket.h" />
@@ -89,6 +103,17 @@
     <ClInclude Include="..\..\src\shared\Threading\ThreadContext.h" />
     <ClInclude Include="..\..\src\shared\Threading\Threading.h" />
     <ClInclude Include="..\..\src\shared\Threading\ThreadPool.h" />
+    <ClInclude Include="..\..\src\shared\zlib\crc32.h" />
+    <ClInclude Include="..\..\src\shared\zlib\deflate.h" />
+    <ClInclude Include="..\..\src\shared\zlib\gzguts.h" />
+    <ClInclude Include="..\..\src\shared\zlib\inffast.h" />
+    <ClInclude Include="..\..\src\shared\zlib\inffixed.h" />
+    <ClInclude Include="..\..\src\shared\zlib\inflate.h" />
+    <ClInclude Include="..\..\src\shared\zlib\inftrees.h" />
+    <ClInclude Include="..\..\src\shared\zlib\trees.h" />
+    <ClInclude Include="..\..\src\shared\zlib\zconf.h" />
+    <ClInclude Include="..\..\src\shared\zlib\zlib.h" />
+    <ClInclude Include="..\..\src\shared\zlib\zutil.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{432D025F-AC3D-4A9A-A7C5-6FB30A12AB4C}</ProjectGuid>
@@ -252,6 +277,7 @@
     </Link>
     <Lib>
       <TargetMachine>MachineX64</TargetMachine>
+      <AdditionalDependencies>KtmW32.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Intel_SSA|x64'">
