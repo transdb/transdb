@@ -15,9 +15,7 @@
 #include "../shared/Network/Network.h"
 #include "../shared/CallBack.h"
 #include "../shared/Packets/Packets.h"
-
-//zlib
-#include "../zlib/zlib.h"
+#include "../shared/zlib/zlib.h"
 
 #include "ClientSocket.h"
 #include "Launcher.h"
