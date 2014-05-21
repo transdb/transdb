@@ -27,7 +27,7 @@ class Launcher
 public:
 	explicit Launcher() : m_loopCounter(0)
 	{
-		m_loopCounter	= 0;
+        
 	}
 
 	void run();

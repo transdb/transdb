@@ -13,6 +13,7 @@ class PythonInterface : public ThreadContext, public IConfigListener
 {
 public:
     explicit PythonInterface();
+    
     void reloadScript();
     void callOnShutdownPythonMethod();
     
