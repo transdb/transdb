@@ -55,7 +55,7 @@ void Launcher::OnSignal(int s)
 		break;
 	}
 
-	signal(s, OnSignal);
+	signal(s, &Launcher::OnSignal);
 }
 
 void Launcher::run()
