@@ -70,6 +70,7 @@ const char *g_pCompiledVersion = "RELEASE";
 #endif
 
 //python
+bool g_PythonEnable                 = true;
 string g_PythonHome                 = "";
 string g_PythonScriptsFolderPath    = "/Users/miroslavkudrnac/SVN/TransStorageServer/trunk/Python/";
 string g_PythonModuleName           = "main";
@@ -139,6 +140,7 @@ void LoadConfig()
 	GET_CONFIG_VALUE(status, GetInt, "Compression", "BufferSize", &g_ZlibBufferSize);
 	GET_CONFIG_VALUE(status, GetInt, "Compression", "DataSizeForCompression", &g_DataSizeForCompression);
     GET_CONFIG_VALUE(status, GetInt, "Compression", "RecordSizeForCompression", &g_RecordSizeForCompression);
+    GET_CONFIG_VALUE(status, GetBool, "Python", "PythonEnable", &g_PythonEnable);
     GET_CONFIG_VALUE(status, GetString, "Python", "PythonHome", &g_PythonHome);
     GET_CONFIG_VALUE(status, GetString, "Python", "PythonScriptsFolderPath", &g_PythonScriptsFolderPath);
     GET_CONFIG_VALUE(status, GetString, "Python", "PythonModuleName", &g_PythonModuleName);

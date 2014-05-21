@@ -316,8 +316,12 @@ int main(int argc, const char * argv[])
     Log.Notice(__FUNCTION__, "Listen socket open, accepting new connections.");
     
     //start python interface thread
-    Log.Notice(__FUNCTION__, "Starting python interface.");
-    ThreadPool.ExecuteTask(new PythonInterface());
+    if(g_PythonEnable)
+    {
+        Log.Notice(__FUNCTION__, "Starting python interface...");
+        ThreadPool.ExecuteTask(new PythonInterface());
+        Log.Notice(__FUNCTION__, "Starting python interface... done");
+    }
     
     //from now server is running
     Log.Notice(__FUNCTION__, "Server startup complete.");

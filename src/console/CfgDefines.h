@@ -69,6 +69,7 @@ extern CRC_32 *g_CRC32;
 extern const char *g_pCompiledVersion;
 
 //python
+extern bool g_PythonEnable;
 extern string g_PythonHome;
 extern string g_PythonScriptsFolderPath;
 extern string g_PythonModuleName;

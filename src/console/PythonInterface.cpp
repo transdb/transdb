@@ -60,9 +60,8 @@ static PyObject *Log_Debug(PyObject *self, PyObject *args)
     return Py_None;
 }
 
-PythonInterface::PythonInterface() : m_pInstance(NULL), m_lastVersion(g_PythonScriptVersion)
+PythonInterface::PythonInterface() : m_pInstance(NULL), m_lastVersion(g_PythonScriptVersion), m_pythonScriptRunning(false)
 {
-    m_pythonScriptRunning = false;
     g_pConfigWatcher->addListener(this);
 }
 
