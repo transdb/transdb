@@ -31,12 +31,15 @@ public:
 	bool run();
 
     //
-    INLINE const char *GetConfigPath()     { return m_configPath.c_str(); }
+    INLINE const char *GetConfigPath() const
+    {
+        return m_configPath.c_str();
+    }
     
 private:
-	string          m_configPath;
-    ListenerSet     m_rListeners;
-    std::mutex      m_rListenersLock;
+    const std::string   m_configPath;
+    ListenerSet         m_rListeners;
+    std::mutex          m_rListenersLock;
 };
 
 extern ConfigWatcher *g_pConfigWatcher;

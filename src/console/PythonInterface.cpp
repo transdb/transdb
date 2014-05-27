@@ -81,8 +81,7 @@ bool PythonInterface::run()
     char cBuff[1024];
     bool reloadModule = false;
     //parameters
-    const char *pConfigPath = g_pConfigWatcher->GetConfigPath();
-    const char *pFunctionProto = "(ssii)";
+    const char *pFunctionProto = "(sii)";
    
     while(m_threadRunning)
     {
@@ -175,7 +174,6 @@ bool PythonInterface::run()
             pCallMethodResult = PyObject_CallMethod(m_pInstance,
                                                     (char*)g_PythonRunableMethod.c_str(),
                                                     (char*)pFunctionProto,
-                                                    pConfigPath,
                                                     g_ListenHost.c_str(),
                                                     g_ListenPort,
                                                     g_WebSocketPort);

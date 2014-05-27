@@ -9,37 +9,37 @@
 #include "StdAfx.h"
 
 //cfg
-bool    g_EnableRecordLimit         = true;
-int     g_RecordLimit               = 1000;
-int     g_TransactionsPerCommit     = 1000;
-int     g_DiskFlushCoef             = 100;
-string  g_DataFilePath              = "";
-string  g_IndexFilePath             = "";
-uint64  g_MemoryLimit               = 64*1024*1024;
-int     g_MemoryFlushCoef		    = 1;
-uint64  g_ReallocSize               = 128;
-string  g_ListenHost                = "0.0.0.0";
-int     g_ListenPort                = 5555;
-uint32  g_SocketReadBufferSize      = 32;
-uint32  g_SocketWriteBufferSize     = 32;
-bool	g_StartupCrc32Check 		= true;
-int		g_GzipCompressionLevel		= 4;
-int		g_ZlibBufferSize			= 128*1024;
-int		g_DataSizeForCompression	= 1024;
-string  g_DataFileName              = "data";
-string  g_ActivityID                = "pool-3";
-int     g_PingTimeout               = 60;
-int     g_PingSendInterval          = 15;
-uint64	g_LRUCacheMemReserve		= 4*1024*1024;
-int     g_MemoryPoolsRecycleTimer   = 60*60;
-int     g_MaxParallelTasks          = 4;
-int     g_MaxParallelReadTasks      = 4;
-int     g_MaxTasksInQueue           = 100;
-int     g_MaxReadTasksInQueue       = 100;
-int     g_WebSocketPort             = 8888;
-uint64  g_IndexBlockCacheSize       = 16*1024*1024;
-int     g_RecordSizeForCompression  = 200;
-int     g_DefragAfterRecordDelete   = 5;
+bool        g_EnableRecordLimit         = true;
+int         g_RecordLimit               = 1000;
+int         g_TransactionsPerCommit     = 1000;
+int         g_DiskFlushCoef             = 100;
+std::string g_DataFilePath              = "";
+std::string g_IndexFilePath             = "";
+uint64      g_MemoryLimit               = 64*1024*1024;
+int         g_MemoryFlushCoef		    = 1;
+uint64      g_ReallocSize               = 128;
+std::string g_ListenHost                = "0.0.0.0";
+int         g_ListenPort                = 5555;
+uint32      g_SocketReadBufferSize      = 32;
+uint32      g_SocketWriteBufferSize     = 32;
+bool        g_StartupCrc32Check 		= true;
+int         g_GzipCompressionLevel		= 4;
+int         g_ZlibBufferSize			= 128*1024;
+int         g_DataSizeForCompression	= 1024;
+std::string g_DataFileName              = "data";
+std::string g_ActivityID                = "pool-3";
+int         g_PingTimeout               = 60;
+int         g_PingSendInterval          = 15;
+uint64      g_LRUCacheMemReserve		= 4*1024*1024;
+int         g_MemoryPoolsRecycleTimer   = 60*60;
+int         g_MaxParallelTasks          = 4;
+int         g_MaxParallelReadTasks      = 4;
+int         g_MaxTasksInQueue           = 100;
+int         g_MaxReadTasksInQueue       = 100;
+int         g_WebSocketPort             = 8888;
+uint64      g_IndexBlockCacheSize       = 16*1024*1024;
+int         g_RecordSizeForCompression  = 200;
+int         g_DefragAfterRecordDelete   = 5;
 
 //socket ID gen
 std::atomic<uint64> g_SocketID;
@@ -71,13 +71,13 @@ const char *g_pCompiledVersion = "RELEASE";
 
 //python
 bool g_PythonEnable                 = true;
-string g_PythonHome                 = "";
-string g_PythonScriptsFolderPath    = "/Users/miroslavkudrnac/SVN/TransStorageServer/trunk/Python/";
-string g_PythonModuleName           = "main";
-string g_PythonClassName            = "TestClass";
-string g_PythonRunableMethod        = "run";
-string g_PythonShutdownMethod       = "OnShutdown";
-string g_PythonScriptVersion        = "0";
+std::string g_PythonHome                 = "";
+std::string g_PythonScriptsFolderPath    = "/Users/miroslavkudrnac/SVN/TransStorageServer/trunk/Python/";
+std::string g_PythonModuleName           = "main";
+std::string g_PythonClassName            = "TestClass";
+std::string g_PythonRunableMethod        = "run";
+std::string g_PythonShutdownMethod       = "OnShutdown";
+std::string g_PythonScriptVersion        = "0";
 
 //load config
 void LoadConfig()

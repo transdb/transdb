@@ -31,6 +31,7 @@ public:
     void HandleGetFreeSpace(const HANDLE&, ClientSocketTaskData&);
     void HandleWriteDataNum(const HANDLE&, ClientSocketTaskData&);
     void HandleReadLog(const HANDLE&, ClientSocketTaskData&);
+    void HandleReadConfig(const HANDLE&, ClientSocketTaskData&);
     
 private:
     Storage     &m_rStorage;

@@ -134,7 +134,7 @@ void IndexBlock::Init(Storage *pStorage,
     assert(hIndexFile != INVALID_HANDLE_VALUE);
     
 	//get index file size
-    IO::fseek(hIndexFile, 0, SEEK_END);
+    IO::fseek(hIndexFile, 0, IO::IO_SEEK_END);
     size_t fileSize = IO::ftell(hIndexFile);
     *indexFileSize = fileSize;
     
@@ -144,7 +144,7 @@ void IndexBlock::Init(Storage *pStorage,
 		m_blockCount = static_cast<uint32>(fileSize / INDEX_BLOCK_SIZE);
         
         //read
-        IO::fseek(hIndexFile, 0, SEEK_SET);
+        IO::fseek(hIndexFile, 0, IO::IO_SEEK_SET);
         IO::fread(pData, fileSize, hIndexFile);
         
         //create struct - save pointers to data and containers
@@ -236,7 +236,7 @@ void IndexBlock::WriteRecordIndexToDisk(const HANDLE &hFile, RecordIndexMap::acc
         memcpy(pDiskBlock + rWriteAccesor->second->m_IB_recordOffset, &rDiskRecord, sizeof(DREC));
         
         //update on disk
-        IO::fseek(hFile, diskPosition, SEEK_SET);
+        IO::fseek(hFile, diskPosition, IO::IO_SEEK_SET);
         IO::fwrite(pDiskBlock, INDEX_BLOCK_SIZE, hFile);
     }
     else
@@ -269,7 +269,7 @@ void IndexBlock::WriteRecordIndexToDisk(const HANDLE &hFile, RecordIndexMap::acc
             ++m_blockCount;
             
             //write to disk - to the end
-            IO::fseek(hFile, 0, SEEK_END);
+            IO::fseek(hFile, 0, IO::IO_SEEK_END);
             IO::fwrite(pDiskBlock, INDEX_BLOCK_SIZE, hFile);
         }
         else
@@ -317,7 +317,7 @@ void IndexBlock::WriteRecordIndexToDisk(const HANDLE &hFile, RecordIndexMap::acc
                 }
                 
                 //write to disk
-                IO::fseek(hFile, diskPosition, SEEK_SET);
+                IO::fseek(hFile, diskPosition, IO::IO_SEEK_SET);
                 IO::fwrite(pDiskBlock, INDEX_BLOCK_SIZE, hFile);
             }
         }
@@ -365,7 +365,7 @@ void IndexBlock::EraseRecord(const HANDLE &hFile, const RecordIndex &rRecordInde
     m_freeBlocks.insert(rRecordIndex.m_IB_blockNumber);
     
     //write to disk
-    IO::fseek(hFile, diskPosition, SEEK_SET);
+    IO::fseek(hFile, diskPosition, IO::IO_SEEK_SET);
     IO::fwrite(pDiskBlock, INDEX_BLOCK_SIZE, hFile);
 }
 
@@ -406,7 +406,7 @@ uint8 *IndexBlock::GetCachedDiskBlock(const HANDLE &hFile, const size_t &blockDi
     pDiskBlock = (uint8*)m_rIndexBlockMemPool.allocate();
     
     //read from disk
-    IO::fseek(hFile, blockDiskPosition, SEEK_SET);
+    IO::fseek(hFile, blockDiskPosition, IO::IO_SEEK_SET);
     IO::fread(pDiskBlock, INDEX_BLOCK_SIZE, hFile);
     
     //add to cache
@@ -424,7 +424,7 @@ DREC *IndexBlock::GetEmptyDREC(const uint8 *pDiskBlock, int16 *newRecordOffset)
     for(;;)
     {
         if(position > IMAX_RECORD_POS)
-        break;
+            break;
         
         //get DREC
         pDREC = (DREC*)(pDiskBlock + position);

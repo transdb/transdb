@@ -19,7 +19,6 @@ from templates import *
 
 HTML = "text/html"
 CSS = "text/css"
-g_confPath = None
 g_authKey = base64.b64encode("transdb:A1b2C3d4")
 
 urls = (("/", "index"), ("/fragment", "fragment"), ("/config", "config"), ("/log", "log"), ("/style.css", "css"), ("/editor", "editor"), ("/dailyChallenge", "dailyChallenge"))
@@ -81,13 +80,12 @@ class TransDBHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         try:
             if not body == None:
                 if 'config' in body:
-                    with open(g_confPath, "w") as cfg:
-                        cfg.write(body['config'])
+                    raise RuntimeError("Not implemented!")
                 else:
                     raise RuntimeError("Invalid request, config parameter not found!")
-            
-            with open(g_confPath, "r") as src :
-                configString = src.read()
+                        
+            #get config
+            configString = transDB.readConfig()
                 
             textArea = '<form role="form" action="config" method="POST"> \
                             <div class="form-group"> \
@@ -305,12 +303,8 @@ class LoadTransDB:
         self.clientSocketThread = None
         self.stopEvent = threading.Event()
 
-    def run(self, configPath, transDBListenHost, transDBListenPort, webServiceListenPort):
+    def run(self, transDBListenHost, transDBListenPort, webServiceListenPort):
         try:
-            #save values
-            global g_confPath
-            g_confPath = configPath
-            
             #start client socket thread - windows ip connect fix
             trandbSocketConnectIP = "127.0.0.1"
             if transDBListenHost != "0.0.0.0":

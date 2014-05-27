@@ -116,7 +116,7 @@ void DiskWriter::WriteDataWithoutRelocateFlag(const HANDLE &hDataFile, RecordInd
             pCIDF->m_flags &= ~eBLF_Dirty;
             //calc offset + write to disk
             blockOffset = rWriteAccessor->second->m_recordStart + (i * BLOCK_SIZE);
-            IO::fseek(hDataFile, blockOffset, SEEK_SET);
+            IO::fseek(hDataFile, blockOffset, IO::IO_SEEK_SET);
             IO::fwrite(pBlock, BLOCK_SIZE, hDataFile);
         }
     }
@@ -154,7 +154,7 @@ bool DiskWriter::WriteDataWithRelocateFlag(const HANDLE &hDataFile, RecordIndexM
         pBlock = rWriteAccessor->second->m_pBlockManager->GetBlock(i);
         //calc offset + write to disk
         blockOffset = freePos + (i * BLOCK_SIZE);
-        IO::fseek(hDataFile, blockOffset, SEEK_SET);
+        IO::fseek(hDataFile, blockOffset, IO::IO_SEEK_SET);
         IO::fwrite(pBlock, BLOCK_SIZE, hDataFile);
     }
     return true;
@@ -341,7 +341,7 @@ void DiskWriter::ReallocDataFile(const HANDLE &hDataFile, const size_t &minSize,
     reallocSize = std::max<int64>(g_ReallocSize, minSize);
     
     //seek end + get new freespace start position
-    IO::fseek(hDataFile, 0, SEEK_END);
+    IO::fseek(hDataFile, 0, IO::IO_SEEK_END);
     startFreeSpace = IO::ftell(hDataFile);
     
 	//set end of file

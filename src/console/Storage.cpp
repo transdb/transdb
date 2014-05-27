@@ -49,9 +49,9 @@ Storage::Storage(const char *pFileName)
     m_pDiskWriter = new DiskWriter(*this);
     
 	//resize if needed
-    IO::fseek(rDataFileHandle, 0, SEEK_END);
+    IO::fseek(rDataFileHandle, 0, IO::IO_SEEK_END);
 	m_dataFileSize = IO::ftell(rDataFileHandle);
-    IO::fseek(rDataFileHandle, 0, SEEK_SET);
+    IO::fseek(rDataFileHandle, 0, IO::IO_SEEK_SET);
 	if(m_dataFileSize == 0)
 	{
         //this function will update m_dataFileSize
@@ -566,7 +566,7 @@ bool Storage::CheckBlockManager(const HANDLE &rDataFileHandle, const uint64 &x, 
         rDiskBlocks.resize(rWriteAccessor->second->m_blockCount * BLOCK_SIZE);
         
         //read all blocks in one IO
-        IO::fseek(rDataFileHandle, rWriteAccessor->second->m_recordStart, SEEK_SET);
+        IO::fseek(rDataFileHandle, rWriteAccessor->second->m_recordStart, IO::IO_SEEK_SET);
         IO::fread((void*)rDiskBlocks.contents(), rDiskBlocks.size(), rDataFileHandle);
         
         //copy to blocks allocated from memory pool

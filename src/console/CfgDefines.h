@@ -14,18 +14,18 @@ extern bool g_EnableRecordLimit;
 extern int g_RecordLimit;
 extern int g_DiskFlushCoef;
 extern int g_TransactionsPerCommit;
-extern string g_DataFilePath;
-extern string g_IndexFilePath;
+extern std::string g_DataFilePath;
+extern std::string g_IndexFilePath;
 extern uint64 g_MemoryLimit;
 extern int g_MemoryFlushCoef;
 extern uint64 g_ReallocSize;
-extern string g_ListenHost;
+extern std::string g_ListenHost;
 extern int g_ListenPort;
 extern uint32 g_SocketReadBufferSize;
 extern uint32 g_SocketWriteBufferSize;
 extern bool g_StartupCrc32Check;
-extern string g_DataFileName;
-extern string g_ActivityID;
+extern std::string g_DataFileName;
+extern std::string g_ActivityID;
 extern int g_PingTimeout;
 extern int g_PingSendInterval;
 extern uint64 g_LRUCacheMemReserve;
@@ -70,13 +70,13 @@ extern const char *g_pCompiledVersion;
 
 //python
 extern bool g_PythonEnable;
-extern string g_PythonHome;
-extern string g_PythonScriptsFolderPath;
-extern string g_PythonModuleName;
-extern string g_PythonClassName;
-extern string g_PythonRunableMethod;
-extern string g_PythonShutdownMethod;
-extern string g_PythonScriptVersion;
+extern std::string g_PythonHome;
+extern std::string g_PythonScriptsFolderPath;
+extern std::string g_PythonModuleName;
+extern std::string g_PythonClassName;
+extern std::string g_PythonRunableMethod;
+extern std::string g_PythonShutdownMethod;
+extern std::string g_PythonScriptVersion;
 
 #ifdef WIN32
 static void trans_func(unsigned int u, EXCEPTION_POINTERS* pExp)
