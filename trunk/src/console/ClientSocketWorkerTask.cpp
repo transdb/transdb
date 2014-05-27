@@ -36,8 +36,10 @@ static const ClientSocketWorkerTaskHandler m_ClientSocketWorkerTaskHandlers[OP_N
     NULL,                                           //S_MSG_GET_FREESPACE   = 22,
     &ClientSocketWorkerTask::HandleWriteDataNum,    //C_MSG_WRITE_DATA_NUM  = 23,
     NULL,                                           //S_MSG_WRITE_DATA_NUM  = 24,
-    &ClientSocketWorkerTask::HandleReadLog,         //C_MSG_READ_LOG        = 23,
-    NULL,                                           //S_MSG_READ_LOG        = 24,
+    &ClientSocketWorkerTask::HandleReadLog,         //C_MSG_READ_LOG        = 25,
+    NULL,                                           //S_MSG_READ_LOG        = 26,
+    &ClientSocketWorkerTask::HandleReadConfig,      //C_MSG_READ_LOG        = 27,
+    NULL,                                           //S_MSG_READ_LOG        = 28,
 };
 
 ClientSocketWorkerTask::ClientSocketWorkerTask(Storage &rStorage, bool readerTask) : m_rStorage(rStorage), m_readerThread(readerTask)
@@ -645,6 +647,59 @@ void ClientSocketWorkerTask::HandleReadLog(const HANDLE &rDataFileHandle, Client
     g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 
+void ClientSocketWorkerTask::HandleReadConfig(const HANDLE &rDataFileHandle, ClientSocketTaskData &rClientSocketTaskData)
+{
+    uint32 token;
+    uint32 flags;
+    ByteBuffer rBuff;
+    
+	//for compresion
+	int compressionStatus = Z_ERRNO;
+	ByteBuffer rBuffOut;
+    
+    //read data from packet
+    rClientSocketTaskData >> token >> flags;
+    
+    //get config data
+    const char *pConfigPath = g_pConfigWatcher->GetConfigPath();
+    HANDLE hFile = IO::fopen(pConfigPath, IO::IO_READ_ONLY);
+    if(hFile != INVALID_HANDLE_VALUE)
+    {
+        IO::fseek(hFile, 0, IO::IO_SEEK_END);
+        int64 fileSize = IO::ftell(hFile);
+        IO::fseek(hFile, 0, IO::IO_SEEK_SET);
+        //read to buffer
+        rBuff.resize(fileSize);
+        IO::fread((void*)rBuff.contents(), rBuff.size(), hFile);
+        IO::fclose(hFile);
+    }
+    
+    if(rBuff.size() > (uint32)g_DataSizeForCompression)
+    {
+        compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rBuff.contents(), rBuff.size(), rBuffOut);
+        if(compressionStatus == Z_OK)
+        {
+            Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rBuff.size(), rBuffOut.size());
+            flags = ePF_COMPRESSED;
+        }
+        else
+        {
+            Log.Error(__FUNCTION__, "Data compression failed.");
+        }
+    }
+    
+    //send back data
+    Packet rResponse(S_MSG_READ_CONFIG, sizeof(token)+sizeof(flags)+rBuff.size());
+    rResponse << token;
+    rResponse << flags;
+    
+    if(compressionStatus == Z_OK)
+        rResponse.append(rBuffOut);
+    else
+        rResponse.append(rBuff);
+    
+    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
+}
 
 
 

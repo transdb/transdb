@@ -35,6 +35,8 @@ C_MSG_WRITE_DATA_NUM    = 23
 S_MSG_WRITE_DATA_NUM    = 24
 C_MSG_READ_LOG          = 25
 S_MSG_READ_LOG          = 26
+C_MSG_READ_CONFIG       = 27
+S_MSG_READ_CONFIG       = 28
 
 SELECT_WAIT_TIME = 10
 recvQueue = multiprocessing.Queue()
@@ -181,6 +183,19 @@ def readLog():
         return data
     except Exception as e:
         cfunctions.Log_Error("trandDB.readLog: " + str(e))
+
+def readConfig():
+    """ Read config """
+    try:
+        token = getToken()
+        packet = packets.TransDBPacket(C_MSG_READ_CONFIG)
+        packet.data = struct.pack('<I', token)
+        sendQueue.put(packet)
+        data = getData(token)
+        return data
+    except Exception as e:
+        cfunctions.Log_Error("trandDB.readLog: " + str(e))
+
 
 def socket_run(rcv_queue, send_queue, stop_event, addr, port):
     """ 

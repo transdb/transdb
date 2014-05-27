@@ -38,6 +38,8 @@ static const ClientSocketHandler m_ClientSocketHandlers[OP_NUM] =
     NULL,                                       //S_MSG_WRITE_DATA_NUM  = 24,
     &ClientSocket::QueueReadPacket,             //C_MSG_READ_LOG        = 25,
     NULL,                                       //S_MSG_READ_LOG        = 26,
+    &ClientSocket::QueueReadPacket,             //C_MSG_READ_CONFIG     = 26,
+    NULL,                                       //S_MSG_READ_CONFIG     = 27,
 };
 
 static const char *g_OpcodeNames[OP_NUM] =
@@ -82,6 +84,9 @@ static const char *g_OpcodeNames[OP_NUM] =
     
     "C_MSG_READ_LOG",
     "S_MSG_READ_LOG",
+    
+    "C_MSG_READ_CONFIG",
+    "S_MSG_READ_CONFIG",
 };
 
 ClientSocket::ClientSocket(SOCKET fd) : Socket(fd, g_SocketReadBufferSize, g_SocketWriteBufferSize)

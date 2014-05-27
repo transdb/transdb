@@ -134,9 +134,9 @@ int main(int argc, const char * argv[])
     g_StartTime = UNIXTIME;
 
 	//parse command args
-	string sConfigPath;
-    string sLogPath;
-    string sPidFilePath;
+	std::string sConfigPath;
+    std::string sLogPath;
+    std::string sPidFilePath;
     bool startAsDaemon = false;
     for(int i = 0;i < argc;++i)
     {                
@@ -230,7 +230,7 @@ int main(int argc, const char * argv[])
     //open log file
     if(!sLogPath.empty())
     {
-        string sFullLogPath = CommonFunctions::FormatOutputString(sLogPath.c_str(), "transdb", true);
+        std::string sFullLogPath = CommonFunctions::FormatOutputString(sLogPath.c_str(), "transdb", true);
         Log.CreateFileLog(sFullLogPath);
     }
 #endif
