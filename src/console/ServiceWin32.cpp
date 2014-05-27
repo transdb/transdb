@@ -19,9 +19,9 @@
 #endif
 
 extern int main(int argc, char** argv);
-extern string g_serviceLongName;
-extern string g_serviceName;
-extern string g_serviceDescription;
+extern std::string g_serviceLongName;
+extern std::string g_serviceName;
+extern std::string g_serviceDescription;
 
 /*
 * -1 - not in service mode

@@ -9,9 +9,9 @@
 #include "StdAfx.h"
 
 #ifdef WIN32
-    string g_serviceLongName = "TransDB";
-    string g_serviceName = "TransDB";
-    string g_serviceDescription = "Transaction Database Server";
+	std::string g_serviceLongName = "TransDB";
+	std::string g_serviceName = "TransDB";
+	std::string g_serviceDescription = "Transaction Database Server";
 #else
     //DAEMON
     static int _null_open(int f, int fd)
@@ -202,13 +202,13 @@ int main(int argc, const char * argv[])
                     //if service then log to file
                     char buff[MAX_PATH];
                     GetModuleFileName(NULL, buff, MAX_PATH);
-                    sLogPath = string(buff);
+					sLogPath = std::string(buff);
                     size_t resize = sLogPath.find_last_of("\\");
                     sLogPath.resize(resize);
                     sLogPath.append("\\logs");
                 }
 				//open log file
-				string sFullLogPath = CommonFunctions::FormatOutputString(sLogPath.c_str(), "transdb", true);
+				std::string sFullLogPath = CommonFunctions::FormatOutputString(sLogPath.c_str(), "transdb", true);
                 Log.CreateFileLog(sFullLogPath);
                 //
                 if(WinServiceRun())
