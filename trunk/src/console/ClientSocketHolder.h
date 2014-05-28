@@ -32,6 +32,9 @@ public:
     void Update();
     
 private:
+	//disable copy constructor and assign
+	DISALLOW_COPY_AND_ASSIGN(ClientSocketHolder);
+    
     ClientSocketMap         m_clientSockets;
     std::recursive_mutex    m_lock;
 };

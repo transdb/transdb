@@ -45,8 +45,9 @@ public:
     }
 
 private:
-	//disable copy constructor
-	LRUCache(const LRUCache& that);
+	//disable copy constructor and assign
+	DISALLOW_COPY_AND_ASSIGN(LRUCache);
+    
     INLINE void ChangeChain(CRec *pCRecFind);
 
 	CRec                *m_last;

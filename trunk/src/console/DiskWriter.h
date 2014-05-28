@@ -67,22 +67,22 @@ public:
         return size;
     }
     
-    uint64 GetLastNumOfItemsInProcess()
+    uint64 GetLastNumOfItemsInProcess() const
     {
-        return m_lastNumOfItemsInProcess.load();
+        return m_lastNumOfItemsInProcess;
     }
     
-    uint64 GetItemsToProcessSize()
+    uint64 GetItemsToProcessSize() const
     {
-        return m_itemsToProcessSize.load();
+        return m_itemsToProcessSize;
     }
 
     //reallocating
-	void ReallocDataFile(const HANDLE &hDataFile, const size_t &minSize, bool oAddFreeSpace = true);
+	void ReallocDataFile(const HANDLE &hDataFile, const int64 &minSize, bool oAddFreeSpace = true);
     
 private:
-	//disable copy constructor
-	DiskWriter(const DiskWriter& that);
+	//disable copy constructor and assign
+	DISALLOW_COPY_AND_ASSIGN(DiskWriter);
 
     //private functions
     void ProcessIndexDeleteQueue();

@@ -26,7 +26,7 @@ class ClientSocket : public Socket
     typedef std::queue<Packet*>     PacketQueue;
     
 public:
-	ClientSocket(SOCKET fd);
+	explicit ClientSocket(SOCKET fd);
 	~ClientSocket();
     
 	void OnRead();
@@ -55,6 +55,9 @@ public:
     std::atomic<time_t> m_lastPing;
     
 private:
+	//disable copy constructor and assign
+	DISALLOW_COPY_AND_ASSIGN(ClientSocket);
+    
     OUTPACKET_RESULT _OutPacket(const uint16 &opcode, const size_t &len, const void* data);
     
     uint64                  m_socketID;

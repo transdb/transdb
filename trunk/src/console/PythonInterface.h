@@ -25,6 +25,9 @@ public:
     void OnShutdown();
     
 private:
+	//disable copy constructor and assign
+	DISALLOW_COPY_AND_ASSIGN(PythonInterface);
+    
     PyObject            *m_pInstance;
     std::string         m_lastVersion;
     std::atomic<bool>   m_pythonScriptRunning;

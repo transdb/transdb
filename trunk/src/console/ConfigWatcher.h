@@ -37,6 +37,9 @@ public:
     }
     
 private:
+	//disable copy constructor and assign
+	DISALLOW_COPY_AND_ASSIGN(ConfigWatcher);
+    
     const std::string   m_configPath;
     ListenerSet         m_rListeners;
     std::mutex          m_rListenersLock;

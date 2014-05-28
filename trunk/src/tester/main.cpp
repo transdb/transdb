@@ -45,13 +45,13 @@ public:
         uint64 random;
 
         printf("%lu\n", time(NULL));
-        for(uint64 x = 0;x < 100;++x)
+        for(uint64 x = 0;x < 10000;++x)
         {
 //            random = 1;
 //            random = rand() % 1000;
             random = x;
             
-            for(uint64 y = 1;y < 10;++y)
+            for(uint64 y = 1;y < 100;++y)
             {
                 datasize = rand()%1024;
                 pData = (uint8*)malloc(datasize);
@@ -71,7 +71,7 @@ public:
                     Wait(100);
                 }
 
-                //Sleep(1);
+//                std::this_thread::sleep_for(std::chrono::microseconds(10));
                 ++token;
             }
         }

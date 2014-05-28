@@ -137,7 +137,7 @@ bool DiskWriter::WriteDataWithRelocateFlag(const HANDLE &hDataFile, RecordIndexM
         freePos = m_rStorage.GetFreeSpacePos(requestDiskSize);
         if(freePos == -1)
         {
-            Log.Error(__FUNCTION__, "There is not freespace on disk drive. Record: " I64FMTD " is not written.", rWriteAccessor->first);
+            Log.Error(__FUNCTION__, "There is no freespace on disk drive. Record: " I64FMTD " is not written.", rWriteAccessor->first);
             return false;
         }
     }
@@ -332,13 +332,13 @@ void DiskWriter::RecycleQueue()
     _S_FixedPool_Recycle("RIDelQueue", m_rRIDelQueueLock, *m_pRIDelQueue);
 }
 
-void DiskWriter::ReallocDataFile(const HANDLE &hDataFile, const size_t &minSize, bool oAddFreeSpace /*= true*/)
+void DiskWriter::ReallocDataFile(const HANDLE &hDataFile, const int64 &minSize, bool oAddFreeSpace /*= true*/)
 {
 	int64 reallocSize;
     int64 startFreeSpace;
     
     //calc size
-    reallocSize = std::max<int64>(g_ReallocSize, minSize);
+    reallocSize = std::max(g_ReallocSize, minSize);
     
     //seek end + get new freespace start position
     IO::fseek(hDataFile, 0, IO::IO_SEEK_END);

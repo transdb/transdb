@@ -17,7 +17,7 @@ std::string g_DataFilePath              = "";
 std::string g_IndexFilePath             = "";
 uint64      g_MemoryLimit               = 64*1024*1024;
 int         g_MemoryFlushCoef		    = 1;
-uint64      g_ReallocSize               = 128;
+int64       g_ReallocSize               = 128;
 std::string g_ListenHost                = "0.0.0.0";
 int         g_ListenPort                = 5555;
 uint32      g_SocketReadBufferSize      = 32;
@@ -152,7 +152,7 @@ void LoadConfig()
 #undef GET_CONFIG_VALUE
     
     //adjust to bytes from MB
-    g_ReallocSize = (uint64)reallocSizeMB*1024*1024;
+    g_ReallocSize = (int64)reallocSizeMB*1024*1024;
     g_MemoryLimit = (uint64)memmoryLimitMB*1024*1024;
     g_SocketReadBufferSize = (uint32)readBufferSize*1024;
     g_SocketWriteBufferSize = (uint32)writeBufferSize*1024;

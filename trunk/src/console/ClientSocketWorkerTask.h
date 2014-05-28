@@ -34,6 +34,9 @@ public:
     void HandleReadConfig(const HANDLE&, ClientSocketTaskData&);
     
 private:
+	//disable copy constructor and assign
+	DISALLOW_COPY_AND_ASSIGN(ClientSocketWorkerTask);
+    
     Storage     &m_rStorage;
     bool        m_readerThread;
 };
