@@ -13,35 +13,25 @@ INLINE static bool SortWriteInfoForCRC32Check(const WriteInfo &rWriteInfo1, cons
     return rWriteInfo1.m_recordPosition < rWriteInfo2.m_recordPosition;
 }
 
-Storage::Storage(const char *pFileName)
+Storage::Storage(const std::string &rFileName) : m_rDataPath(g_DataFilePath + rFileName + ".dat"),
+                                                 m_rIndexPath(g_IndexFilePath + rFileName + ".idx")
 {
 	m_sumDiskReadTime		    = 0;
     m_dataFileSize              = 0;
     m_diskWriterCount           = 0;
     m_memoryUsed                = 0;
     m_pLRUCache                 = new LRUCache("Storage", g_LRUCacheMemReserve / sizeof(CRec));
-    
-	//+5 - extension + terminating byte
-	size_t dataFilePathLen = strlen(g_DataFilePath.c_str())+strlen(pFileName)+5;
-	size_t indexFilePathLen = strlen(g_IndexFilePath.c_str())+strlen(pFileName)+5;
-	static const char *pPathTemplate = "%s%s%s";
-	//alocate data paths
-	m_pDataPath = new char[dataFilePathLen];
-	m_pIndexPath = new char[indexFilePathLen];
-	//fill data paths
-    sprintf(m_pDataPath, pPathTemplate, g_DataFilePath.c_str(), pFileName, ".dat");
-    sprintf(m_pIndexPath, pPathTemplate, g_IndexFilePath.c_str(), pFileName, ".idx");
-    
+       
     //check if data file exits if not create it
-    CommonFunctions::CheckFileExists(m_pDataPath, true);
+    CommonFunctions::CheckFileExists(m_rDataPath.c_str(), true);
     
 	//open data file
     HANDLE rDataFileHandle;
     IOHandleGuard rIOHandleGuard(&rDataFileHandle);
-    rDataFileHandle = IO::fopen(m_pDataPath, IO::IO_RDWR);
+    rDataFileHandle = IO::fopen(m_rDataPath.c_str(), IO::IO_RDWR);
     if(rDataFileHandle == INVALID_HANDLE_VALUE)
     {
-        Log.Error(__FUNCTION__, "Cannot open data file: %s.", m_pDataPath);
+        Log.Error(__FUNCTION__, "Cannot open data file: %s.", m_rDataPath.c_str());
         assert(rDataFileHandle != INVALID_HANDLE_VALUE);
     }
     
@@ -57,15 +47,15 @@ Storage::Storage(const char *pFileName)
         //this function will update m_dataFileSize
         m_pDiskWriter->ReallocDataFile(rDataFileHandle, g_ReallocSize, false);
 	}
-	Log.Notice(__FUNCTION__, "Data file: %s - loaded. Size: " SI64FMTD " bytes", m_pDataPath, m_dataFileSize.load());
+	Log.Notice(__FUNCTION__, "Data file: %s - loaded. Size: " SI64FMTD " bytes", m_rDataPath.c_str(), m_dataFileSize.load());
             
 	//load indexes and freespaces
     //create writter
     m_pDataIndexDiskWriter = new IndexBlock();
     //load indexes to memory
     int64 indexFileSize;
-    m_pDataIndexDiskWriter->Init(this, m_pIndexPath, m_dataIndexes, m_dataFileSize, &indexFileSize);
-	Log.Notice(__FUNCTION__, "Index file: %s - loaded. Size: " SI64FMTD " bytes", m_pIndexPath, indexFileSize);
+    m_pDataIndexDiskWriter->Init(this, m_rIndexPath, m_dataIndexes, m_dataFileSize, &indexFileSize);
+	Log.Notice(__FUNCTION__, "Index file: %s - loaded. Size: " SI64FMTD " bytes", m_rIndexPath.c_str(), indexFileSize);
     
 	//check all data
 	if(g_StartupCrc32Check)
@@ -96,12 +86,6 @@ Storage::~Storage()
     //delete LRU cache
     delete m_pLRUCache;
 	m_pLRUCache = NULL;
-
-    //clean up
-	delete [] m_pDataPath;
-	m_pDataPath = NULL;
-	delete [] m_pIndexPath;
-	m_pIndexPath = NULL;
 }
 
 void Storage::LoadFromDisk(const HANDLE &rDataFileHandle, const uint64 &x)

@@ -23,7 +23,7 @@ class Storage : public ThreadContext
     friend class MemoryWatcher;
     
 public:    
-	explicit Storage(const char *pFileName);
+	explicit Storage(const std::string &rFileName);
 	~Storage();
     
 	//handlers
@@ -58,8 +58,8 @@ protected:
     void CheckMemory();
     
     //declarations
-	char						*m_pDataPath;
-	char						*m_pIndexPath;
+	const std::string           m_rDataPath;
+	const std::string			m_rIndexPath;
     std::atomic<int64>          m_dataFileSize;
     
     //disk writer
