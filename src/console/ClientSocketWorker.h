@@ -41,6 +41,9 @@ public:
     INLINE const uint64 socketID() const            { return m_socketID; }
         
 private:
+	//disable copy constructor and assign
+	DISALLOW_COPY_AND_ASSIGN(ClientSocketTaskData);
+    
 	template <typename T>
     T read()
 	{
@@ -94,7 +97,10 @@ public:
     //set exception
     INLINE void SetException(bool oValue)      { m_exception = oValue; }
 
-protected:
+private:
+	//disable copy constructor and assign
+	DISALLOW_COPY_AND_ASSIGN(ClientSocketWorker);
+    
     Storage             *m_pStorage;
 	TaskDataQueue       m_rTaskDataQueue;
     TaskDataQueue       m_rReadTaskDataQueue;

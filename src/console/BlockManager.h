@@ -43,13 +43,13 @@ public:
     void DefragmentData();
     NOINLINE uint32 GetBlocksCrc32();
     
-    INLINE uint16 numOfBlocks()                     { return m_rBlocks.size(); }
+    INLINE uint16 numOfBlocks() const               { return m_rBlocks.size(); }
     INLINE uint8 *GetBlock(const uint16 &blockNum)  { return m_rBlocks[blockNum]; }
-    INLINE size_t numOfRecords()                    { return m_rBlockIndex.size(); }
+    INLINE size_t numOfRecords() const              { return m_rBlockIndex.size(); }
     
 private:
-	//disable copy constructor
-	BlockManager(const BlockManager& that);
+	//disable copy constructor and assign
+	DISALLOW_COPY_AND_ASSIGN(BlockManager);
 
     void DeallocBlocks();
     void ReallocBlocks();

@@ -41,27 +41,33 @@ public:
 	//thread
     bool run();
 
-protected:   
+private:
+	//disable copy constructor and assign
+	DISALLOW_COPY_AND_ASSIGN(Storage);
+    
+    //freespace functions
 	void AddFreeSpace(const int64 &pos, const int64 &lenght);
 	int64 GetFreeSpacePos(const int64 &size);
 	void DefragmentFreeSpace();
     
-private:    
+    //used by WriteData and DefragmentData
     void DefragmentDataInternal(RecordIndexMap::accessor &rWriteAccessor);
     
     //for CRC32 check
     void LoadFromDisk(const HANDLE &rDataFileHandle, const uint64 &x);
     void Crc32Check(const HANDLE &rDataFileHandle);
     
-protected:
+    //check if data for blockmanager are in memory and load it from disk
     bool CheckBlockManager(const HANDLE &rDataFileHandle, const uint64 &x, RecordIndexMap::accessor &rWriteAccessor);
+    
+    //checking memory usage and handling freeing memory
     void CheckMemory();
     
     //declarations
 	const std::string           m_rDataPath;
 	const std::string			m_rIndexPath;
     std::atomic<int64>          m_dataFileSize;
-    
+
     //disk writer
     uint32                      m_diskWriterCount;
     DiskWriter					*m_pDiskWriter;

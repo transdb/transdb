@@ -20,6 +20,9 @@ public:
     void GenerateStats(ByteBuffer &rData, bool oAddDescription);
     
 private:
+	//disable copy constructor and assign
+	DISALLOW_COPY_AND_ASSIGN(StatGenerator);
+    
     void GetFreeFraceStats(uint64 &freeSpaceChunkCount, uint64 &freeSpaceBlocksCount);
     void GetBlockMemPoolStats(uint64 &blockMemPoolSize);
     void GetRecordIndexMemPoolStats(uint64 &recordIndexMemPoolSize);

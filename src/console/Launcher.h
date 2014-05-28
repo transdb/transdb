@@ -36,6 +36,9 @@ public:
 	void UnhookSignals();
 
 private:
+	//disable copy constructor and assign
+	DISALLOW_COPY_AND_ASSIGN(Launcher);
+    
 	static void OnSignal(int s);
 
     std::condition_variable m_rCond;

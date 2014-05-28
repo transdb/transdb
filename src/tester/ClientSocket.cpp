@@ -281,13 +281,13 @@ void ClientSocket::HandleGetAllX(ByteBuffer &rPacket)
 
 void ClientSocket::HandlePing(ByteBuffer &rPacket)
 {
-//    uint64 tickCount;
-//    rPacket >> tickCount;
-//    
-//    while(OutPacket(C_MSG_PONG, sizeof(tickCount), &tickCount) != OUTPACKET_RESULT_SUCCESS)
-//    {
-//        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//    }
+    uint64 tickCount;
+    rPacket >> tickCount;
+    
+    while(OutPacket(C_MSG_PONG, sizeof(tickCount), &tickCount) != OUTPACKET_RESULT_SUCCESS)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
 }
 
 void ClientSocket::HandleGetAllY(ByteBuffer &rPacket)

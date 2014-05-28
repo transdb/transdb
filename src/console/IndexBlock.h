@@ -146,11 +146,11 @@ public:
     void EraseRecord(const HANDLE &hFile, const RecordIndex &rRecordIndex);
     
 private:
+	//disable copy constructor and assign
+	DISALLOW_COPY_AND_ASSIGN(IndexBlock);
+    
     uint8 *GetCachedDiskBlock(const HANDLE &hFile, const size_t &blockDiskPosition, const uint32 &blockNumber);
     DREC *GetEmptyDREC(const uint8 *pDiskBlock, int16 *newRecordOffset);
-    
-	//disable copy constructor
-	IndexBlock(const IndexBlock& that);
 
     //declarations
     uint32                      m_blockCount;

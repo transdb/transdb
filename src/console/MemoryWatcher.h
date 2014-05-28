@@ -18,6 +18,9 @@ public:
     bool run();
     
 private:
+	//disable copy constructor and assign
+	DISALLOW_COPY_AND_ASSIGN(MemoryWatcher);
+    
     Storage     &m_rStorage;
     uint32      m_memoryCheckerCount;
     uint32      m_memoryPoolCheckerCount;

@@ -18,7 +18,7 @@ extern std::string g_DataFilePath;
 extern std::string g_IndexFilePath;
 extern uint64 g_MemoryLimit;
 extern int g_MemoryFlushCoef;
-extern uint64 g_ReallocSize;
+extern int64 g_ReallocSize;
 extern std::string g_ListenHost;
 extern int g_ListenPort;
 extern uint32 g_SocketReadBufferSize;
