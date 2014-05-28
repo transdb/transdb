@@ -105,7 +105,7 @@ struct FillIndex
 };
 
 void IndexBlock::Init(Storage *pStorage,
-					  const char *pIndexFilePath,
+					  const std::string &rIndexFilePath,
 				      RecordIndexMap &rRecordIndexMap,
 					  int64 dataFileSize,
                       int64 *indexFileSize)
@@ -127,10 +127,10 @@ void IndexBlock::Init(Storage *pStorage,
 	dataFileSizeTmp = dataFileSize;
     
     //check file exists
-    CommonFunctions::CheckFileExists(pIndexFilePath, true);
+    CommonFunctions::CheckFileExists(rIndexFilePath.c_str(), true);
     
     //open index file
-    hIndexFile = IO::fopen(pIndexFilePath, IO::IO_RDWR);
+    hIndexFile = IO::fopen(rIndexFilePath.c_str(), IO::IO_RDWR);
     assert(hIndexFile != INVALID_HANDLE_VALUE);
     
 	//get index file size

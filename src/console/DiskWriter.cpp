@@ -215,8 +215,8 @@ void DiskWriter::Process()
             
             //Transacted
             HANDLE hTransaction = IO::ftrans();
-            HANDLE hDataFile = IO::fopentrans(m_rStorage.m_pDataPath, IO::IO_WRITE_ONLY, hTransaction);
-            HANDLE hIndexFile = IO::fopentrans(m_rStorage.m_pIndexPath, IO::IO_RDWR, hTransaction);
+            HANDLE hDataFile = IO::fopentrans(m_rStorage.m_rDataPath.c_str(), IO::IO_WRITE_ONLY, hTransaction);
+            HANDLE hIndexFile = IO::fopentrans(m_rStorage.m_rIndexPath.c_str(), IO::IO_RDWR, hTransaction);
             
             //itreate items and write to disk
             for(DirtyXProcess::iterator itr = rItemsToProcess.begin();itr != rItemsToProcess.end();++itr)
@@ -384,7 +384,7 @@ void DiskWriter::ProcessIndexDeleteQueue()
     {
         //Trancasted
         HANDLE hTransaction = IO::ftrans();
-        HANDLE hIndexFile = IO::fopentrans(m_rStorage.m_pIndexPath, IO::IO_RDWR, hTransaction);
+        HANDLE hIndexFile = IO::fopentrans(m_rStorage.m_rIndexPath.c_str(), IO::IO_RDWR, hTransaction);
         
         //delete all records from index
         for(uint64 i = 0;i < rDeleteQueue.size();++i)

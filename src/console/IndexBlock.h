@@ -141,7 +141,7 @@ public:
     explicit IndexBlock();
     ~IndexBlock();
     
-    void Init(Storage *pStorage, const char *pIndexFilePath, RecordIndexMap &rRecordIndexMap, int64 dataFileSize, int64 *indexFileSize);
+    void Init(Storage *pStorage, const std::string &rIndexFilePath, RecordIndexMap &rRecordIndexMap, int64 dataFileSize, int64 *indexFileSize);
     void WriteRecordIndexToDisk(const HANDLE &hFile, RecordIndexMap::accessor &rWriteAccesor);
     void EraseRecord(const HANDLE &hFile, const RecordIndex &rRecordIndex);
     
