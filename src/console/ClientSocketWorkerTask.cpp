@@ -55,8 +55,8 @@ bool ClientSocketWorkerTask::run()
         CommonFunctions::SetThreadName("Write ClientSocketWorkerTask thread");
 
     //open file per thread - read only
-    HANDLE rDataFileHandle;
-    IOHandleGuard rIOHandleGuard(&rDataFileHandle);
+    HANDLE rDataFileHandle = INVALID_HANDLE_VALUE;
+    IOHandleGuard rIOHandleGuard(rDataFileHandle);
     rDataFileHandle = IO::fopen(m_rStorage.m_rDataPath.c_str(), IO::IO_READ_ONLY);
     assert(rDataFileHandle != INVALID_HANDLE_VALUE);
     

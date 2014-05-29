@@ -58,7 +58,7 @@ void DiskWriter::QueueIndexDeletetion(RecordIndexMap::accessor &rWriteAccesor)
 
 INLINE static bool _S_SortWriteInfoForWrite(const WriteInfo &rWriteInfo1, const WriteInfo &rWriteInfo2)
 {
-    return rWriteInfo1.m_recordPosition > rWriteInfo2.m_recordPosition;
+    return rWriteInfo1.m_recordPosition < rWriteInfo2.m_recordPosition;
 }
 
 NOINLINE static bool _S_DiskWriter_ProcessQueue(DiskWriter::DirtyXQueue *pQueue,
@@ -160,27 +160,7 @@ bool DiskWriter::WriteDataWithRelocateFlag(const HANDLE &hDataFile, RecordIndexM
     return true;
 }
 
-void DiskWriter::ClearInDiskQueueFlag(DiskWriter::DirtyXProcess &rProcessedItems, RecordIndexMap::accessor &rWriteAccessor)
-{
-    //clear flags that records are InDiskWriteQueue
-    for(DirtyXProcess::iterator itr = rProcessedItems.begin();itr != rProcessedItems.end();++itr)
-    {
-        if(m_rStorage.m_dataIndexes.find(rWriteAccessor, itr->m_key))
-        {
-            //cannot delete this record by MemoryWatcher if is wating in disk queue
-            {
-                std::lock_guard<std::mutex> rQGuard(m_rQueueLock);
-                if(m_pQueue->containsKey(rWriteAccessor->first) == false)
-                {
-                    //unset InDiskWriteQueue flag
-                    rWriteAccessor->second->m_flags &= ~eRIF_InDiskWriteQueue;
-                }
-            }
-        }
-    }
-}
-
-void DiskWriter::Process()
+void DiskWriter::Process() throw(std::runtime_error)
 {
     uint64 startTime;
     uint64 endTime;
@@ -193,124 +173,153 @@ void DiskWriter::Process()
         ProcessIndexDeleteQueue();
     }
     
+    //check if we have items to process
+    {
+        //lock
+        std::lock_guard<std::mutex> rQGuard(m_rQueueLock);
+        if(m_pQueue->size() == 0)
+            return;
+    }
+    
+    //open data file for write
+    HANDLE hDataFile = INVALID_HANDLE_VALUE;
+    IOHandleGuard rIOHandleDataGuard(hDataFile);
+    hDataFile = IO::fopen(m_rStorage.m_rDataPath.c_str(), IO::IO_WRITE_ONLY);
+    if(hDataFile == INVALID_HANDLE_VALUE)
+    {
+        Log.Error(__FUNCTION__, "Open datafile: %s failed. Error number: %d", m_rStorage.m_rDataPath.c_str(), errno);
+        return;
+    }
+    
+    //open index file for rw
+    HANDLE hIndexFile = INVALID_HANDLE_VALUE;
+    IOHandleGuard rIOHandleIndexGuard(hIndexFile);
+    hIndexFile = IO::fopen(m_rStorage.m_rIndexPath.c_str(), IO::IO_RDWR);
+    if(hIndexFile == INVALID_HANDLE_VALUE)
+    {
+        Log.Error(__FUNCTION__, "Open indexfile: %s failed. Error number: %d", m_rStorage.m_rIndexPath.c_str(), errno);
+        return;
+    }
+    
 	//start writing to disk
     //get all items from queue to process
     if(_S_DiskWriter_ProcessQueue(m_pQueue, m_rQueueLock, rAllItemsToProcess))
     {
+        //write accessor
+        RecordIndexMap::accessor rWriteAccessor;
+        Vector<FreeSpace> rFreeSpaceToAdd(1024);
+        
         //stats
         startTime = GetTickCount64();
         m_lastNumOfItemsInProcess = rAllItemsToProcess.size();
+        m_itemsToProcessSize = rAllItemsToProcess.size();
         
-        //sort by recordPosition - desc
+        //sort by recordPosition - asc
         std::sort(rAllItemsToProcess.begin(), rAllItemsToProcess.end(), _S_SortWriteInfoForWrite);
         
-        //get new items to process, split by coef how many trans per update
-        while(_S_DiskWriter_GetItemsToProcess(rAllItemsToProcess, rItemsToProcess))
+        //itreate items and write to disk
+        for(DirtyXProcess::iterator itr = rAllItemsToProcess.begin();itr != rAllItemsToProcess.end();++itr)
         {
-            //write accessor
-            RecordIndexMap::accessor rWriteAccessor;
-            Vector<FreeSpace> rFreeSpaceToAdd(1024);
-            //stats
-            m_itemsToProcessSize = rItemsToProcess.size();
-            
-            //Transacted
-            HANDLE hTransaction = IO::ftrans();
-            HANDLE hDataFile = IO::fopentrans(m_rStorage.m_rDataPath.c_str(), IO::IO_WRITE_ONLY, hTransaction);
-            HANDLE hIndexFile = IO::fopentrans(m_rStorage.m_rIndexPath.c_str(), IO::IO_RDWR, hTransaction);
-            
-            //itreate items and write to disk
-            for(DirtyXProcess::iterator itr = rItemsToProcess.begin();itr != rItemsToProcess.end();++itr)
+            //check if items exits and load all info about it
+            if(m_rStorage.m_dataIndexes.find(rWriteAccessor, itr->m_key))
             {
-                //check if items exits and load all info about it
-                if(m_rStorage.m_dataIndexes.find(rWriteAccessor, itr->m_key))
+                if(!(rWriteAccessor->second->m_flags & eRIF_RelocateBlocks))
                 {
-                    if(!(rWriteAccessor->second->m_flags & eRIF_RelocateBlocks))
-                    {
-                        WriteDataWithoutRelocateFlag(hDataFile, rWriteAccessor);
-                    }
-                    else
-                    {
-                        //queue adding freespace
-                        if(rWriteAccessor->second->m_recordStart != -1)
-                        {
-                            rFreeSpaceToAdd.push_back(FreeSpace(rWriteAccessor->second->m_recordStart,
-                                                                rWriteAccessor->second->m_blockCount * BLOCK_SIZE));
-                        }
-                        //this funtion will set new m_recordStart
-                        //this function will fail if there is no disk space
-                        bool status = WriteDataWithRelocateFlag(hDataFile, rWriteAccessor);
-                        if(status == false)
-                        {
-                            continue;
-                        }
-                    }
-                    
-                    //stats
-                    ++g_NumOfWritesToDisk;
-                    
-                    //update block count
-                    rWriteAccessor->second->m_blockCount = rWriteAccessor->second->m_pBlockManager->numOfBlocks();
-                    
-                    //update crc32
-                    crc32 = rWriteAccessor->second->m_pBlockManager->GetBlocksCrc32();
-                    if(rWriteAccessor->second->m_crc32 != crc32)
-                    {
-                        rWriteAccessor->second->m_crc32 = crc32;
-                        rWriteAccessor->second->m_flags |= eRIF_Dirty;
-                    }
-                    
-                    //clear flag eRIF_RelocateBlocks
-                    rWriteAccessor->second->m_flags &= ~eRIF_RelocateBlocks;
-                    
-                    //update index on disk if changed
-                    if(rWriteAccessor->second->m_flags & eRIF_Dirty)
-                    {
-                        std::lock_guard<std::mutex> rGuard(m_rStorage.m_rDataIndexDiskWriterLock);
-                        m_rStorage.m_pDataIndexDiskWriter->WriteRecordIndexToDisk(hIndexFile, rWriteAccessor);
-                        rWriteAccessor->second->m_flags &= ~eRIF_Dirty;
-                    }
+                    WriteDataWithoutRelocateFlag(hDataFile, rWriteAccessor);
                 }
                 else
                 {
-                    Log.Warning(__FUNCTION__, "Data deleted before written to disk. X: " I64FMTD, itr->m_key);
+                    //queue adding freespace
+                    if(rWriteAccessor->second->m_recordStart != -1)
+                    {
+                        rFreeSpaceToAdd.push_back(FreeSpace(rWriteAccessor->second->m_recordStart,
+                                                            rWriteAccessor->second->m_blockCount * BLOCK_SIZE));
+                    }
+                    //this funtion will set new m_recordStart
+                    //this function will fail if there is no disk space
+                    bool status = WriteDataWithRelocateFlag(hDataFile, rWriteAccessor);
+                    if(status == false)
+                    {
+                        continue;
+                    }
                 }
-				//release accessor
-				rWriteAccessor.release();
                 
-                //stats
-                --m_itemsToProcessSize;
-
-            } /* end for */
+                //!!!
+                //sync data file to disk before index file
+                //!!!
+                IO::fsync(hDataFile);
             
+                //stats
+                ++g_NumOfWritesToDisk;
+                
+                //update block count
+                rWriteAccessor->second->m_blockCount = rWriteAccessor->second->m_pBlockManager->numOfBlocks();
+                
+                //update crc32
+                crc32 = rWriteAccessor->second->m_pBlockManager->GetBlocksCrc32();
+                if(rWriteAccessor->second->m_crc32 != crc32)
+                {
+                    rWriteAccessor->second->m_crc32 = crc32;
+                    rWriteAccessor->second->m_flags |= eRIF_Dirty;
+                }
+                
+                //clear flag eRIF_RelocateBlocks
+                rWriteAccessor->second->m_flags &= ~eRIF_RelocateBlocks;
+                
+                //update index on disk if changed
+                if(rWriteAccessor->second->m_flags & eRIF_Dirty)
+                {
+                    std::lock_guard<std::mutex> rGuard(m_rStorage.m_rDataIndexDiskWriterLock);
+                    m_rStorage.m_pDataIndexDiskWriter->WriteRecordIndexToDisk(hIndexFile, rWriteAccessor);
+                    rWriteAccessor->second->m_flags &= ~eRIF_Dirty;
+                    
+                    //!!!
+                    //sync index file to disk
+                    //!!!
+                    IO::fsync(hIndexFile);
+                }
+            }
+            else
+            {
+                Log.Warning(__FUNCTION__, "Data deleted before written to disk. X: " I64FMTD, itr->m_key);
+            }
+            
+            //!!!
+            //at this point data and index file should be flushed to disk
+            //!!!
             //!!!
             //Commit transaction before clear flag that record is NOT in disk write queue
             //else read thread will read old data, because it can be delete from memory
             //and loaded from disk again
             //!!!
-            //close file handles
-            IO::fclose(hDataFile);
-            IO::fclose(hIndexFile);
-            
-            //commit and close transaction
-            IO::fcommittrans(hTransaction);
-            IO::fclosetrans(hTransaction);
-            //!!!
-            //!!!
             
             //clear flag eRIF_InDiskWriteQueue
-            ClearInDiskQueueFlag(rItemsToProcess, rWriteAccessor);
-			//release accessor
-			rWriteAccessor.release();
-            
-            //add frespace from queue to Storage after transaction commit
-            if(rFreeSpaceToAdd.size())
+            //cannot delete this record by MemoryWatcher if is wating in disk queue
             {
-                for(Vector<FreeSpace>::iterator itr = rFreeSpaceToAdd.begin();itr != rFreeSpaceToAdd.end();++itr)
+                std::lock_guard<std::mutex> rQGuard(m_rQueueLock);
+                if(m_pQueue->containsKey(rWriteAccessor->first) == false)
                 {
-                    m_rStorage.AddFreeSpace(itr->m_pos, itr->m_lenght);
+                    //unset InDiskWriteQueue flag
+                    rWriteAccessor->second->m_flags &= ~eRIF_InDiskWriteQueue;
                 }
             }
-        } /* end while */
+            
+            //release accessor
+            rWriteAccessor.release();
+            
+            //stats
+            --m_itemsToProcessSize;
+            
+        } /* end for */
+        
+        //add frespace from queue to Storage after transaction commit
+        if(rFreeSpaceToAdd.size())
+        {
+            for(Vector<FreeSpace>::iterator itr = rFreeSpaceToAdd.begin();itr != rFreeSpaceToAdd.end();++itr)
+            {
+                m_rStorage.AddFreeSpace(itr->m_pos, itr->m_lenght);
+            }
+        }
         
         //calc avg write time
         endTime = GetTickCount64() - startTime;
@@ -374,42 +383,49 @@ NOINLINE static void _S_DiskWriter_GetItemsFromIndexDelQueue(DiskWriter::RIDelQu
 
 void DiskWriter::ProcessIndexDeleteQueue()
 {
-    Vector<RecordIndex, uint64> rDeleteQueue;
+    //check if we have items to process
+    {
+        std::lock_guard<std::mutex> rRIDel_Guard(m_rRIDelQueueLock);
+        if(m_pRIDelQueue->size() == 0)
+            return;
+    }
+    
+    //open index file for rw
+    HANDLE hIndexFile = INVALID_HANDLE_VALUE;
+    IOHandleGuard rIOHandleIndexGuard(hIndexFile);
+    hIndexFile = IO::fopen(m_rStorage.m_rIndexPath.c_str(), IO::IO_RDWR);
+    if(hIndexFile == INVALID_HANDLE_VALUE)
+    {
+        Log.Error(__FUNCTION__, "Open indexfile: %s failed. Error number: %d", m_rStorage.m_rIndexPath.c_str(), errno);
+        return;
+    }
     
     //copy data to vector, clear queue
+    Vector<RecordIndex, uint64> rDeleteQueue;
     _S_DiskWriter_GetItemsFromIndexDelQueue(m_pRIDelQueue, m_rRIDelQueueLock, rDeleteQueue);
     
-    //process
-    if(rDeleteQueue.size())
+    //delete all records from index
+    for(uint64 i = 0;i < rDeleteQueue.size();++i)
     {
-        //Trancasted
-        HANDLE hTransaction = IO::ftrans();
-        HANDLE hIndexFile = IO::fopentrans(m_rStorage.m_rIndexPath.c_str(), IO::IO_RDWR, hTransaction);
+        //get record
+        const RecordIndex &rRecordIndex = rDeleteQueue[i];
         
-        //delete all records from index
-        for(uint64 i = 0;i < rDeleteQueue.size();++i)
+        //add free space
+        if(rRecordIndex.m_recordStart != -1)
         {
-            //get record
-            const RecordIndex &rRecordIndex = rDeleteQueue[i];
-            
-            //add free space
-            if(rRecordIndex.m_recordStart != -1)
-            {
-                m_rStorage.AddFreeSpace(rRecordIndex.m_recordStart, rRecordIndex.m_blockCount * BLOCK_SIZE);
-            }
-            
-            //delete record index from disk
-            {
-                std::lock_guard<std::mutex> rDI_Guard(m_rStorage.m_rDataIndexDiskWriterLock);
-                m_rStorage.m_pDataIndexDiskWriter->EraseRecord(hIndexFile, rRecordIndex);
-            }
+            m_rStorage.AddFreeSpace(rRecordIndex.m_recordStart, rRecordIndex.m_blockCount * BLOCK_SIZE);
         }
-        //close file handle
-        IO::fclose(hIndexFile);
         
-        //commit + close transaction
-        IO::fcommittrans(hTransaction);
-        IO::fclosetrans(hTransaction);
+        //delete record index from disk
+        {
+            std::lock_guard<std::mutex> rDI_Guard(m_rStorage.m_rDataIndexDiskWriterLock);
+            m_rStorage.m_pDataIndexDiskWriter->EraseRecord(hIndexFile, rRecordIndex);
+            
+            //!!!
+            //sync index file to disk
+            //!!!
+            IO::fsync(hIndexFile);
+        }
     }
 }
 
