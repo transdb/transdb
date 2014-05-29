@@ -11,7 +11,6 @@
 //cfg
 bool        g_EnableRecordLimit         = true;
 int         g_RecordLimit               = 1000;
-int         g_TransactionsPerCommit     = 1000;
 int         g_DiskFlushCoef             = 100;
 std::string g_DataFilePath              = "";
 std::string g_IndexFilePath             = "";
@@ -118,7 +117,6 @@ void LoadConfig()
 	GET_CONFIG_VALUE(status, GetBool, "Storage", "StartupCrc32Check", &g_StartupCrc32Check);
 	GET_CONFIG_VALUE(status, GetString, "Storage", "DataFileName", &g_DataFileName);
 	GET_CONFIG_VALUE(status, GetInt, "Storage", "DefragAfterRecordDelete", &g_DefragAfterRecordDelete);
-    GET_CONFIG_VALUE(status, GetInt, "Storage", "TransactionsPerCommit", &g_TransactionsPerCommit);
     GET_CONFIG_VALUE(status, GetInt, "Memory", "MemoryLimit", &memmoryLimitMB);
     GET_CONFIG_VALUE(status, GetInt, "Memory", "MemoryFlushCoef", &g_MemoryFlushCoef);
     GET_CONFIG_VALUE(status, GetInt, "Memory", "LRUCacheMemReserve", &LRUCacheMemReserve);
