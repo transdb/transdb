@@ -139,7 +139,7 @@ bool DiskWriter::WriteDataWithRelocateFlag(const HANDLE &hDataFile, RecordIndexM
     return true;
 }
 
-void DiskWriter::Process() _THROW1(std::runtime_error)
+void DiskWriter::Process()
 {
     uint64 startTime;
     uint64 endTime;
