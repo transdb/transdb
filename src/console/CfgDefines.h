@@ -13,7 +13,6 @@
 extern bool g_EnableRecordLimit;
 extern int g_RecordLimit;
 extern int g_DiskFlushCoef;
-extern int g_TransactionsPerCommit;
 extern std::string g_DataFilePath;
 extern std::string g_IndexFilePath;
 extern uint64 g_MemoryLimit;
