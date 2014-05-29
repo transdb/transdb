@@ -50,7 +50,7 @@ public:
     void QueueIndexDeletetion(RecordIndexMap::accessor &rWriteAccesor);    
     void Queue(RecordIndexMap::accessor &rWriteAccesor);
     void Remove(const uint64 &x);
-    void Process();
+    void Process() throw(std::runtime_error);
     void RecycleQueue();
     
 	bool HasTasks()
@@ -63,8 +63,7 @@ public:
     size_t GetQueueSize()
     {
         std::lock_guard<std::mutex> rQGuard(m_rQueueLock);
-        size_t size = m_pQueue->size();
-        return size;
+        return m_pQueue->size();
     }
     
     uint64 GetLastNumOfItemsInProcess() const
@@ -88,7 +87,6 @@ private:
     void ProcessIndexDeleteQueue();
     void WriteDataWithoutRelocateFlag(const HANDLE &hDataFile, RecordIndexMap::accessor &rWriteAccessor);
     bool WriteDataWithRelocateFlag(const HANDLE &hDataFile, RecordIndexMap::accessor &rWriteAccessor);
-    void ClearInDiskQueueFlag(DirtyXProcess &rProcessedItems, RecordIndexMap::accessor &rWriteAccessor);
     
     //declarations
     DirtyXQueue         *m_pQueue;

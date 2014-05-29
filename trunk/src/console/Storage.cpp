@@ -26,8 +26,8 @@ Storage::Storage(const std::string &rFileName) : m_rDataPath(g_DataFilePath + rF
     CommonFunctions::CheckFileExists(m_rDataPath.c_str(), true);
     
 	//open data file
-    HANDLE rDataFileHandle;
-    IOHandleGuard rIOHandleGuard(&rDataFileHandle);
+    HANDLE rDataFileHandle = INVALID_HANDLE_VALUE;
+    IOHandleGuard rIOHandleGuard(rDataFileHandle);
     rDataFileHandle = IO::fopen(m_rDataPath.c_str(), IO::IO_RDWR);
     if(rDataFileHandle == INVALID_HANDLE_VALUE)
     {
@@ -629,6 +629,12 @@ bool Storage::run()
 
             Wait(100);
         }
+    }
+    catch(std::runtime_error &rEx)
+    {
+        Log.Error(__FUNCTION__, "Runtime error stopping server. Description: %s", rEx.what());
+        g_pClientSocketWorker->SetException(true);
+        g_stopEvent = true;
     }
     catch(...)
     {
