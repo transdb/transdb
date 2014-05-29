@@ -50,7 +50,7 @@ public:
     void QueueIndexDeletetion(RecordIndexMap::accessor &rWriteAccesor);    
     void Queue(RecordIndexMap::accessor &rWriteAccesor);
     void Remove(const uint64 &x);
-    void Process() throw(std::runtime_error);
+	void Process() _THROW1(std::runtime_error);
     void RecycleQueue();
     
 	bool HasTasks()
