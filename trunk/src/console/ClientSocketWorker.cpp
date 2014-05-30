@@ -86,7 +86,7 @@ bool ClientSocketWorker::InitWorkerThreads()
     Log.Notice(__FUNCTION__, "Spawning writer threads...");
 	for(int i = 0;i < g_MaxParallelTasks;++i)
 	{
-		ThreadPool.ExecuteTask(new ClientSocketWorkerTask(*m_pStorage, false));
+		ThreadPool.ExecuteTask(new ClientSocketWorkerTask(*this, *m_pStorage, false));
 	}
     Log.Notice(__FUNCTION__, "Spawning writer threads... done");
     
@@ -94,7 +94,7 @@ bool ClientSocketWorker::InitWorkerThreads()
     Log.Notice(__FUNCTION__, "Spawning reader threads...");
     for(int i = 0;i < g_MaxParallelReadTasks;++i)
     {
-        ThreadPool.ExecuteTask(new ClientSocketWorkerTask(*m_pStorage, true));
+        ThreadPool.ExecuteTask(new ClientSocketWorkerTask(*this, *m_pStorage, true));
     }
     Log.Notice(__FUNCTION__, "Spawning reader threads... done");
     return true;

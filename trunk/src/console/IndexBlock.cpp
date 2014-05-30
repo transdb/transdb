@@ -110,8 +110,6 @@ bool IndexBlock::Init(const std::string &rIndexFilePath,
 					  int64 dataFileSize,
                       int64 *indexFileSize)
 {
-	HANDLE hIndexFile;
-	uint8 *pData;
     int64 dataFileSizeTmp;
     int64 freeSpaceLen;
     uint64 counter;
@@ -130,6 +128,8 @@ bool IndexBlock::Init(const std::string &rIndexFilePath,
     CommonFunctions::CheckFileExists(rIndexFilePath.c_str(), true);
     
     //open index file
+    HANDLE hIndexFile = INVALID_HANDLE_VALUE;
+    IOHandleGuard rIOHandleGuard(hIndexFile);
     hIndexFile = IO::fopen(rIndexFilePath.c_str(), IO::IO_RDWR);
     if(hIndexFile == INVALID_HANDLE_VALUE)
     {
@@ -172,9 +172,6 @@ bool IndexBlock::Init(const std::string &rIndexFilePath,
             m_freeBlocks.insert(*itr);
         }
 	}
-    
-	//close file handle
-	IO::fclose(hIndexFile);
     
     //load free space from index
     if(pIndexDef->size())

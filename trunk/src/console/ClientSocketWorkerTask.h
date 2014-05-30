@@ -10,11 +10,12 @@
 #define __TransDB__ClientSocketWorkerTask__
 
 class ClientSocketTaskData;
+class ClientSocketWorker;
 
 class ClientSocketWorkerTask : public ThreadContext
 {
 public:
-    explicit ClientSocketWorkerTask(Storage &rStorage, bool readerTask);
+    explicit ClientSocketWorkerTask(ClientSocketWorker &rClientSocketWorker, Storage &rStorage, bool readerTask);
     
     //thread
     bool run();
@@ -37,8 +38,9 @@ private:
 	//disable copy constructor and assign
 	DISALLOW_COPY_AND_ASSIGN(ClientSocketWorkerTask);
     
-    Storage     &m_rStorage;
-    bool        m_readerThread;
+    Storage             &m_rStorage;
+    ClientSocketWorker  &m_rClientSocketWorker;
+    bool                m_readerThread;
 };
 
 #endif /* defined(__TransDB__ClientSocketWorkerTask__) */
