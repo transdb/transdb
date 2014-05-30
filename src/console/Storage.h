@@ -22,8 +22,8 @@ class Storage : public ThreadContext
     friend class ClientSocketWorkerTask;
     friend class MemoryWatcher;
     
-public:    
-	explicit Storage(const std::string &rFileName);
+public:
+    static Storage *create(const std::string &rFileName);
 	~Storage();
     
 	//handlers
@@ -42,6 +42,10 @@ public:
     bool run();
 
 private:
+    //private ctor
+    explicit Storage(const std::string &rFileName);
+    //init
+    bool Init();
 	//disable copy constructor and assign
 	DISALLOW_COPY_AND_ASSIGN(Storage);
     

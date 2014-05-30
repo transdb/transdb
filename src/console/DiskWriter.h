@@ -39,12 +39,13 @@ struct WriteInfo
 
 class DiskWriter
 {
+    friend class Storage;
+    
 public:
     typedef HashMap<uint64, WriteInfo>                  DirtyXQueue;
     typedef Vector<WriteInfo, uint64>                   DirtyXProcess;
     typedef HashMap<uint64, RecordIndex>                RIDelQueue;
     
-    explicit DiskWriter(Storage &pStorage);
     ~DiskWriter();
     
     void QueueIndexDeletetion(RecordIndexMap::accessor &rWriteAccesor);    
@@ -80,6 +81,8 @@ public:
 	void ReallocDataFile(const HANDLE &hDataFile, const int64 &minSize, bool oAddFreeSpace = true);
     
 private:
+    //private ctor only created from Storage
+    explicit DiskWriter(Storage &rStorage);
 	//disable copy constructor and assign
 	DISALLOW_COPY_AND_ASSIGN(DiskWriter);
 
@@ -89,11 +92,11 @@ private:
     bool WriteDataWithRelocateFlag(const HANDLE &hDataFile, RecordIndexMap::accessor &rWriteAccessor);
     
     //declarations
+    Storage				&m_rStorage;
     DirtyXQueue         *m_pQueue;
     RIDelQueue          *m_pRIDelQueue;
     std::mutex          m_rQueueLock;
     std::mutex          m_rRIDelQueueLock;
-    Storage				&m_rStorage;
     std::atomic<uint64> m_sumDiskWriteTime;
     std::atomic<uint64> m_lastNumOfItemsInProcess;
     std::atomic<uint64> m_itemsToProcessSize;

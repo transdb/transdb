@@ -8,16 +8,6 @@
 
 #include "StdAfx.h"
 
-IndexBlock::IndexBlock() : m_blockCount(0)
-{
-    m_pLRUCache             = new LRUCache("IndexBlock", g_IndexBlockCacheSize / INDEX_BLOCK_SIZE);
-}
-
-IndexBlock::~IndexBlock()
-{
-    delete m_pLRUCache;
-}
-
 struct IndexDef
 {
 	explicit IndexDef(const uint64 &key, const int64 &dataPosition, const int64 &dataLen) : m_key(key), m_dataPosition(dataPosition), m_dataLen(dataLen)
@@ -104,9 +94,19 @@ struct FillIndex
     }
 };
 
-void IndexBlock::Init(Storage *pStorage,
-					  const std::string &rIndexFilePath,
-				      RecordIndexMap &rRecordIndexMap,
+IndexBlock::IndexBlock(Storage &rStorage) : m_rStorage(rStorage),
+                                            m_blockCount(0),
+                                            m_pLRUCache(new LRUCache("IndexBlock", g_IndexBlockCacheSize / INDEX_BLOCK_SIZE))
+{
+
+}
+
+IndexBlock::~IndexBlock()
+{
+    delete m_pLRUCache;
+}
+
+bool IndexBlock::Init(const std::string &rIndexFilePath,
 					  int64 dataFileSize,
                       int64 *indexFileSize)
 {
@@ -131,7 +131,11 @@ void IndexBlock::Init(Storage *pStorage,
     
     //open index file
     hIndexFile = IO::fopen(rIndexFilePath.c_str(), IO::IO_RDWR);
-    assert(hIndexFile != INVALID_HANDLE_VALUE);
+    if(hIndexFile == INVALID_HANDLE_VALUE)
+    {
+        Log.Error(__FUNCTION__, "Cannot open index file: %s.", rIndexFilePath.c_str());
+        return false;
+    }
     
 	//get index file size
     IO::fseek(hIndexFile, 0, IO::IO_SEEK_END);
@@ -140,19 +144,24 @@ void IndexBlock::Init(Storage *pStorage,
     
     if(fileSize != 0)
     {
-        pData = (uint8*)malloc(fileSize);
+        std::unique_ptr<uint8[]> pData = std::unique_ptr<uint8[]>(new uint8[fileSize]);
+        if(pData == NULL)
+        {
+            Log.Error(__FUNCTION__, "Cannot allocate memory for index bloxk file.");
+            return false;
+        }
 		m_blockCount = static_cast<uint32>(fileSize / INDEX_BLOCK_SIZE);
         
         //read
         IO::fseek(hIndexFile, 0, IO::IO_SEEK_SET);
-        IO::fread(pData, fileSize, hIndexFile);
+        IO::fread(pData.get(), fileSize, hIndexFile);
         
         //create struct - save pointers to data and containers
         FillIndex rFillIndex;
-        rFillIndex.m_pData = pData;
+        rFillIndex.m_pData = pData.get();
         rFillIndex.m_pFreeBlocksSet = pFreeBlocksSet.get();
         rFillIndex.m_pIndexDef = pIndexDef.get();
-        rFillIndex.m_pRecordIndexMap = &rRecordIndexMap;
+        rFillIndex.m_pRecordIndexMap = &m_rStorage.m_dataIndexes;
         
         //iterate and fill containers
         tbb::parallel_for(tbb::blocked_range<uint32>(0, m_blockCount), rFillIndex);
@@ -162,9 +171,6 @@ void IndexBlock::Init(Storage *pStorage,
         {
             m_freeBlocks.insert(*itr);
         }
-        
-        //release memory
-        free(pData);
 	}
     
 	//close file handle
@@ -187,7 +193,7 @@ void IndexBlock::Init(Storage *pStorage,
             freeSpaceLen = itr->m_dataPosition - freeSpaceStart;
             if(freeSpaceLen > 0)
             {
-                pStorage->AddFreeSpace(freeSpaceStart, freeSpaceLen);
+                m_rStorage.AddFreeSpace(freeSpaceStart, freeSpaceLen);
             }
             else if(freeSpaceLen < 0)
             {
@@ -203,8 +209,10 @@ void IndexBlock::Init(Storage *pStorage,
     //add last piece of freespace
     if(dataFileSizeTmp != 0)
     {
-        pStorage->AddFreeSpace(dataFileSize - dataFileSizeTmp, dataFileSizeTmp);
+        m_rStorage.AddFreeSpace(dataFileSize - dataFileSizeTmp, dataFileSizeTmp);
     }
+    
+    return true;
 }
 
 void IndexBlock::WriteRecordIndexToDisk(const HANDLE &hFile, RecordIndexMap::accessor &rWriteAccesor)

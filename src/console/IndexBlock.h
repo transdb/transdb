@@ -134,18 +134,21 @@ typedef std::map<int64, FreeSpaceOffsets>                                       
 
 class IndexBlock
 {
+    friend class Storage;
+    
     typedef std::set<uint32>                                                        FreeBlocksList;
     typedef std::map<uint32, uint8*>                                                IndexBlockCache;
     
 public:
-    explicit IndexBlock();
     ~IndexBlock();
     
-    void Init(Storage *pStorage, const std::string &rIndexFilePath, RecordIndexMap &rRecordIndexMap, int64 dataFileSize, int64 *indexFileSize);
+    bool Init(const std::string &rIndexFilePath, int64 dataFileSize, int64 *indexFileSize);
     void WriteRecordIndexToDisk(const HANDLE &hFile, RecordIndexMap::accessor &rWriteAccesor);
     void EraseRecord(const HANDLE &hFile, const RecordIndex &rRecordIndex);
     
 private:
+    //private ctor only created from Storage
+    explicit IndexBlock(Storage &pStorage);
 	//disable copy constructor and assign
 	DISALLOW_COPY_AND_ASSIGN(IndexBlock);
     
@@ -153,6 +156,7 @@ private:
     DREC *GetEmptyDREC(const uint8 *pDiskBlock, int16 *newRecordOffset);
 
     //declarations
+    Storage                     &m_rStorage;
     uint32                      m_blockCount;
     FreeBlocksList              m_freeBlocks;
     

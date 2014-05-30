@@ -13,15 +13,31 @@ INLINE static bool SortWriteInfoForCRC32Check(const WriteInfo &rWriteInfo1, cons
     return rWriteInfo1.m_recordPosition < rWriteInfo2.m_recordPosition;
 }
 
-Storage::Storage(const std::string &rFileName) : m_rDataPath(g_DataFilePath + rFileName + ".dat"),
-                                                 m_rIndexPath(g_IndexFilePath + rFileName + ".idx")
+Storage *Storage::create(const std::string &rFileName)
 {
-	m_sumDiskReadTime		    = 0;
-    m_dataFileSize              = 0;
-    m_diskWriterCount           = 0;
-    m_memoryUsed                = 0;
-    m_pLRUCache                 = new LRUCache("Storage", g_LRUCacheMemReserve / sizeof(CRec));
-       
+    Storage *pStorage = new Storage(rFileName);
+    if(pStorage->Init() == false)
+    {
+        delete pStorage;
+        return NULL;
+    }
+    return pStorage;
+}
+
+Storage::Storage(const std::string &rFileName) : m_rDataPath(g_DataFilePath + rFileName + ".dat"),
+                                                 m_rIndexPath(g_IndexFilePath + rFileName + ".idx"),
+                                                 m_dataFileSize(0),
+                                                 m_diskWriterCount(0),
+                                                 m_pDiskWriter(new DiskWriter(*this)),
+                                                 m_pDataIndexDiskWriter(new IndexBlock(*this)),
+                                                 m_pLRUCache(new LRUCache("Storage", g_LRUCacheMemReserve / sizeof(CRec))),
+                                                 m_sumDiskReadTime(0)
+{
+    
+}
+
+bool Storage::Init()
+{
     //check if data file exits if not create it
     CommonFunctions::CheckFileExists(m_rDataPath.c_str(), true);
     
@@ -32,11 +48,8 @@ Storage::Storage(const std::string &rFileName) : m_rDataPath(g_DataFilePath + rF
     if(rDataFileHandle == INVALID_HANDLE_VALUE)
     {
         Log.Error(__FUNCTION__, "Cannot open data file: %s.", m_rDataPath.c_str());
-        assert(rDataFileHandle != INVALID_HANDLE_VALUE);
+        return false;
     }
-    
-    //create disk writer
-    m_pDiskWriter = new DiskWriter(*this);
     
 	//resize if needed
     IO::fseek(rDataFileHandle, 0, IO::IO_SEEK_END);
@@ -48,36 +61,43 @@ Storage::Storage(const std::string &rFileName) : m_rDataPath(g_DataFilePath + rF
         m_pDiskWriter->ReallocDataFile(rDataFileHandle, g_ReallocSize, false);
 	}
 	Log.Notice(__FUNCTION__, "Data file: %s - loaded. Size: " SI64FMTD " bytes", m_rDataPath.c_str(), m_dataFileSize.load());
-            
+    
 	//load indexes and freespaces
-    //create writter
-    m_pDataIndexDiskWriter = new IndexBlock();
-    //load indexes to memory
     int64 indexFileSize;
-    m_pDataIndexDiskWriter->Init(this, m_rIndexPath, m_dataIndexes, m_dataFileSize, &indexFileSize);
-	Log.Notice(__FUNCTION__, "Index file: %s - loaded. Size: " SI64FMTD " bytes", m_rIndexPath.c_str(), indexFileSize);
+    if(m_pDataIndexDiskWriter->Init(m_rIndexPath, m_dataFileSize, &indexFileSize) == false)
+    {
+        //something failed -> Init logger error
+        return false;
+    }
+    Log.Notice(__FUNCTION__, "Index file: %s - loaded. Size: " SI64FMTD " bytes", m_rIndexPath.c_str(), indexFileSize);
     
 	//check all data
 	if(g_StartupCrc32Check)
 	{
         Crc32Check(rDataFileHandle);
 	}
+    
+    //start memory watcher thread
+    Log.Notice(__FUNCTION__, "Starting MemoryWatcher...");
+    ThreadPool.ExecuteTask(new MemoryWatcher(*this));
+    Log.Notice(__FUNCTION__, "Starting MemoryWatcher... done");
+    
+    return true;
 }
 
 Storage::~Storage()
 {
     //do all pending disk writes + delete
-	Log.Notice(__FUNCTION__, "Processing pending disk writes.");
-	{
-		if(m_pDiskWriter->HasTasks())
-		{
-			//process
-			m_pDiskWriter->Process();
-			delete m_pDiskWriter;
-			m_pDiskWriter = NULL;
-		}
-	}
-	Log.Notice(__FUNCTION__, "Finished processing pending disk writes.");
+    if(m_pDiskWriter->HasTasks())
+    {
+        Log.Notice(__FUNCTION__, "Processing pending disk writes.");
+        //process
+        m_pDiskWriter->Process();
+        delete m_pDiskWriter;
+        m_pDiskWriter = NULL;
+        //
+        Log.Notice(__FUNCTION__, "Finished processing pending disk writes.");
+    }
     
     //delete index disk writer
     delete m_pDataIndexDiskWriter;

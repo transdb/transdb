@@ -8,14 +8,14 @@
 
 #include "StdAfx.h"
 
-DiskWriter::DiskWriter(Storage &pStorage) : m_rStorage(pStorage)
+DiskWriter::DiskWriter(Storage &rStorage) : m_rStorage(rStorage),
+                                            m_pQueue(new DirtyXQueue(4*1024)),
+                                            m_pRIDelQueue(new RIDelQueue(4*1024)),
+                                            m_sumDiskWriteTime(0),
+                                            m_lastNumOfItemsInProcess(0),
+                                            m_itemsToProcessSize(0)
 {
-    //TODO: find better way how to get this value
-    m_pQueue                    = new DirtyXQueue(100000);
-    m_pRIDelQueue               = new RIDelQueue(100000);
-    m_sumDiskWriteTime          = 0;
-    m_lastNumOfItemsInProcess   = 0;
-    m_itemsToProcessSize        = 0;
+    
 }
 
 DiskWriter::~DiskWriter()

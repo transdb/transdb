@@ -164,7 +164,7 @@ int main(int argc, const char * argv[])
 			if(i+1 >= argc)
 			{
 				Log.Error(__FUNCTION__, "Missing install/uninstall/run command after -s");
-				return 1;
+				return EXIT_FAILURE;
 			}
 
             if(strcmp(argv[i+1], "install") == 0)
@@ -179,7 +179,7 @@ int main(int argc, const char * argv[])
                     Log.Success(__FUNCTION__, "Service %s installed", g_serviceLongName.c_str());
                 else
                     Log.Error(__FUNCTION__, "Service %s instalation failed", g_serviceLongName.c_str());
-                return 1;
+                return EXIT_FAILURE;
             }
             else if(strcmp(argv[i+1], "uninstall") == 0)
             {
@@ -193,7 +193,7 @@ int main(int argc, const char * argv[])
                     Log.Success(__FUNCTION__, "Service %s uninstaled", g_serviceLongName.c_str());
                 else
                     Log.Error(__FUNCTION__, "Service %s uninstalation failed", g_serviceLongName.c_str());
-                return 1;
+                return EXIT_FAILURE;
             }
             else if(strcmp(argv[i+1], "run") == 0)
             {
@@ -212,9 +212,9 @@ int main(int argc, const char * argv[])
                 Log.CreateFileLog(sFullLogPath);
                 //
                 if(WinServiceRun())
-                    return 0;
+                    return EXIT_SUCCESS;
                 else
-                    return 1;
+                    return EXIT_FAILURE;
             }
         }
 #endif
@@ -259,7 +259,10 @@ int main(int argc, const char * argv[])
         //open file
         HANDLE hFile = IO::fopen(sPidFilePath.c_str(), IO::IO_WRITE_ONLY);
         if(hFile == INVALID_HANDLE_VALUE)
-            return 1;
+        {
+            Log.Error(__FUNCTION__, "Cannot create pid file: %s", sPidFilePath.c_str());
+            return EXIT_FAILURE;
+        }
         
         //write pid
         snprintf(buff, buff_size, "%ld\n", pid);
@@ -278,7 +281,7 @@ int main(int argc, const char * argv[])
     if(!g_rConfig.MainConfig.SetSource(sConfigPath.c_str()))
     {
         Log.Error(__FUNCTION__, "Config: %s not found.", sConfigPath.c_str());
-        return 1;
+        return EXIT_FAILURE;
     }
     
     //init statgenerator CPU usage
@@ -291,11 +294,9 @@ int main(int argc, const char * argv[])
     StartSharedLib();
        
     //init ClientSocketWorker
-    g_pClientSocketWorker = new ClientSocketWorker();
-    //init storage
-    g_pClientSocketWorker->InitStorage();
-    //init worker threads
-	g_pClientSocketWorker->InitWorkerThreads();
+    g_pClientSocketWorker = ClientSocketWorker::create();
+    if(g_pClientSocketWorker == NULL)
+        return EXIT_FAILURE;
 
 	//create config file watcher
     g_pConfigWatcher = new ConfigWatcher(sConfigPath.c_str());
@@ -311,7 +312,7 @@ int main(int argc, const char * argv[])
     if(!clientSocketCreated)
     {
 		Log.Error(__FUNCTION__, "Cannot open listen socket.");
-		return 1;
+		return EXIT_FAILURE;
     }
     Log.Notice(__FUNCTION__, "Listen socket open, accepting new connections.");
     
@@ -378,6 +379,6 @@ int main(int argc, const char * argv[])
 
     //
     Log.Notice(__FUNCTION__, "Shutdown complete.");
-    return 0;
+    return EXIT_SUCCESS;
 }
 
