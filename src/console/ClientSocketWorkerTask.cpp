@@ -42,7 +42,11 @@ static const ClientSocketWorkerTaskHandler m_ClientSocketWorkerTaskHandlers[OP_N
     NULL,                                           //S_MSG_READ_LOG        = 28,
 };
 
-ClientSocketWorkerTask::ClientSocketWorkerTask(Storage &rStorage, bool readerTask) : m_rStorage(rStorage), m_readerThread(readerTask)
+ClientSocketWorkerTask::ClientSocketWorkerTask(ClientSocketWorker &rClientSocketWorker,
+                                               Storage &rStorage,
+                                               bool readerTask) : m_rClientSocketWorker(rClientSocketWorker),
+                                                                  m_rStorage(rStorage),
+                                                                  m_readerThread(readerTask)
 {
 
 }
@@ -75,9 +79,9 @@ bool ClientSocketWorkerTask::run()
             //get task data from queue - abort throws Exception
             try {
                 if(m_readerThread)
-                    g_pClientSocketWorker->m_rReadTaskDataQueue.pop(pClientSocketTaskData);
+                    m_rClientSocketWorker.m_rReadTaskDataQueue.pop(pClientSocketTaskData);
                 else
-                    g_pClientSocketWorker->m_rTaskDataQueue.pop(pClientSocketTaskData);
+                    m_rClientSocketWorker.m_rTaskDataQueue.pop(pClientSocketTaskData);
             }
             catch(tbb::user_abort&) {
                 Log.Notice(__FUNCTION__, "Task aborted. ReadTask: %u", (uint32)m_readerThread);
@@ -97,13 +101,13 @@ bool ClientSocketWorkerTask::run()
             
             //call ~ctor + dealloc task data
             pClientSocketTaskData->~ClientSocketTaskData();
-			g_pClientSocketWorker->m_pFixedPool->free(pClientSocketTaskData);
+			m_rClientSocketWorker.m_pFixedPool->free(pClientSocketTaskData);
         }
     }
     catch(...)
     {
         Log.Error(__FUNCTION__, "Fatal error stopping server.");
-        g_pClientSocketWorker->SetException(true);
+        m_rClientSocketWorker.SetException(true);
         g_stopEvent = true;
     }
 
