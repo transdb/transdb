@@ -64,7 +64,7 @@ bool Storage::Init()
 	Log.Notice(__FUNCTION__, "Data file: %s - loaded. Size: " SI64FMTD " bytes", m_rDataPath.c_str(), m_dataFileSize.load());
     
 	//load indexes and freespaces
-    int64 indexFileSize;
+    int64 indexFileSize = 0;
     if(m_pDataIndexDiskWriter->Init(m_rIndexPath, m_dataFileSize, &indexFileSize) == false)
     {
         //something failed -> Init logger error
