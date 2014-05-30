@@ -1,7 +1,7 @@
 # Define required macros here
 SHELL = /bin/sh
 CC=g++
-CFLAGS= -std=c++11 -c -Wall -Werror -O3 -DNDEBUG
+CFLAGS= -std=c++11 -c -Wall -Werror -O2 -DNDEBUG
 CFLAGSD= -std=c++11 -c -Wall -DDEBUG -ggdb
 INC=-I. $(shell python-config --includes)
 LIB=-ltbb -ltbbmalloc -lz $(shell python-config --libs)
