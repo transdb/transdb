@@ -38,8 +38,9 @@ private:
 	//disable copy constructor and assign
 	DISALLOW_COPY_AND_ASSIGN(ClientSocketWorkerTask);
     
-    Storage             &m_rStorage;
+    //declarations
     ClientSocketWorker  &m_rClientSocketWorker;
+    Storage             &m_rStorage;
     bool                m_readerThread;
 };
 
