@@ -31,6 +31,7 @@ Storage::Storage(const std::string &rFileName) : m_rDataPath(g_DataFilePath + rF
                                                  m_pDiskWriter(new DiskWriter(*this)),
                                                  m_pDataIndexDiskWriter(new IndexBlock(*this)),
                                                  m_pLRUCache(new LRUCache("Storage", g_LRUCacheMemReserve / sizeof(CRec))),
+                                                 m_memoryUsed(0),
                                                  m_sumDiskReadTime(0)
 {
     
