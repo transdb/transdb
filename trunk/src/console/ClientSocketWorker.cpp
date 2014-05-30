@@ -10,9 +10,27 @@
 
 ClientSocketWorker	*g_pClientSocketWorker;
 
-ClientSocketWorker::ClientSocketWorker() : m_pStorage(NULL), m_pFixedPool(NULL), m_pFixedPoolMem(NULL)
+ClientSocketWorker *ClientSocketWorker::create()
 {
-    m_exception = false;
+    ClientSocketWorker *pClientSocketWorker = new ClientSocketWorker();
+    //init storage
+    if(pClientSocketWorker->InitStorage() == false)
+    {
+        delete pClientSocketWorker;
+        return NULL;
+    }
+    //init worker threads
+	if(pClientSocketWorker->InitWorkerThreads() == false)
+    {
+        delete pClientSocketWorker;
+        return NULL;
+    }
+    return pClientSocketWorker;
+}
+
+ClientSocketWorker::ClientSocketWorker() : m_pStorage(NULL), m_exception(false), m_pFixedPool(NULL), m_pFixedPoolMem(NULL)
+{
+    
 }
 
 ClientSocketWorker::~ClientSocketWorker()
@@ -25,22 +43,23 @@ ClientSocketWorker::~ClientSocketWorker()
 }
 
 //init storage, load index and data file
-void ClientSocketWorker::InitStorage()
+bool ClientSocketWorker::InitStorage()
 {
     //alocate storage
-	Log.Notice(__FUNCTION__, "Loading storage.");
-    m_pStorage = new Storage(g_DataFileName.c_str());
+	Log.Notice(__FUNCTION__, "Loading storage...");
+    m_pStorage = Storage::create(g_DataFileName.c_str());
+    if(m_pStorage == NULL)
+    {
+        Log.Error(__FUNCTION__, "Loading storage... failed");
+        return false;
+    }
     ThreadPool.ExecuteTask(m_pStorage);
-    Log.Notice(__FUNCTION__, "Storage loaded.");
-    
-    //start memory watcher
-    Log.Notice(__FUNCTION__, "Starting MemoryWatcher.");
-    ThreadPool.ExecuteTask(new MemoryWatcher(*m_pStorage));
-    Log.Notice(__FUNCTION__, "MemoryWatcher started.");
+    Log.Notice(__FUNCTION__, "Loading storage... done");
+    return true;
 }
 
 //starts worker threads
-void ClientSocketWorker::InitWorkerThreads()
+bool ClientSocketWorker::InitWorkerThreads()
 {
 	size_t poolSize;
 
@@ -50,6 +69,12 @@ void ClientSocketWorker::InitWorkerThreads()
     Log.Notice(__FUNCTION__, "Creating ClientSocketWorker memory pool size: " I64FMTD, poolSize);
     
 	m_pFixedPoolMem = ::malloc(poolSize);
+    if(m_pFixedPoolMem == NULL)
+    {
+        Log.Error(__FUNCTION__, "ClientSocketWorker memory pool create failed - no free memory.");
+        return false;
+    }
+    //create tbb fixed pool
 	m_pFixedPool = new tbb::fixed_pool(m_pFixedPoolMem, poolSize);
 
 	//set queue limit
@@ -72,6 +97,7 @@ void ClientSocketWorker::InitWorkerThreads()
         ThreadPool.ExecuteTask(new ClientSocketWorkerTask(*m_pStorage, true));
     }
     Log.Notice(__FUNCTION__, "Spawning reader threads... done");
+    return true;
 }
 
 void ClientSocketWorker::DestroyWorkerThreads()

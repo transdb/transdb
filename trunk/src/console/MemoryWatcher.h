@@ -11,13 +11,15 @@
 
 class MemoryWatcher : public ThreadContext
 {
-public:
-    explicit MemoryWatcher(Storage &rStorage);
+    friend class Storage;
     
+public:
     //ThreadContext
     bool run();
     
 private:
+    //private ctor only created from Storage
+    explicit MemoryWatcher(Storage &pStorage);
 	//disable copy constructor and assign
 	DISALLOW_COPY_AND_ASSIGN(MemoryWatcher);
     

@@ -75,13 +75,9 @@ class ClientSocketWorker
 	friend class ClientSocketWorkerTask;
 
 public:
-    explicit ClientSocketWorker();
+    static ClientSocketWorker *create();
 	~ClientSocketWorker();
     
-    //init storage, load index and data file
-    void InitStorage();
-	//starts worker threads
-	void InitWorkerThreads();
 	//wait for queue empty and than shutdown worker threads
 	void DestroyWorkerThreads();
     //write pending write to disk and destroy storage
@@ -98,6 +94,12 @@ public:
     INLINE void SetException(bool oValue)      { m_exception = oValue; }
 
 private:
+    //private ctor
+    explicit ClientSocketWorker();
+    //init storage, load index and data file
+    bool InitStorage();
+	//starts worker threads
+	bool InitWorkerThreads();
 	//disable copy constructor and assign
 	DISALLOW_COPY_AND_ASSIGN(ClientSocketWorker);
     
