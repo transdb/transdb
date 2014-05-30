@@ -261,6 +261,7 @@ void DiskWriter::Process()
             else
             {
                 Log.Warning(__FUNCTION__, "Data deleted before written to disk. X: " I64FMTD, itr->m_key);
+                continue;
             }
             
             //!!!
