@@ -9,22 +9,6 @@
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "../src/console/ClientSocketWorkerTask.cpp"
-            timestampString = "423144913.286845"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "665"
-            endingLineNumber = "665"
-            landmarkName = "ClientSocketWorkerTask::HandleReadConfig(const HANDLE &amp;rDataFileHandle, ClientSocketTaskData &amp;rClientSocketTaskData)"
-            landmarkType = "5">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
             filePath = "../src/console/ClientSocketWorker.cpp"
             timestampString = "423143486.35009"
             startingColumnNumber = "9223372036854775807"

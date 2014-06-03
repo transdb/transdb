@@ -9,6 +9,7 @@
 #ifndef __TransDB__ClientSocketWorkerTask__
 #define __TransDB__ClientSocketWorkerTask__
 
+class LRUCache;
 class ClientSocketTaskData;
 class ClientSocketWorker;
 
@@ -16,23 +17,24 @@ class ClientSocketWorkerTask : public ThreadContext
 {
 public:
     explicit ClientSocketWorkerTask(ClientSocketWorker &rClientSocketWorker, Storage &rStorage, bool readerTask);
+    ~ClientSocketWorkerTask();
     
     //thread
     bool run();
     
     //handlers
-    void HandleWriteData(const HANDLE&, ClientSocketTaskData&);
-    void HandleReadData(const HANDLE&, ClientSocketTaskData&);
-    void HandleDeleteData(const HANDLE&, ClientSocketTaskData&);
-    void HandleGetAllX(const HANDLE&, ClientSocketTaskData&);
-    void HandleGetAllY(const HANDLE&, ClientSocketTaskData&);
-  	void HandleStatus(const HANDLE&, ClientSocketTaskData&);
-    void HandleDeleteX(const HANDLE&, ClientSocketTaskData&);
-    void HandleDefragmentData(const HANDLE&, ClientSocketTaskData&);
-    void HandleGetFreeSpace(const HANDLE&, ClientSocketTaskData&);
-    void HandleWriteDataNum(const HANDLE&, ClientSocketTaskData&);
-    void HandleReadLog(const HANDLE&, ClientSocketTaskData&);
-    void HandleReadConfig(const HANDLE&, ClientSocketTaskData&);
+    void HandleWriteData(ClientSocketTaskData&);
+    void HandleReadData(ClientSocketTaskData&);
+    void HandleDeleteData(ClientSocketTaskData&);
+    void HandleGetAllX(ClientSocketTaskData&);
+    void HandleGetAllY(ClientSocketTaskData&);
+  	void HandleStatus(ClientSocketTaskData&);
+    void HandleDeleteX(ClientSocketTaskData&);
+    void HandleDefragmentData(ClientSocketTaskData&);
+    void HandleGetFreeSpace(ClientSocketTaskData&);
+    void HandleWriteDataNum(ClientSocketTaskData&);
+    void HandleReadLog(ClientSocketTaskData&);
+    void HandleReadConfig(ClientSocketTaskData&);
     
 private:
 	//disable copy constructor and assign
@@ -41,6 +43,8 @@ private:
     //declarations
     ClientSocketWorker  &m_rClientSocketWorker;
     Storage             &m_rStorage;
+    LRUCache            *m_pLRUCache;
+    HANDLE              m_rDataFileHandle;
     bool                m_readerThread;
 };
 

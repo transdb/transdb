@@ -30,7 +30,6 @@ Storage::Storage(const std::string &rFileName) : m_rDataPath(g_DataFilePath + rF
                                                  m_diskWriterCount(0),
                                                  m_pDiskWriter(new DiskWriter(*this)),
                                                  m_pDataIndexDiskWriter(new IndexBlock(*this)),
-                                                 m_pLRUCache(new LRUCache("Storage", g_LRUCacheMemReserve / sizeof(CRec))),
                                                  m_memoryUsed(0),
                                                  m_sumDiskReadTime(0)
 {
@@ -103,22 +102,15 @@ Storage::~Storage()
     //delete index disk writer
     delete m_pDataIndexDiskWriter;
 	m_pDataIndexDiskWriter = NULL;
-    
-    //delete LRU cache
-    delete m_pLRUCache;
-	m_pLRUCache = NULL;
 }
 
-void Storage::LoadFromDisk(const HANDLE &rDataFileHandle, const uint64 &x)
+void Storage::LoadFromDisk(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x)
 {
     RecordIndexMap::accessor rWriteAccessor;
     if(m_dataIndexes.find(rWriteAccessor, x))
     {
         //update LRU
-        {
-            std::lock_guard<std::mutex> rGuard(m_LRULock);
-            m_pLRUCache->put(x);
-        }
+        rLRUCache.put(x);
         
         //check manager - load from disk if not in memory
         CheckBlockManager(rDataFileHandle, x, rWriteAccessor);
@@ -132,6 +124,8 @@ void Storage::Crc32Check(const HANDLE &rDataFileHandle)
     size_t dataIndexesSize;
     typedef Vector<WriteInfo> WriteInfoVec;
     WriteInfoVec rInfo;
+    LRUCache rCache("Storage", g_LRUCacheMemReserve / sizeof(CRec));
+    RecordIndexMap::accessor rWriteAccessor;
     
     //
     dataIndexesSize = m_dataIndexes.size();
@@ -150,28 +144,43 @@ void Storage::Crc32Check(const HANDLE &rDataFileHandle)
     for(WriteInfoVec::iterator itr = rInfo.begin();itr != rInfo.end();++itr)
     {
         ++counter;
-        LoadFromDisk(rDataFileHandle, itr->m_key);
+        LoadFromDisk(rDataFileHandle, rCache, itr->m_key);
         //
-        CheckMemory();
+        CheckMemory(rCache);
         
         if(!(counter % 100000))
         {
             Log.Notice(__FUNCTION__, "Checked: " I64FMTD " from: " I64FMTD, counter, dataIndexesSize);
         }
     }
+    
+    //clean memory
+    m_memoryUsed = 0;
+    //dealloc block managers
+    for(WriteInfoVec::iterator itr = rInfo.begin();itr != rInfo.end();++itr)
+    {
+        if(m_dataIndexes.find(rWriteAccessor, itr->m_key))
+        {
+            if(rWriteAccessor->second->m_pBlockManager != NULL)
+            {
+                //clean memory
+                std::lock_guard<std::mutex> rBM_Guard(m_rBlockManagerMemPoolLock);
+                m_rBlockManagerMemPool.deallocate(rWriteAccessor->second->m_pBlockManager);
+                rWriteAccessor->second->m_pBlockManager = NULL;
+            }
+        }
+    }
+    
     Log.Notice(__FUNCTION__, "Finished checking integrity of data file.");
 }
 
-void Storage::ReadData(const HANDLE &rDataFileHandle, const uint64 &x, const uint64 &y, ByteBuffer &rData)
+void Storage::ReadData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x, const uint64 &y, ByteBuffer &rData)
 {
     RecordIndexMap::accessor rWriteAccessor;
     if(m_dataIndexes.find(rWriteAccessor, x))
     {
         //update LRU
-        {
-            std::lock_guard<std::mutex> rGuard(m_LRULock);
-            m_pLRUCache->put(x);
-        }
+        rLRUCache.put(x);
         
         //check manager - load from disk if not in memory
         CheckBlockManager(rDataFileHandle, x, rWriteAccessor);
@@ -183,16 +192,13 @@ void Storage::ReadData(const HANDLE &rDataFileHandle, const uint64 &x, const uin
     Log.Debug(__FUNCTION__, "Read data [x:" I64FMTD ",y:" I64FMTD "] size: " I64FMTD, x, y, rData.size());
 }
 
-void Storage::ReadData(const HANDLE &rDataFileHandle, const uint64 &x, ByteBuffer &rData)
+void Storage::ReadData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x, ByteBuffer &rData)
 {
     RecordIndexMap::accessor rWriteAccessor;
     if(m_dataIndexes.find(rWriteAccessor, x))
     {
         //update LRU
-        {
-            std::lock_guard<std::mutex> rGuard(m_LRULock);
-            m_pLRUCache->put(x);
-        }
+        rLRUCache.put(x);
         
         //check manager - load from disk if not in memory
         CheckBlockManager(rDataFileHandle, x, rWriteAccessor);
@@ -204,7 +210,7 @@ void Storage::ReadData(const HANDLE &rDataFileHandle, const uint64 &x, ByteBuffe
     Log.Debug(__FUNCTION__, "Read data [x:" I64FMTD ",y:" I64FMTD "] size: " I64FMTD, x, 0, rData.size());
 }
 
-uint32 Storage::WriteData(const HANDLE &rDataFileHandle, const uint64 &x, const uint64 &y, const uint8 *pRecord, const uint16 &recordSize)
+uint32 Storage::WriteData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x, const uint64 &y, const uint8 *pRecord, const uint16 &recordSize)
 {
     //ret value
     uint32 status;
@@ -213,10 +219,7 @@ uint32 Storage::WriteData(const HANDLE &rDataFileHandle, const uint64 &x, const 
 	RecordIndexMap::accessor rWriteAccesor;
     
     //update LRU
-    {
-        std::lock_guard<std::mutex> rGuard(m_LRULock);
-        m_pLRUCache->put(x);
-    }
+    rLRUCache.put(x);
     
     //try insert - returns false if record is existing
     if(m_dataIndexes.insert(rWriteAccesor, x))
@@ -302,9 +305,9 @@ uint32 Storage::WriteData(const HANDLE &rDataFileHandle, const uint64 &x, const 
     return status;
 }
 
-void Storage::DeleteData(const uint64 &x)
+void Storage::DeleteData(LRUCache &rLRUCache, const uint64 &x)
 {
-	std::streamsize recordSize;
+	uint64 recordSize;
 
     RecordIndexMap::accessor rWriteAccessor;
     if(m_dataIndexes.find(rWriteAccessor, x))
@@ -313,10 +316,7 @@ void Storage::DeleteData(const uint64 &x)
 		recordSize = rWriteAccessor->second->m_blockCount * BLOCK_SIZE;
 
         //delete from LRU
-        {
-            std::lock_guard<std::mutex> rLRU_Guard(m_LRULock);
-            m_pLRUCache->remove(x);
-        }
+        rLRUCache.remove(x);
         
         //queue delete from disk
         m_pDiskWriter->QueueIndexDeletetion(rWriteAccessor);
@@ -349,16 +349,13 @@ void Storage::DeleteData(const uint64 &x)
 	m_pDiskWriter->Remove(x);
 }
 
-void Storage::DeleteData(const HANDLE &rDataFileHandle, const uint64 &x, const uint64 &y)
+void Storage::DeleteData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x, const uint64 &y)
 {
     RecordIndexMap::accessor rWriteAccessor;
     if(m_dataIndexes.find(rWriteAccessor, x))
     {
         //update LRU
-        {
-            std::lock_guard<std::mutex> rGuard(m_LRULock);
-            m_pLRUCache->put(x);
-        }
+        rLRUCache.put(x);
         
         //check manager - load from disk if not in memory
         CheckBlockManager(rDataFileHandle, x, rWriteAccessor);
@@ -383,16 +380,13 @@ void Storage::GetAllX(uint8 **pX, uint64 *xSize)
     *xSize = 0;
 }
 
-void Storage::GetAllY(const HANDLE &rDataFileHandle, const uint64 &x, ByteBuffer &rY)
+void Storage::GetAllY(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x, ByteBuffer &rY)
 {
     RecordIndexMap::accessor rWriteAccessor;
     if(m_dataIndexes.find(rWriteAccessor, x))
     {
         //update LRU
-        {
-            std::lock_guard<std::mutex> rGuard(m_LRULock);
-            m_pLRUCache->put(x);
-        }
+        rLRUCache.put(x);
         
         //check manager - load from disk if not in memory
         CheckBlockManager(rDataFileHandle, x, rWriteAccessor);
@@ -404,16 +398,13 @@ void Storage::GetAllY(const HANDLE &rDataFileHandle, const uint64 &x, ByteBuffer
     Log.Debug(__FUNCTION__, "Read data [x:" I64FMTD ",y:" I64FMTD "] size: " I64FMTD, x, 0, rY.size());
 }
 
-void Storage::DefragmentData(const HANDLE &rDataFileHandle, const uint64 &x)
+void Storage::DefragmentData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x)
 {
     RecordIndexMap::accessor rWriteAccessor;
     if(m_dataIndexes.find(rWriteAccessor, x))
     {
         //update LRU
-        {
-            std::lock_guard<std::mutex> rGuard(m_LRULock);
-            m_pLRUCache->put(x);
-        }
+        rLRUCache.put(x);
         
         //check manager - load from disk if not in memory
         CheckBlockManager(rDataFileHandle, x, rWriteAccessor);
@@ -494,18 +485,15 @@ void Storage::GetFreeSpaceDump(ByteBuffer &rBuff, const uint32 &dumpFlags)
     }
 }
 
-void Storage::CheckMemory()
+void Storage::CheckMemory(LRUCache &rLRUCache)
 {
     uint64 xToDelete;
     RecordIndexMap::accessor rWriteAccessor;
     
     while(m_memoryUsed.load() > g_MemoryLimit)
     {
-        {
-            std::lock_guard<std::mutex> rGetGuard(m_LRULock);
-            if(!m_pLRUCache->get(&xToDelete))
-                break;
-        }
+        if(!rLRUCache.get(&xToDelete))
+            break;
         
         //get record index
         if(m_dataIndexes.find(rWriteAccessor, xToDelete))
@@ -514,6 +502,7 @@ void Storage::CheckMemory()
 			if(rWriteAccessor->second->m_flags & eRIF_InDiskWriteQueue)
                 return;
             
+            //can be NULL
             if(rWriteAccessor->second->m_pBlockManager)
             {
                 //log
@@ -527,19 +516,12 @@ void Storage::CheckMemory()
                 m_rBlockManagerMemPool.deallocate(rWriteAccessor->second->m_pBlockManager);
                 rWriteAccessor->second->m_pBlockManager = NULL;
             }
-            else
-            {
-                Log.Warning(__FUNCTION__, "rWriteAccessor->second->m_pBlockManager == NULL");
-            }
         }
         
         //delete from LRU
+        if(rLRUCache.remove(xToDelete) == false)
         {
-            std::lock_guard<std::mutex> rRemoveGuard(m_LRULock);
-            if(m_pLRUCache->remove(xToDelete) == false)
-            {
-                Log.Warning(__FUNCTION__, "m_pLRUCache->remove(" I64FMTD ") == false", xToDelete);
-            }
+            Log.Warning(__FUNCTION__, "m_pLRUCache->remove(" I64FMTD ") == false", xToDelete);
         }
     }
 }

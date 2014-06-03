@@ -237,13 +237,6 @@ void StatGenerator::GetBlockManagerMemPoolStats(uint64 &blockManagerMemPoolSize)
     blockManagerMemPoolSize = m_rStorage.m_rBlockManagerMemPool.GetSize();
 }
 
-void StatGenerator::GetLRUCacheStats(uint64 &size, uint64 &cacheSize)
-{
-    std::lock_guard<std::mutex> rLRUGuard(m_rStorage.m_LRULock);
-    size = m_rStorage.m_pLRUCache->size();
-    cacheSize = m_rStorage.m_pLRUCache->cacheSize();
-}
-
 void StatGenerator::GetDiskWriterStats(uint64 &queueSize, uint64 &lastNumOfItemsInProcess, uint64 &itemsToProcessSize)
 {
     queueSize = m_rStorage.m_pDiskWriter->GetQueueSize();
@@ -261,8 +254,6 @@ void StatGenerator::GenerateStats(ByteBuffer &rData, bool oAddDescription)
     uint64 blockMemPoolSize = 0;
     uint64 recordIndexMemPoolSize = 0;
     uint64 blockManagerMemPoolSize = 0;
-    uint64 LRUsize = 0;
-    uint64 LRUcacheSize = 0;
     uint64 diskWriterQueueSize = 0;
     uint64 diskWriterLastNumOfItemsInProcess = 0;
     uint64 diskWriterItemsToProcessSize = 0;
@@ -286,8 +277,6 @@ void StatGenerator::GenerateStats(ByteBuffer &rData, bool oAddDescription)
     GetRecordIndexMemPoolStats(recordIndexMemPoolSize);
     //BlockManagerMemPool
     GetBlockManagerMemPoolStats(blockManagerMemPoolSize);
-    //LRUCache
-    GetLRUCacheStats(LRUsize, LRUcacheSize);
     //DiskWriter
     GetDiskWriterStats(diskWriterQueueSize, diskWriterLastNumOfItemsInProcess, diskWriterItemsToProcessSize);
     
@@ -304,13 +293,11 @@ void StatGenerator::GenerateStats(ByteBuffer &rData, bool oAddDescription)
     AddItemToJSONArray(ss, "process_memory", GetRAMUsage(), oAddDescription);
     AddItemToJSONArray(ss, "activity_id", g_ActivityID, oAddDescription);
     AddItemToJSONArray(ss, "records_count", m_rStorage.m_dataIndexes.size(), oAddDescription);
-    AddItemToJSONArray(ss, "records_in_memory", LRUsize, oAddDescription);
     AddItemToJSONArray(ss, "records_cache_mem_usage", m_rStorage.m_memoryUsed.load(), oAddDescription);
     AddItemToJSONArray(ss, "freespace_block_count", freeSpaceBlocksCount, oAddDescription);
     AddItemToJSONArray(ss, "freespace_chunk_count", freeSpaceChunkCount, oAddDescription);
     AddItemToJSONArray(ss, "data_file_size", m_rStorage.m_dataFileSize.load(), oAddDescription);
     //mempools
-    AddItemToJSONArray(ss, "lru_cache_mempool_size", LRUcacheSize, oAddDescription);
     AddItemToJSONArray(ss, "block_mempool_size", blockMemPoolSize, oAddDescription);
     AddItemToJSONArray(ss, "recordindex_mempool_size", recordIndexMemPoolSize, oAddDescription);
     AddItemToJSONArray(ss, "block_manager_mempool_size", blockManagerMemPoolSize, oAddDescription);

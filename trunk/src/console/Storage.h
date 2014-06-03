@@ -27,15 +27,15 @@ public:
 	~Storage();
     
 	//handlers
-    void ReadData(const HANDLE &rDataFileHandle, const uint64 &x, const uint64 &y, ByteBuffer &rData);
-    void ReadData(const HANDLE &rDataFileHandle, const uint64 &x, ByteBuffer &rData);
-    uint32 WriteData(const HANDLE &rDataFileHandle, const uint64 &x, const uint64 &y, const uint8 *pRecord, const uint16 &recordSize);
-    void DeleteData(const HANDLE &rDataFileHandle, const uint64 &x, const uint64 &y);
-    void DeleteData(const uint64 &x);
+    void ReadData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x, const uint64 &y, ByteBuffer &rData);
+    void ReadData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x, ByteBuffer &rData);
+    uint32 WriteData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x, const uint64 &y, const uint8 *pRecord, const uint16 &recordSize);
+    void DeleteData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x, const uint64 &y);
+    void DeleteData(LRUCache &rLRUCache, const uint64 &x);
     void GetAllX(uint8 **pX, uint64 *xSize);
-    void GetAllY(const HANDLE &rDataFileHandle, const uint64 &x, ByteBuffer &rY);
+    void GetAllY(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x, ByteBuffer &rY);
     void GetStats(ByteBuffer &rBuff);
-    void DefragmentData(const HANDLE &rDataFileHandle, const uint64 &x);
+    void DefragmentData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x);
     void GetFreeSpaceDump(ByteBuffer &rBuff, const uint32 &dumpFlags);
     
 	//thread
@@ -58,14 +58,14 @@ private:
     void DefragmentDataInternal(RecordIndexMap::accessor &rWriteAccessor);
     
     //for CRC32 check
-    void LoadFromDisk(const HANDLE &rDataFileHandle, const uint64 &x);
+    void LoadFromDisk(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x);
     void Crc32Check(const HANDLE &rDataFileHandle);
     
     //check if data for blockmanager are in memory and load it from disk
     bool CheckBlockManager(const HANDLE &rDataFileHandle, const uint64 &x, RecordIndexMap::accessor &rWriteAccessor);
     
     //checking memory usage and handling freeing memory
-    void CheckMemory();
+    void CheckMemory(LRUCache &rLRUCache);
     
     //declarations
 	const std::string           m_rDataPath;
@@ -92,8 +92,6 @@ private:
     std::mutex                  m_rFreeSpaceLock;
     
     //Memory limit
-    LRUCache                    *m_pLRUCache;
-    std::mutex                  m_LRULock;
     std::atomic<uint64>         m_memoryUsed;
     
     //

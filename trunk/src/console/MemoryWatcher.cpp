@@ -25,22 +25,15 @@ bool MemoryWatcher::run()
     
         while(m_threadRunning)
         {
-            //check memory
-            if(!(++m_memoryCheckerCount % g_MemoryFlushCoef))
-            {
-                m_rStorage.CheckMemory();
-            }
-            
             //recycle memory pools
-            if(!(++m_memoryPoolCheckerCount % (g_MemoryPoolsRecycleTimer*10)))
+            if(!(++m_memoryPoolCheckerCount % g_MemoryPoolsRecycleTimer))
             {
                 _S_FixedPool_Recycle("BlockMemPool", m_rStorage.m_rBlockMemPoolLock, m_rStorage.m_rBlockMemPool);
-                _S_FixedPool_Recycle("LRU", m_rStorage.m_LRULock, *m_rStorage.m_pLRUCache);
                 _S_FixedPool_Recycle("RecordIndexMemPool", m_rStorage.m_rRecordIndexMemPoolLock, m_rStorage.m_rRecordIndexMemPool);
                 _S_FixedPool_Recycle("BlockManagerMemPool", m_rStorage.m_rBlockManagerMemPoolLock, m_rStorage.m_rBlockManagerMemPool);
             }
             
-            Wait(100);
+            Wait(1000);
         }
     }
     catch(...)
