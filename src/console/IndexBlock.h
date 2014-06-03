@@ -142,13 +142,14 @@ class IndexBlock
 public:
     ~IndexBlock();
     
-    bool Init(const std::string &rIndexFilePath, int64 dataFileSize, int64 *indexFileSize);
     void WriteRecordIndexToDisk(const HANDLE &hFile, RecordIndexMap::accessor &rWriteAccesor);
     void EraseRecord(const HANDLE &hFile, const RecordIndex &rRecordIndex);
     
 private:
     //private ctor only created from Storage
     explicit IndexBlock(Storage &pStorage);
+    //called from Storage
+    bool Init(const std::string &rIndexFilePath, int64 dataFileSize, int64 *indexFileSize);
 	//disable copy constructor and assign
 	DISALLOW_COPY_AND_ASSIGN(IndexBlock);
     
