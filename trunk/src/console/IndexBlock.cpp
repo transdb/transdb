@@ -333,7 +333,7 @@ void IndexBlock::EraseRecord(const HANDLE &hFile, const RecordIndex &rRecordInde
 {
     //not written yet
     if(rRecordIndex.m_IB_recordOffset == -1)
-    return;
+        return;
     
     ICIDF *pICIDF;
 	DREC *pDREC;

@@ -124,7 +124,7 @@ void Storage::Crc32Check(const HANDLE &rDataFileHandle)
     size_t dataIndexesSize;
     typedef Vector<WriteInfo> WriteInfoVec;
     WriteInfoVec rInfo;
-    LRUCache rCache("Storage", g_LRUCacheMemReserve / sizeof(CRec));
+    LRUCache rCache("Temporary Storage", g_LRUCacheMemReserve / sizeof(CRec));
     RecordIndexMap::accessor rWriteAccessor;
     
     //
