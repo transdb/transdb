@@ -8,7 +8,7 @@
 
 #include "StdAfx.h"
 
-typedef void (ClientSocketWorkerTask::*ClientSocketWorkerTaskHandler)(const HANDLE&, ClientSocketTaskData&);
+typedef void (ClientSocketWorkerTask::*ClientSocketWorkerTaskHandler)(ClientSocketTaskData&);
 static const ClientSocketWorkerTaskHandler m_ClientSocketWorkerTaskHandlers[OP_NUM] =
 {
     NULL,                                           //C_NULL_OP
@@ -46,9 +46,18 @@ ClientSocketWorkerTask::ClientSocketWorkerTask(ClientSocketWorker &rClientSocket
                                                Storage &rStorage,
                                                bool readerTask) : m_rClientSocketWorker(rClientSocketWorker),
                                                                   m_rStorage(rStorage),
+                                                                  m_pLRUCache(new LRUCache("ClientSocketWorkerTask", g_LRUCacheMemReserve / sizeof(CRec))),
+                                                                  m_rDataFileHandle(INVALID_HANDLE_VALUE),
                                                                   m_readerThread(readerTask)
 {
 
+}
+
+ClientSocketWorkerTask::~ClientSocketWorkerTask()
+{
+    //delete LRU cache
+    delete m_pLRUCache;
+    m_pLRUCache = NULL;
 }
 
 bool ClientSocketWorkerTask::run()
@@ -59,13 +68,18 @@ bool ClientSocketWorkerTask::run()
         CommonFunctions::SetThreadName("Write ClientSocketWorkerTask thread");
 
     //open file per thread - read only
-    HANDLE rDataFileHandle = INVALID_HANDLE_VALUE;
-    IOHandleGuard rIOHandleGuard(rDataFileHandle);
-    rDataFileHandle = IO::fopen(m_rStorage.m_rDataPath.c_str(), IO::IO_READ_ONLY);
-    assert(rDataFileHandle != INVALID_HANDLE_VALUE);
+    IOHandleGuard rIOHandleGuard(m_rDataFileHandle);
+    m_rDataFileHandle = IO::fopen(m_rStorage.m_rDataPath.c_str(), IO::IO_READ_ONLY);
+    if(m_rDataFileHandle == INVALID_HANDLE_VALUE)
+    {
+        Log.Error(__FUNCTION__, "Cannot open data file: %s", m_rStorage.m_rDataPath.c_str());
+        return true;
+    }
     
-    //
+    //data from queue
 	ClientSocketTaskData *pClientSocketTaskData;
+    //LRU recycle timer
+    time_t checkTime = UNIXTIME + g_MemoryPoolsRecycleTimer;
     
     try
     {
@@ -92,11 +106,21 @@ bool ClientSocketWorkerTask::run()
             if(pClientSocketTaskData->opcode() < OP_NUM && m_ClientSocketWorkerTaskHandlers[pClientSocketTaskData->opcode()] != NULL)
             {
                 Log.Debug(__FUNCTION__, "Processing packet opcode: (0x%.4X)", pClientSocketTaskData->opcode());
-                (void)(this->*m_ClientSocketWorkerTaskHandlers[pClientSocketTaskData->opcode()])(rDataFileHandle, *pClientSocketTaskData);
+                (void)(this->*m_ClientSocketWorkerTaskHandlers[pClientSocketTaskData->opcode()])(*pClientSocketTaskData);
             }
             else
             {
                 Log.Debug(__FUNCTION__, "Unknown opcode (0x%.4X)", pClientSocketTaskData->opcode());
+            }
+            
+            //check memory
+            m_rStorage.CheckMemory(*m_pLRUCache);
+            
+            //LRU cache recycle timer
+            if(checkTime < UNIXTIME)
+            {
+                m_pLRUCache->recycle();
+                checkTime = UNIXTIME + g_MemoryPoolsRecycleTimer;
             }
             
             //call ~ctor + dealloc task data
@@ -114,7 +138,7 @@ bool ClientSocketWorkerTask::run()
     return true;
 }
 
-void ClientSocketWorkerTask::HandleWriteData(const HANDLE &rDataFileHandle, ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleWriteData(ClientSocketTaskData &rClientSocketTaskData)
 {
     uint32 token;
     uint32 flags;
@@ -129,7 +153,7 @@ void ClientSocketWorkerTask::HandleWriteData(const HANDLE &rDataFileHandle, Clie
     recordSize = (uint16)(rClientSocketTaskData.size() - rClientSocketTaskData.rpos());
     pRecord = (uint8*)(rClientSocketTaskData.contents() + rClientSocketTaskData.rpos());
     //
-    writeStatus = m_rStorage.WriteData(rDataFileHandle, userID, timeStamp, pRecord, recordSize);
+    writeStatus = m_rStorage.WriteData(m_rDataFileHandle, *m_pLRUCache, userID, timeStamp, pRecord, recordSize);
     
     //send back data
     uint8 buff[32];
@@ -142,7 +166,7 @@ void ClientSocketWorkerTask::HandleWriteData(const HANDLE &rDataFileHandle, Clie
     g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 
-void ClientSocketWorkerTask::HandleReadData(const HANDLE &rDataFileHandle, ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleReadData(ClientSocketTaskData &rClientSocketTaskData)
 {
     uint32 token;
     uint32 flags;
@@ -163,11 +187,11 @@ void ClientSocketWorkerTask::HandleReadData(const HANDLE &rDataFileHandle, Clien
     //read data - if timeStamp == 0 then read all datas under userID
     if(timeStamp == 0)
     {
-        m_rStorage.ReadData(rDataFileHandle, userID, rReadData);
+        m_rStorage.ReadData(m_rDataFileHandle, *m_pLRUCache, userID, rReadData);
     }
     else
     {
-        m_rStorage.ReadData(rDataFileHandle, userID, timeStamp, rReadData);
+        m_rStorage.ReadData(m_rDataFileHandle, *m_pLRUCache, userID, timeStamp, rReadData);
     }
     
 	//try to compress
@@ -198,7 +222,7 @@ void ClientSocketWorkerTask::HandleReadData(const HANDLE &rDataFileHandle, Clien
     g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 
-void ClientSocketWorkerTask::HandleDeleteData(const HANDLE &rDataFileHandle, ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleDeleteData(ClientSocketTaskData &rClientSocketTaskData)
 {
     uint32 token;
     uint32 flags;
@@ -211,11 +235,11 @@ void ClientSocketWorkerTask::HandleDeleteData(const HANDLE &rDataFileHandle, Cli
     //read data - if timeStamp == 0 then delete all datas under userID
     if(timeStamp == 0)
     {
-        m_rStorage.DeleteData(userID);
+        m_rStorage.DeleteData(*m_pLRUCache, userID);
     }
     else
     {
-        m_rStorage.DeleteData(rDataFileHandle, userID, timeStamp);
+        m_rStorage.DeleteData(m_rDataFileHandle, *m_pLRUCache, userID, timeStamp);
     }
     
     //send back data
@@ -228,7 +252,7 @@ void ClientSocketWorkerTask::HandleDeleteData(const HANDLE &rDataFileHandle, Cli
     g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 
-void ClientSocketWorkerTask::HandleGetAllX(const HANDLE &rDataFileHandle, ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleGetAllX(ClientSocketTaskData &rClientSocketTaskData)
 {
     uint32 token;
     uint32 flags;
@@ -274,7 +298,7 @@ void ClientSocketWorkerTask::HandleGetAllX(const HANDLE &rDataFileHandle, Client
     g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 
-void ClientSocketWorkerTask::HandleGetAllY(const HANDLE &rDataFileHandle, ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleGetAllY(ClientSocketTaskData &rClientSocketTaskData)
 {
     uint32 token;
     uint32 flags;
@@ -292,7 +316,7 @@ void ClientSocketWorkerTask::HandleGetAllY(const HANDLE &rDataFileHandle, Client
     rClientSocketTaskData >> token >> flags >> userID;
     
     //get all Y
-    m_rStorage.GetAllY(rDataFileHandle, userID, rY);
+    m_rStorage.GetAllY(m_rDataFileHandle, *m_pLRUCache, userID, rY);
     
 	//try to compress
 	if(rY.size() > (size_t)g_DataSizeForCompression)
@@ -321,7 +345,7 @@ void ClientSocketWorkerTask::HandleGetAllY(const HANDLE &rDataFileHandle, Client
     g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 
-void ClientSocketWorkerTask::HandleStatus(const HANDLE &rDataFileHandle, ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleStatus(ClientSocketTaskData &rClientSocketTaskData)
 {
     uint32 token;
     uint32 flags;
@@ -362,7 +386,7 @@ void ClientSocketWorkerTask::HandleStatus(const HANDLE &rDataFileHandle, ClientS
     g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 
-void ClientSocketWorkerTask::HandleDeleteX(const HANDLE &rDataFileHandle, ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleDeleteX(ClientSocketTaskData &rClientSocketTaskData)
 {
     uint32 token;
     uint32 flags;
@@ -413,7 +437,7 @@ void ClientSocketWorkerTask::HandleDeleteX(const HANDLE &rDataFileHandle, Client
         {
             rUsers >> userID;
             Log.Debug(__FUNCTION__, "Deleting userID: " I64FMTD, userID);
-            m_rStorage.DeleteData(userID);
+            m_rStorage.DeleteData(*m_pLRUCache, userID);
             Log.Debug(__FUNCTION__, "Deleted userID: " I64FMTD, userID);
         }
     }
@@ -426,7 +450,7 @@ void ClientSocketWorkerTask::HandleDeleteX(const HANDLE &rDataFileHandle, Client
     g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 
-void ClientSocketWorkerTask::HandleDefragmentData(const HANDLE &rDataFileHandle, ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleDefragmentData(ClientSocketTaskData &rClientSocketTaskData)
 {
     uint32 token;
     uint32 flags;
@@ -477,7 +501,7 @@ void ClientSocketWorkerTask::HandleDefragmentData(const HANDLE &rDataFileHandle,
         {
             rUsers >> userID;
             Log.Debug(__FUNCTION__, "Defragmenting userID: " I64FMTD, userID);
-            m_rStorage.DefragmentData(rDataFileHandle, userID);
+            m_rStorage.DefragmentData(m_rDataFileHandle, *m_pLRUCache, userID);
             Log.Debug(__FUNCTION__, "Defragmented userID: " I64FMTD, userID);
         }
     }
@@ -490,7 +514,7 @@ void ClientSocketWorkerTask::HandleDefragmentData(const HANDLE &rDataFileHandle,
     g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 
-void ClientSocketWorkerTask::HandleGetFreeSpace(const HANDLE &rDataFileHandle, ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleGetFreeSpace(ClientSocketTaskData &rClientSocketTaskData)
 {
     uint32 token;
     uint32 flags;
@@ -534,7 +558,7 @@ void ClientSocketWorkerTask::HandleGetFreeSpace(const HANDLE &rDataFileHandle, C
     g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 
-void ClientSocketWorkerTask::HandleWriteDataNum(const HANDLE &rDataFileHandle, ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleWriteDataNum(ClientSocketTaskData &rClientSocketTaskData)
 {
     uint32 token;
     uint32 flags;
@@ -594,7 +618,7 @@ void ClientSocketWorkerTask::HandleWriteDataNum(const HANDLE &rDataFileHandle, C
             rData.read((uint8*)rRecord.contents(), rRecord.size());
             
             //write
-            writeStatus |= m_rStorage.WriteData(rDataFileHandle, userID, key, rRecord.contents(), recordSize);
+            writeStatus |= m_rStorage.WriteData(m_rDataFileHandle, *m_pLRUCache, userID, key, rRecord.contents(), recordSize);
         }
     }
     
@@ -608,7 +632,7 @@ void ClientSocketWorkerTask::HandleWriteDataNum(const HANDLE &rDataFileHandle, C
     g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 
-void ClientSocketWorkerTask::HandleReadLog(const HANDLE &rDataFileHandle, ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleReadLog(ClientSocketTaskData &rClientSocketTaskData)
 {
     uint32 token;
     uint32 flags;
@@ -651,7 +675,7 @@ void ClientSocketWorkerTask::HandleReadLog(const HANDLE &rDataFileHandle, Client
     g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 
-void ClientSocketWorkerTask::HandleReadConfig(const HANDLE &rDataFileHandle, ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleReadConfig(ClientSocketTaskData &rClientSocketTaskData)
 {
     uint32 token;
     uint32 flags;

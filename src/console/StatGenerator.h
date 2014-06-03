@@ -27,7 +27,6 @@ private:
     void GetBlockMemPoolStats(uint64 &blockMemPoolSize);
     void GetRecordIndexMemPoolStats(uint64 &recordIndexMemPoolSize);
     void GetBlockManagerMemPoolStats(uint64 &blockManagerMemPoolSize);
-    void GetLRUCacheStats(uint64 &size, uint64 &cacheSize);
     void GetDiskWriterStats(uint64 &queueSize, uint64 &lastNumOfItemsInProcess, uint64 &itemsToProcessSize);
     
     //declarations
