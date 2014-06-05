@@ -205,39 +205,6 @@ StatGenerator::StatGenerator(Storage &rStorage) : m_rStorage(rStorage)
 
 }
 
-void StatGenerator::GetFreeFraceStats(uint64 &freeSpaceChunkCount, uint64 &freeSpaceBlocksCount)
-{
-//    std::lock_guard<std::mutex> rFreeSpaceLock(m_rStorage.m_rFreeSpaceLock);
-//    
-//    //coutn chunks
-//    freeSpaceBlocksCount = m_rStorage.m_rFreeSpace.size();
-//    
-//    //count blocks
-//    for(FreeSpaceBlockMap::iterator itr = m_rStorage.m_rFreeSpace.begin();itr != m_rStorage.m_rFreeSpace.end();++itr)
-//    {
-//        freeSpaceChunkCount += itr->second.size();
-//    }
-}
-
-void StatGenerator::GetBlockMemPoolStats(uint64 &blockMemPoolSize)
-{
-//    std::lock_guard<std::mutex> rBlockMemPoolGuard(m_rStorage.m_rBlockMemPoolLock);
-//    blockMemPoolSize = m_rStorage.m_rBlockMemPool.GetSize();
-    blockMemPoolSize = 0;
-}
-
-void StatGenerator::GetRecordIndexMemPoolStats(uint64 &recordIndexMemPoolSize)
-{
-    recordIndexMemPoolSize = 0;
-}
-
-void StatGenerator::GetBlockManagerMemPoolStats(uint64 &blockManagerMemPoolSize)
-{
-//    std::lock_guard<std::mutex> rBM_Guard(m_rStorage.m_rBlockManagerMemPoolLock);
-//    blockManagerMemPoolSize = m_rStorage.m_rBlockManagerMemPool.GetSize();
-    blockManagerMemPoolSize = 0;
-}
-
 void StatGenerator::GetDiskWriterStats(uint64 &queueSize, uint64 &lastNumOfItemsInProcess, uint64 &itemsToProcessSize)
 {
     queueSize = m_rStorage.m_pDiskWriter->GetQueueSize();
@@ -250,11 +217,6 @@ void StatGenerator::GenerateStats(ByteBuffer &rData, bool oAddDescription)
     char rStartTime[512];    
     tm localTime;
     std::stringstream ss;
-    uint64 freeSpaceChunkCount = 0;
-    uint64 freeSpaceBlocksCount = 0;
-    uint64 blockMemPoolSize = 0;
-    uint64 recordIndexMemPoolSize = 0;
-    uint64 blockManagerMemPoolSize = 0;
     uint64 diskWriterQueueSize = 0;
     uint64 diskWriterLastNumOfItemsInProcess = 0;
     uint64 diskWriterItemsToProcessSize = 0;
@@ -269,15 +231,7 @@ void StatGenerator::GenerateStats(ByteBuffer &rData, bool oAddDescription)
             localTime.tm_hour,
             localTime.tm_min,
             localTime.tm_sec);
-    
-    //frespace stats
-    GetFreeFraceStats(freeSpaceChunkCount, freeSpaceBlocksCount);
-    //BlockMemPool
-    GetBlockMemPoolStats(blockMemPoolSize);
-    //RecordIndexMemPool
-    GetRecordIndexMemPoolStats(recordIndexMemPoolSize);
-    //BlockManagerMemPool
-    GetBlockManagerMemPoolStats(blockManagerMemPoolSize);
+
     //DiskWriter
     GetDiskWriterStats(diskWriterQueueSize, diskWriterLastNumOfItemsInProcess, diskWriterItemsToProcessSize);
     
@@ -295,13 +249,7 @@ void StatGenerator::GenerateStats(ByteBuffer &rData, bool oAddDescription)
     AddItemToJSONArray(ss, "activity_id", g_ActivityID, oAddDescription);
     AddItemToJSONArray(ss, "records_count", m_rStorage.m_dataIndexes.size(), oAddDescription);
     AddItemToJSONArray(ss, "records_cache_mem_usage", m_rStorage.m_memoryUsed.load(), oAddDescription);
-    AddItemToJSONArray(ss, "freespace_block_count", freeSpaceBlocksCount, oAddDescription);
-    AddItemToJSONArray(ss, "freespace_chunk_count", freeSpaceChunkCount, oAddDescription);
     AddItemToJSONArray(ss, "data_file_size", m_rStorage.m_dataFileSize.load(), oAddDescription);
-    //mempools
-    AddItemToJSONArray(ss, "block_mempool_size", blockMemPoolSize, oAddDescription);
-    AddItemToJSONArray(ss, "recordindex_mempool_size", recordIndexMemPoolSize, oAddDescription);
-    AddItemToJSONArray(ss, "block_manager_mempool_size", blockManagerMemPoolSize, oAddDescription);
     //socket
     AddItemToJSONArray(ss, "socket_send_packet_queue", g_rClientSocketHolder.GetAllSocketPacketQueueSize(), oAddDescription);
     AddItemToJSONArray<int64>(ss, "socket_tasks_queue", g_pClientSocketWorker->GetQueueSize(), oAddDescription);
