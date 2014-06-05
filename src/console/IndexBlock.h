@@ -126,11 +126,7 @@ public:
 };
 
 //main map for indexes
-typedef tbb::concurrent_hash_map<uint64, RecordIndex*, HashCompare<uint64> >        RecordIndexMap;
-
-//freespace
-typedef Vector<int64>                                                               FreeSpaceOffsets;
-typedef std::map<int64, FreeSpaceOffsets>                                           FreeSpaceBlockMap;
+typedef tbb::concurrent_hash_map<uint64, RecordIndex, HashCompare<uint64> >         RecordIndexMap;
 
 class IndexBlock
 {

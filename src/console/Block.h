@@ -57,19 +57,6 @@ static INLINE CIDF *GetCIDF(const uint8 *pBlock)
 //block store
 typedef Vector<uint8*, uint16> Blocks;
 
-//for memory pool
-struct BlockSize_T
-{
-public:
-	explicit BlockSize_T()
-	{
-		memset(&m_val, 0, BLOCK_SIZE);
-	}
-    
-private:
-    uint8 m_val[BLOCK_SIZE];
-};
-
 
 class Block
 {

@@ -207,34 +207,35 @@ StatGenerator::StatGenerator(Storage &rStorage) : m_rStorage(rStorage)
 
 void StatGenerator::GetFreeFraceStats(uint64 &freeSpaceChunkCount, uint64 &freeSpaceBlocksCount)
 {
-    std::lock_guard<std::mutex> rFreeSpaceLock(m_rStorage.m_rFreeSpaceLock);
-    
-    //coutn chunks
-    freeSpaceBlocksCount = m_rStorage.m_rFreeSpace.size();
-    
-    //count blocks
-    for(FreeSpaceBlockMap::iterator itr = m_rStorage.m_rFreeSpace.begin();itr != m_rStorage.m_rFreeSpace.end();++itr)
-    {
-        freeSpaceChunkCount += itr->second.size();
-    }
+//    std::lock_guard<std::mutex> rFreeSpaceLock(m_rStorage.m_rFreeSpaceLock);
+//    
+//    //coutn chunks
+//    freeSpaceBlocksCount = m_rStorage.m_rFreeSpace.size();
+//    
+//    //count blocks
+//    for(FreeSpaceBlockMap::iterator itr = m_rStorage.m_rFreeSpace.begin();itr != m_rStorage.m_rFreeSpace.end();++itr)
+//    {
+//        freeSpaceChunkCount += itr->second.size();
+//    }
 }
 
 void StatGenerator::GetBlockMemPoolStats(uint64 &blockMemPoolSize)
 {
-    std::lock_guard<std::mutex> rBlockMemPoolGuard(m_rStorage.m_rBlockMemPoolLock);
-    blockMemPoolSize = m_rStorage.m_rBlockMemPool.GetSize();
+//    std::lock_guard<std::mutex> rBlockMemPoolGuard(m_rStorage.m_rBlockMemPoolLock);
+//    blockMemPoolSize = m_rStorage.m_rBlockMemPool.GetSize();
+    blockMemPoolSize = 0;
 }
 
 void StatGenerator::GetRecordIndexMemPoolStats(uint64 &recordIndexMemPoolSize)
 {
-    std::lock_guard<std::mutex> rRIMemPoolGuard(m_rStorage.m_rRecordIndexMemPoolLock);
-    recordIndexMemPoolSize = m_rStorage.m_rRecordIndexMemPool.GetSize();
+    recordIndexMemPoolSize = 0;
 }
 
 void StatGenerator::GetBlockManagerMemPoolStats(uint64 &blockManagerMemPoolSize)
 {
-    std::lock_guard<std::mutex> rBM_Guard(m_rStorage.m_rBlockManagerMemPoolLock);
-    blockManagerMemPoolSize = m_rStorage.m_rBlockManagerMemPool.GetSize();
+//    std::lock_guard<std::mutex> rBM_Guard(m_rStorage.m_rBlockManagerMemPoolLock);
+//    blockManagerMemPoolSize = m_rStorage.m_rBlockManagerMemPool.GetSize();
+    blockManagerMemPoolSize = 0;
 }
 
 void StatGenerator::GetDiskWriterStats(uint64 &queueSize, uint64 &lastNumOfItemsInProcess, uint64 &itemsToProcessSize)

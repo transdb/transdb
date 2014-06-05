@@ -36,6 +36,7 @@
 #define TBB_PREVIEW_MEMORY_POOL 1
 #include "tbb/memory_pool.h"
 
+#include "tbb/scalable_allocator.h"
 #include "tbb/concurrent_queue.h"
 #include "tbb/concurrent_hash_map.h"
 #include "tbb/concurrent_vector.h"
@@ -66,7 +67,6 @@
 #include "LRUCache.h"
 #include "Storage.h"
 #include "DiskWriter.h"
-#include "MemoryWatcher.h"
 
 //python interface
 #include "PythonInterface.h"

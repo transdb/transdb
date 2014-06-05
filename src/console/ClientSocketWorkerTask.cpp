@@ -116,10 +116,11 @@ bool ClientSocketWorkerTask::run()
             //check memory
             m_rStorage.CheckMemory(*m_pLRUCache);
             
-            //LRU cache recycle timer
+            //recycle memory pools timer
             if(checkTime < UNIXTIME)
             {
                 m_pLRUCache->recycle();
+                //update next check time
                 checkTime = UNIXTIME + g_MemoryPoolsRecycleTimer;
             }
             
@@ -152,7 +153,8 @@ void ClientSocketWorkerTask::HandleWriteData(ClientSocketTaskData &rClientSocket
     rClientSocketTaskData >> token >> flags >> userID >> timeStamp;
     recordSize = (uint16)(rClientSocketTaskData.size() - rClientSocketTaskData.rpos());
     pRecord = (uint8*)(rClientSocketTaskData.contents() + rClientSocketTaskData.rpos());
-    //
+    
+    //write data with result
     writeStatus = m_rStorage.WriteData(m_rDataFileHandle, *m_pLRUCache, userID, timeStamp, pRecord, recordSize);
     
     //send back data
@@ -256,45 +258,17 @@ void ClientSocketWorkerTask::HandleGetAllX(ClientSocketTaskData &rClientSocketTa
 {
     uint32 token;
     uint32 flags;
-    uint8 *pX;
-    uint64 xSize;
     static const size_t packetSize = sizeof(token)+sizeof(flags);
-    
-	//for compresion
-	int compressionStatus = Z_ERRNO;
-	ByteBuffer rBuffOut;
     
     //read data from packet
     rClientSocketTaskData >> token >> flags;
     
-    //get all X
-    m_rStorage.GetAllX(&pX, &xSize);
-    
-	//try to compress
-	if(xSize > (uint32)g_DataSizeForCompression)
-	{
-		compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, pX, xSize, rBuffOut);
-		if(compressionStatus == Z_OK)
-		{
-			Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", xSize, rBuffOut.size());
-			flags = ePF_COMPRESSED;
-			xSize = static_cast<uint32>(rBuffOut.size());
-		}
-	}
+    //not implemented
     
     //send back data
-    Packet rResponse(S_MSG_GET_ALL_X, xSize+packetSize);
+    Packet rResponse(S_MSG_GET_ALL_X, packetSize);
     rResponse << token;
     rResponse << flags;
-    if(xSize)
-    {
-        if(compressionStatus == Z_OK)
-            rResponse.append(rBuffOut);
-        else
-            rResponse.append(pX, xSize);
-        
-        free(pX);
-    }
     g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 

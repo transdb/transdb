@@ -14,13 +14,10 @@ class DiskWriter;
 class Storage : public ThreadContext
 {   
     friend class DiskWriter;
-    friend class MemoryChecker;
 	friend class IndexBlock;
     friend class BlockManager;
-	friend class BlockManagerCopy;
     friend class StatGenerator;
     friend class ClientSocketWorkerTask;
-    friend class MemoryWatcher;
     
 public:
     static Storage *create(const std::string &rFileName);
@@ -48,12 +45,7 @@ private:
     bool Init();
 	//disable copy constructor and assign
 	DISALLOW_COPY_AND_ASSIGN(Storage);
-    
-    //freespace functions
-	void AddFreeSpace(const int64 &pos, const int64 &lenght);
-	int64 GetFreeSpacePos(const int64 &size);
-	void DefragmentFreeSpace();
-    
+        
     //used by WriteData and DefragmentData
     void DefragmentDataInternal(RecordIndexMap::accessor &rWriteAccessor);
     
@@ -67,36 +59,25 @@ private:
     //checking memory usage and handling freeing memory
     void CheckMemory(LRUCache &rLRUCache);
     
-    //declarations
+    //file paths
 	const std::string           m_rDataPath;
 	const std::string			m_rIndexPath;
+    
+    //data file size
     std::atomic<int64>          m_dataFileSize;
 
     //disk writer
     uint32                      m_diskWriterCount;
     DiskWriter					*m_pDiskWriter;
     
-    //shared
-    FixedPool<RecordIndex>      m_rRecordIndexMemPool;
-    std::mutex                  m_rRecordIndexMemPoolLock;
+    //index writter - used only by DiskWriter and Storage when loading
     IndexBlock                  *m_pDataIndexDiskWriter;
-    std::mutex                  m_rDataIndexDiskWriterLock;
+    
+    //main index map in memory
     RecordIndexMap              m_dataIndexes;
-    
-    //shared
-    FixedPool<BlockManager>     m_rBlockManagerMemPool;
-    std::mutex                  m_rBlockManagerMemPoolLock;
-    
-    //shared
-    FreeSpaceBlockMap           m_rFreeSpace;
-    std::mutex                  m_rFreeSpaceLock;
     
     //Memory limit
     std::atomic<uint64>         m_memoryUsed;
-    
-    //
-    FixedPool<BlockSize_T>      m_rBlockMemPool;
-    std::mutex                  m_rBlockMemPoolLock;
     
     //stats
     std::atomic<uint64>         m_sumDiskReadTime;
