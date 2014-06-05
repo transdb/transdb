@@ -41,8 +41,6 @@ struct FillIndex
         ICIDF *pICIDF;
         uint16 position;
         DREC *pDREC;
-        RecordIndex *pIREC;
-        void *pIRECMemory;
         
         //build index map
         for(uint32 i = range.begin();i != range.end();++i)
@@ -64,18 +62,17 @@ struct FillIndex
                 if(!IsEmptyDREC(pDREC))
                 {
                     //create storage index
-                    pIRECMemory                 = malloc(sizeof(RecordIndex));
-                    pIREC                       = new(pIRECMemory) RecordIndex();
-                    pIREC->m_recordStart        = pDREC->m_recordStart;
-                    pIREC->m_blockCount         = pDREC->m_blockCount;
-                    pIREC->m_crc32              = pDREC->m_crc32;
-                    pIREC->m_pBlockManager      = NULL;
+                    RecordIndex rRecordIndex;
+                    rRecordIndex.m_recordStart        = pDREC->m_recordStart;
+                    rRecordIndex.m_blockCount         = pDREC->m_blockCount;
+                    rRecordIndex.m_crc32              = pDREC->m_crc32;
+                    rRecordIndex.m_pBlockManager      = NULL;
                     //flags
-                    pIREC->m_flags              = eRIF_None;
+                    rRecordIndex.m_flags              = eRIF_None;
                     //set internal index
-                    pIREC->m_IB_blockNumber     = i;
-                    pIREC->m_IB_recordOffset    = position;
-                    m_pRecordIndexMap->insert(RecordIndexMap::value_type(pDREC->m_key, pIREC));
+                    rRecordIndex.m_IB_blockNumber     = i;
+                    rRecordIndex.m_IB_recordOffset    = position;
+                    m_pRecordIndexMap->insert(RecordIndexMap::value_type(pDREC->m_key, rRecordIndex));
                     
                     //create tmp freespace for calculating freespace list
                     m_pIndexDef->push_back(IndexDef(pDREC->m_key, pDREC->m_recordStart, pDREC->m_blockCount * BLOCK_SIZE));
@@ -147,7 +144,7 @@ bool IndexBlock::Init(const std::string &rIndexFilePath,
         std::unique_ptr<uint8[]> pData = std::unique_ptr<uint8[]>(new uint8[fileSize]);
         if(pData == NULL)
         {
-            Log.Error(__FUNCTION__, "Cannot allocate memory for index bloxk file.");
+            Log.Error(__FUNCTION__, "Cannot allocate memory for index block file.");
             return false;
         }
 		m_blockCount = static_cast<uint32>(fileSize / INDEX_BLOCK_SIZE);
@@ -190,7 +187,7 @@ bool IndexBlock::Init(const std::string &rIndexFilePath,
             freeSpaceLen = itr->m_dataPosition - freeSpaceStart;
             if(freeSpaceLen > 0)
             {
-                m_rStorage.AddFreeSpace(freeSpaceStart, freeSpaceLen);
+                m_rStorage.m_pDiskWriter->AddFreeSpace(freeSpaceStart, freeSpaceLen);
             }
             else if(freeSpaceLen < 0)
             {
@@ -206,7 +203,7 @@ bool IndexBlock::Init(const std::string &rIndexFilePath,
     //add last piece of freespace
     if(dataFileSizeTmp != 0)
     {
-        m_rStorage.AddFreeSpace(dataFileSize - dataFileSizeTmp, dataFileSizeTmp);
+        m_rStorage.m_pDiskWriter->AddFreeSpace(dataFileSize - dataFileSizeTmp, dataFileSizeTmp);
     }
     
     return true;
@@ -224,21 +221,21 @@ void IndexBlock::WriteRecordIndexToDisk(const HANDLE &hFile, RecordIndexMap::acc
     //fill disk record
     DREC rDiskRecord;
     rDiskRecord.m_key           = rWriteAccesor->first;
-    rDiskRecord.m_recordStart   = rWriteAccesor->second->m_recordStart;
-    rDiskRecord.m_crc32         = rWriteAccesor->second->m_crc32;
-    rDiskRecord.m_blockCount    = rWriteAccesor->second->m_blockCount;
+    rDiskRecord.m_recordStart   = rWriteAccesor->second.m_recordStart;
+    rDiskRecord.m_crc32         = rWriteAccesor->second.m_crc32;
+    rDiskRecord.m_blockCount    = rWriteAccesor->second.m_blockCount;
     
     //x is existing rewrite
-    if(rWriteAccesor->second->m_IB_recordOffset != -1)
+    if(rWriteAccesor->second.m_IB_recordOffset != -1)
     {
         //calc block position on disk
-        diskPosition = (INDEX_BLOCK_SIZE * rWriteAccesor->second->m_IB_blockNumber);
+        diskPosition = (INDEX_BLOCK_SIZE * rWriteAccesor->second.m_IB_blockNumber);
         
         //get disk block
-        pDiskBlock = GetCachedDiskBlock(hFile, diskPosition, rWriteAccesor->second->m_IB_blockNumber);
+        pDiskBlock = GetCachedDiskBlock(hFile, diskPosition, rWriteAccesor->second.m_IB_blockNumber);
         
         //update record
-        memcpy(pDiskBlock + rWriteAccesor->second->m_IB_recordOffset, &rDiskRecord, sizeof(DREC));
+        memcpy(pDiskBlock + rWriteAccesor->second.m_IB_recordOffset, &rDiskRecord, sizeof(DREC));
         
         //update on disk
         IO::fseek(hFile, diskPosition, IO::IO_SEEK_SET);
@@ -264,8 +261,8 @@ void IndexBlock::WriteRecordIndexToDisk(const HANDLE &hFile, RecordIndexMap::acc
             memcpy(pDiskBlock, &rDiskRecord, sizeof(DREC));
             
             //set index
-            rWriteAccesor->second->m_IB_blockNumber = m_blockCount;
-            rWriteAccesor->second->m_IB_recordOffset = 0;
+            rWriteAccesor->second.m_IB_blockNumber = m_blockCount;
+            rWriteAccesor->second.m_IB_recordOffset = 0;
             
             //add freeblock
             m_freeBlocks.insert(m_blockCount);
@@ -309,8 +306,8 @@ void IndexBlock::WriteRecordIndexToDisk(const HANDLE &hFile, RecordIndexMap::acc
                 memcpy(pDREC, &rDiskRecord, sizeof(DREC));
                 
                 //set index
-                rWriteAccesor->second->m_IB_blockNumber = freeBlock;
-                rWriteAccesor->second->m_IB_recordOffset = recordOffset;
+                rWriteAccesor->second.m_IB_blockNumber = freeBlock;
+                rWriteAccesor->second.m_IB_recordOffset = recordOffset;
                 
                 //update ICIDF
                 pICIDF->m_amoutOfFreeSpace -= sizeof(DREC);

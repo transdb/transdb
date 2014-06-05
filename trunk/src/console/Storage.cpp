@@ -66,7 +66,7 @@ bool Storage::Init()
     int64 indexFileSize = 0;
     if(m_pDataIndexDiskWriter->Init(m_rIndexPath, m_dataFileSize, &indexFileSize) == false)
     {
-        //something failed -> Init logger error
+        //something failed -> Init log error
         return false;
     }
     Log.Notice(__FUNCTION__, "Index file: %s - loaded. Size: " SI64FMTD " bytes", m_rIndexPath.c_str(), indexFileSize);
@@ -76,11 +76,6 @@ bool Storage::Init()
 	{
         Crc32Check(rDataFileHandle);
 	}
-    
-    //start memory watcher thread
-    Log.Notice(__FUNCTION__, "Starting MemoryWatcher...");
-    ThreadPool.ExecuteTask(new MemoryWatcher(*this));
-    Log.Notice(__FUNCTION__, "Starting MemoryWatcher... done");
     
     return true;
 }
@@ -134,7 +129,7 @@ void Storage::Crc32Check(const HANDLE &rDataFileHandle)
     rInfo.reserve(dataIndexesSize);
     for(RecordIndexMap::const_iterator itr = m_dataIndexes.begin();itr != m_dataIndexes.end();++itr)
     {
-        rInfo.push_back(WriteInfo(itr->first, itr->second->m_recordStart));
+        rInfo.push_back(WriteInfo(itr->first, itr->second.m_recordStart));
     }
     
     //sort by record pos
@@ -156,17 +151,18 @@ void Storage::Crc32Check(const HANDLE &rDataFileHandle)
     
     //clean memory
     m_memoryUsed = 0;
+    
     //dealloc block managers
     for(WriteInfoVec::iterator itr = rInfo.begin();itr != rInfo.end();++itr)
     {
         if(m_dataIndexes.find(rWriteAccessor, itr->m_key))
         {
-            if(rWriteAccessor->second->m_pBlockManager != NULL)
+            if(rWriteAccessor->second.m_pBlockManager != NULL)
             {
                 //clean memory
-                std::lock_guard<std::mutex> rBM_Guard(m_rBlockManagerMemPoolLock);
-                m_rBlockManagerMemPool.deallocate(rWriteAccessor->second->m_pBlockManager);
-                rWriteAccessor->second->m_pBlockManager = NULL;
+                rWriteAccessor->second.m_pBlockManager->~BlockManager();
+                scalable_free((void*)rWriteAccessor->second.m_pBlockManager);
+                rWriteAccessor->second.m_pBlockManager = NULL;
             }
         }
     }
@@ -186,7 +182,7 @@ void Storage::ReadData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const
         CheckBlockManager(rDataFileHandle, x, rWriteAccessor);
         
         //read data
-        rWriteAccessor->second->m_pBlockManager->ReadRecord(y, rData);
+        rWriteAccessor->second.m_pBlockManager->ReadRecord(y, rData);
     }
     
     Log.Debug(__FUNCTION__, "Read data [x:" I64FMTD ",y:" I64FMTD "] size: " I64FMTD, x, y, rData.size());
@@ -204,7 +200,7 @@ void Storage::ReadData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const
         CheckBlockManager(rDataFileHandle, x, rWriteAccessor);
         
         //read data
-        rWriteAccessor->second->m_pBlockManager->ReadRecords(rData);
+        rWriteAccessor->second.m_pBlockManager->ReadRecords(rData);
     }
     
     Log.Debug(__FUNCTION__, "Read data [x:" I64FMTD ",y:" I64FMTD "] size: " I64FMTD, x, 0, rData.size());
@@ -224,32 +220,24 @@ uint32 Storage::WriteData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, co
     //try insert - returns false if record is existing
     if(m_dataIndexes.insert(rWriteAccesor, x))
     {
-        //allocate recordIndex struct
-        {
-            std::lock_guard<std::mutex> rRI_Guard(m_rRecordIndexMemPoolLock);
-            rWriteAccesor->second = m_rRecordIndexMemPool.allocate();
-        }
-        
         //allocate blockmanager
         //create block manager + add new block for write + update num of blocks
-        {
-            std::lock_guard<std::mutex> rBM_Guard(m_rBlockManagerMemPoolLock);
-            rWriteAccesor->second->m_pBlockManager = m_rBlockManagerMemPool.allocate(*this);
-            rWriteAccesor->second->m_blockCount = rWriteAccesor->second->m_pBlockManager->numOfBlocks();
-        }
+        void *pBlockManagerMem = scalable_malloc(sizeof(BlockManager));
+        rWriteAccesor->second.m_pBlockManager = new(pBlockManagerMem) BlockManager();
+        rWriteAccesor->second.m_blockCount = rWriteAccesor->second.m_pBlockManager->numOfBlocks();
         
         //init index block
-        rWriteAccesor->second->m_IB_blockNumber = 0;
-        rWriteAccesor->second->m_IB_recordOffset = -1;
+        rWriteAccesor->second.m_IB_blockNumber = 0;
+        rWriteAccesor->second.m_IB_recordOffset = -1;
         //set flags to eRIF_RealocateBlocks
-        rWriteAccesor->second->m_flags = eRIF_RelocateBlocks | eRIF_Dirty;
+        rWriteAccesor->second.m_flags = eRIF_RelocateBlocks | eRIF_Dirty;
         //write data to block
-        status = rWriteAccesor->second->m_pBlockManager->WriteRecord(y, pRecord, recordSize);
+        status = rWriteAccesor->second.m_pBlockManager->WriteRecord(y, pRecord, recordSize);
         //set record start to -1 (data are not written on disk)
-        rWriteAccesor->second->m_recordStart = -1;
+        rWriteAccesor->second.m_recordStart = -1;
             
         //inc memory use
-        m_memoryUsed += ((rWriteAccesor->second->m_pBlockManager->numOfBlocks() * BLOCK_SIZE) + sizeof(BlockManager));
+        m_memoryUsed += ((rWriteAccesor->second.m_pBlockManager->numOfBlocks() * BLOCK_SIZE) + sizeof(BlockManager));
                
         //queue write to disk
         m_pDiskWriter->Queue(rWriteAccesor);
@@ -260,7 +248,7 @@ uint32 Storage::WriteData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, co
         //check manager - load from disk if not in memory
         CheckBlockManager(rDataFileHandle, x, rWriteAccesor);
         //
-        status = rWriteAccesor->second->m_pBlockManager->WriteRecord(y, pRecord, recordSize);
+        status = rWriteAccesor->second.m_pBlockManager->WriteRecord(y, pRecord, recordSize);
         if(status == eBMS_FailRecordTooBig)
         {
             Log.Warning(__FUNCTION__, "Record [x:" I64FMTD ", y:" I64FMTD "] size: %u is too big, max record size is: %u.", x, y, recordSize, MAX_RECORD_SIZE);
@@ -277,14 +265,14 @@ uint32 Storage::WriteData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, co
         }
         else if(status & eBMS_ReallocatedBlocks)
         {
-            if(!(rWriteAccesor->second->m_flags & eRIF_RelocateBlocks))
+            if(!(rWriteAccesor->second.m_flags & eRIF_RelocateBlocks))
             {
                 //set flag reallocate blocks so diskwrite must find new place for data
-                rWriteAccesor->second->m_flags |= eRIF_RelocateBlocks;
+                rWriteAccesor->second.m_flags |= eRIF_RelocateBlocks;
             }
             
             //set dirty
-            rWriteAccesor->second->m_flags |= eRIF_Dirty;
+            rWriteAccesor->second.m_flags |= eRIF_Dirty;
             
             //inc memory use
             m_memoryUsed += BLOCK_SIZE;
@@ -313,7 +301,7 @@ void Storage::DeleteData(LRUCache &rLRUCache, const uint64 &x)
     if(m_dataIndexes.find(rWriteAccessor, x))
     {
 		//save values
-		recordSize = rWriteAccessor->second->m_blockCount * BLOCK_SIZE;
+		recordSize = rWriteAccessor->second.m_blockCount * BLOCK_SIZE;
 
         //delete from LRU
         rLRUCache.remove(x);
@@ -322,23 +310,16 @@ void Storage::DeleteData(LRUCache &rLRUCache, const uint64 &x)
         m_pDiskWriter->QueueIndexDeletetion(rWriteAccessor);
         
         //release memory
-        if(rWriteAccessor->second->m_pBlockManager)
+        if(rWriteAccessor->second.m_pBlockManager)
         {
-            std::lock_guard<std::mutex> rBM_Guard(m_rBlockManagerMemPoolLock);
-            m_rBlockManagerMemPool.deallocate(rWriteAccessor->second->m_pBlockManager);
-            rWriteAccessor->second->m_pBlockManager = NULL;
+            rWriteAccessor->second.m_pBlockManager->~BlockManager();
+            scalable_free((void*)rWriteAccessor->second.m_pBlockManager);
+            rWriteAccessor->second.m_pBlockManager = NULL;
             //update memory counter
             m_memoryUsed -= (recordSize + sizeof(BlockManager));
         }
         
-        //deallocate recordIndex struct
-        {
-            std::lock_guard<std::mutex> rRI_Guard(m_rRecordIndexMemPoolLock);
-            m_rRecordIndexMemPool.deallocate(rWriteAccessor->second);
-            rWriteAccessor->second = NULL;
-        }
-        
-        //
+        //delete from main map
         m_dataIndexes.erase(rWriteAccessor);
 
 		//debug log
@@ -361,7 +342,7 @@ void Storage::DeleteData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, con
         CheckBlockManager(rDataFileHandle, x, rWriteAccessor);
         
         //delete
-        rWriteAccessor->second->m_pBlockManager->DeleteRecord(y);
+        rWriteAccessor->second.m_pBlockManager->DeleteRecord(y);
         
         //queue write to disk
         m_pDiskWriter->Queue(rWriteAccessor);
@@ -369,15 +350,6 @@ void Storage::DeleteData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, con
 		//debug log
 		Log.Debug(__FUNCTION__, "Deleted data [x:" I64FMTD ", y:" I64FMTD "]", x, y);
     }
-}
-
-void Storage::GetAllX(uint8 **pX, uint64 *xSize)
-{
-    //CANNOT BE IMPLEMENTED
-    //iterators are not permited
-    
-    *pX = NULL;
-    *xSize = 0;
 }
 
 void Storage::GetAllY(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x, ByteBuffer &rY)
@@ -392,7 +364,7 @@ void Storage::GetAllY(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const 
         CheckBlockManager(rDataFileHandle, x, rWriteAccessor);
         
         //read data
-        rWriteAccessor->second->m_pBlockManager->GetAllRecordKeys(rY);
+        rWriteAccessor->second.m_pBlockManager->GetAllRecordKeys(rY);
     }
     
     Log.Debug(__FUNCTION__, "Read data [x:" I64FMTD ",y:" I64FMTD "] size: " I64FMTD, x, 0, rY.size());
@@ -420,21 +392,21 @@ void Storage::DefragmentDataInternal(RecordIndexMap::accessor &rWriteAccessor)
     int64 memoryUsageAfterDefrag;
     
     //save memory usage
-    memoryUsageBeforeDefrag = ((rWriteAccessor->second->m_pBlockManager->numOfBlocks() * BLOCK_SIZE) + sizeof(BlockManager));
+    memoryUsageBeforeDefrag = ((rWriteAccessor->second.m_pBlockManager->numOfBlocks() * BLOCK_SIZE) + sizeof(BlockManager));
     
     //set flag reallocate blocks so diskwrite must find new place fro data
-    rWriteAccessor->second->m_flags |= eRIF_RelocateBlocks;
+    rWriteAccessor->second.m_flags |= eRIF_RelocateBlocks;
     
     //DEFRAGMENT
     {
-        rWriteAccessor->second->m_pBlockManager->DefragmentData();
+        rWriteAccessor->second.m_pBlockManager->DefragmentData();
     }
     
     //calc new memory usage
-    memoryUsageAfterDefrag = ((rWriteAccessor->second->m_pBlockManager->numOfBlocks() * BLOCK_SIZE) + sizeof(BlockManager));
+    memoryUsageAfterDefrag = ((rWriteAccessor->second.m_pBlockManager->numOfBlocks() * BLOCK_SIZE) + sizeof(BlockManager));
     
     //set dirty
-    rWriteAccessor->second->m_flags |= eRIF_Dirty;
+    rWriteAccessor->second.m_flags |= eRIF_Dirty;
     
     //update memory use
     if(memoryUsageBeforeDefrag > memoryUsageAfterDefrag)
@@ -451,38 +423,38 @@ void Storage::DefragmentDataInternal(RecordIndexMap::accessor &rWriteAccessor)
 
 void Storage::GetFreeSpaceDump(ByteBuffer &rBuff, const uint32 &dumpFlags)
 {
-    //lock
-    std::lock_guard<std::mutex> rGuard(m_rFreeSpaceLock);
-    
-    //prealloc buffer
-    if(dumpFlags == eSFSDF_FULL)
-    {
-        size_t reserveSize = 0;
-        for(FreeSpaceBlockMap::iterator itr = m_rFreeSpace.begin();itr != m_rFreeSpace.end();++itr)
-        {
-            reserveSize += sizeof(int64);
-            reserveSize += itr->second.size() * sizeof(int64);
-        }
-        rBuff.reserve(reserveSize + sizeof(uint64));
-    }
-    
+//    //lock
+//    std::lock_guard<std::mutex> rGuard(m_rFreeSpaceLock);
+//    
+//    //prealloc buffer
+//    if(dumpFlags == eSFSDF_FULL)
+//    {
+//        size_t reserveSize = 0;
+//        for(FreeSpaceBlockMap::iterator itr = m_rFreeSpace.begin();itr != m_rFreeSpace.end();++itr)
+//        {
+//            reserveSize += sizeof(int64);
+//            reserveSize += itr->second.size() * sizeof(int64);
+//        }
+//        rBuff.reserve(reserveSize + sizeof(uint64));
+//    }
+//    
     //data file size
     rBuff << uint64(m_dataFileSize);
     //freeSpace size
-    rBuff << uint64(m_rFreeSpace.size());
-    //
-    for(FreeSpaceBlockMap::iterator itr = m_rFreeSpace.begin();itr != m_rFreeSpace.end();++itr)
-    {
-        rBuff << uint64(itr->first);
-        rBuff << uint64(itr->second.size());
-        if(dumpFlags == eSFSDF_FULL)
-        {
-            for(FreeSpaceOffsets::iterator itr2 = itr->second.begin();itr2 != itr->second.end();++itr2)
-            {
-                rBuff << uint64(*itr2);
-            }
-        }
-    }
+    rBuff << uint64(0);
+//    //
+//    for(FreeSpaceBlockMap::iterator itr = m_rFreeSpace.begin();itr != m_rFreeSpace.end();++itr)
+//    {
+//        rBuff << uint64(itr->first);
+//        rBuff << uint64(itr->second.size());
+//        if(dumpFlags == eSFSDF_FULL)
+//        {
+//            for(FreeSpaceOffsets::iterator itr2 = itr->second.begin();itr2 != itr->second.end();++itr2)
+//            {
+//                rBuff << uint64(*itr2);
+//            }
+//        }
+//    }
 }
 
 void Storage::CheckMemory(LRUCache &rLRUCache)
@@ -499,22 +471,22 @@ void Storage::CheckMemory(LRUCache &rLRUCache)
         if(m_dataIndexes.find(rWriteAccessor, xToDelete))
         {
             //check if record does not wait in disk thread
-			if(rWriteAccessor->second->m_flags & eRIF_InDiskWriteQueue)
+			if(rWriteAccessor->second.m_flags & eRIF_InDiskWriteQueue)
                 return;
             
             //can be NULL
-            if(rWriteAccessor->second->m_pBlockManager)
+            if(rWriteAccessor->second.m_pBlockManager)
             {
                 //log
                 Log.Debug(__FUNCTION__, "Memory usage: " I64FMTD ", memory limit: " I64FMTD ", removing x: " I64FMTD " from memory.", m_memoryUsed.load(), g_MemoryLimit, xToDelete);
                 
                 //update memory counter
-                m_memoryUsed -= ((rWriteAccessor->second->m_pBlockManager->numOfBlocks() * BLOCK_SIZE) + sizeof(BlockManager));
+                m_memoryUsed -= ((rWriteAccessor->second.m_pBlockManager->numOfBlocks() * BLOCK_SIZE) + sizeof(BlockManager));
                 
                 //clean memory
-                std::lock_guard<std::mutex> rBM_Guard(m_rBlockManagerMemPoolLock);
-                m_rBlockManagerMemPool.deallocate(rWriteAccessor->second->m_pBlockManager);
-                rWriteAccessor->second->m_pBlockManager = NULL;
+                rWriteAccessor->second.m_pBlockManager->~BlockManager();
+                scalable_free((void*)rWriteAccessor->second.m_pBlockManager);
+                rWriteAccessor->second.m_pBlockManager = NULL;
             }
         }
         
@@ -528,7 +500,7 @@ void Storage::CheckMemory(LRUCache &rLRUCache)
 
 bool Storage::CheckBlockManager(const HANDLE &rDataFileHandle, const uint64 &x, RecordIndexMap::accessor &rWriteAccessor)
 {
-    if(rWriteAccessor->second->m_pBlockManager == NULL)
+    if(rWriteAccessor->second.m_pBlockManager == NULL)
     {
         uint16 i;
         Blocks rBlocks;
@@ -539,51 +511,45 @@ bool Storage::CheckBlockManager(const HANDLE &rDataFileHandle, const uint64 &x, 
         uint32 crc32;
         
         //this cannot happen, else it causes a crash
-        if(rWriteAccessor->second->m_flags & eRIF_RelocateBlocks)
+        if(rWriteAccessor->second.m_flags & eRIF_RelocateBlocks)
         {
             Log.Error(__FUNCTION__, "pRecordIndex->m_flags & eRIF_RelocateBlocks");
 			return false;
         }
         
-        //
+        //for stats
         startTime = GetTickCount64();
         
 		//preallocate
-        rBlocks.resize(rWriteAccessor->second->m_blockCount);
-        rDiskBlocks.resize(rWriteAccessor->second->m_blockCount * BLOCK_SIZE);
+        rBlocks.resize(rWriteAccessor->second.m_blockCount);
+        rDiskBlocks.resize(rWriteAccessor->second.m_blockCount * BLOCK_SIZE);
         
         //read all blocks in one IO
-        IO::fseek(rDataFileHandle, rWriteAccessor->second->m_recordStart, IO::IO_SEEK_SET);
+        IO::fseek(rDataFileHandle, rWriteAccessor->second.m_recordStart, IO::IO_SEEK_SET);
         IO::fread((void*)rDiskBlocks.contents(), rDiskBlocks.size(), rDataFileHandle);
         
         //copy to blocks allocated from memory pool
+        for(i = 0;i < rWriteAccessor->second.m_blockCount;++i)
         {
-            std::lock_guard<std::mutex> rBGuard(m_rBlockMemPoolLock);
-            //split blocks
-            for(i = 0;i < rWriteAccessor->second->m_blockCount;++i)
-            {
-                pBlock = (uint8*)m_rBlockMemPool.allocate();
-                rDiskBlocks.read(pBlock, BLOCK_SIZE);
-                rBlocks[i] = pBlock;
-            }
+            pBlock = (uint8*)scalable_malloc(BLOCK_SIZE);
+            rDiskBlocks.read(pBlock, BLOCK_SIZE);
+            rBlocks[i] = pBlock;
         }
         
 		//create new blockmanager
-        {
-            std::lock_guard<std::mutex> rBM_Guard(m_rBlockManagerMemPoolLock);
-            rWriteAccessor->second->m_pBlockManager = m_rBlockManagerMemPool.allocate(*this, x, rBlocks);
-        }
+        void *pBlockManagerMem = scalable_malloc(sizeof(BlockManager));
+        rWriteAccessor->second.m_pBlockManager = new(pBlockManagerMem) BlockManager(x, rBlocks);
         
         //compute crc32
-        crc32 = rWriteAccessor->second->m_pBlockManager->GetBlocksCrc32();
+        crc32 = rWriteAccessor->second.m_pBlockManager->GetBlocksCrc32();
         //check crc32
-        if(rWriteAccessor->second->m_crc32 != crc32)
+        if(rWriteAccessor->second.m_crc32 != crc32)
         {
-            Log.Error(__FUNCTION__, "CRC32 error - x: " I64FMTD " saved crc: %u loaded crc: %u", x, rWriteAccessor->second->m_crc32, crc32);
+            Log.Error(__FUNCTION__, "CRC32 error - x: " I64FMTD " saved crc: %u loaded crc: %u", x, rWriteAccessor->second.m_crc32, crc32);
         }
         
         //inc memory use
-        m_memoryUsed += ((rWriteAccessor->second->m_pBlockManager->numOfBlocks() * BLOCK_SIZE) + sizeof(BlockManager));
+        m_memoryUsed += ((rWriteAccessor->second.m_pBlockManager->numOfBlocks() * BLOCK_SIZE) + sizeof(BlockManager));
         
         //stats
         ++g_NumOfReadsFromDisk;
@@ -647,99 +613,6 @@ bool Storage::run()
     }
     
     return false;
-}
-
-void Storage::AddFreeSpace(const int64 &pos, const int64 &lenght)
-{
-    if(pos < 0 || lenght <= 0)
-    {
-        Log.Warning(__FUNCTION__, "pos < 0 || lenght <= 0");
-        return;
-    }
-    
-    //lock
-    std::lock_guard<std::mutex> rGuard(m_rFreeSpaceLock);
-    //
-    FreeSpaceBlockMap::iterator itr = m_rFreeSpace.find(lenght);
-    if(itr != m_rFreeSpace.end())
-    {
-        itr->second.push_back(pos);
-    }
-    else
-    {
-        FreeSpaceOffsets rFreeSpaceOffsets;
-        rFreeSpaceOffsets.push_back(pos);
-        m_rFreeSpace[lenght] = std::move(rFreeSpaceOffsets);
-    }
-}
-
-struct PredGreater
-{
-    explicit PredGreater(const int64 &x) : m_x(x) {}
-    INLINE bool operator()(const FreeSpaceBlockMap::value_type & p) { return (m_x < p.first); }
-private:
-    int64 m_x;
-};
-
-int64 Storage::GetFreeSpacePos(const int64 &lenght)
-{
-    int64 returnPos = -1;
-    int64 newSize;
-    int64 newPos;
-    
-    //lock
-    std::lock_guard<std::mutex> rGuard(m_rFreeSpaceLock);
-    //
-    FreeSpaceBlockMap::iterator itr = m_rFreeSpace.find(lenght);
-    if(itr != m_rFreeSpace.end())
-    {
-        returnPos = itr->second.back();
-        itr->second.pop_back();
-        //erase from map if empty
-        if(itr->second.empty())
-        {
-            m_rFreeSpace.erase(itr);
-        }
-    }
-    else
-    {
-        FreeSpaceBlockMap::iterator itr2 = std::find_if(m_rFreeSpace.begin(), m_rFreeSpace.end(), PredGreater(lenght));
-        if(itr2 != m_rFreeSpace.end())
-        {
-            //get 1st position and remove from list
-            returnPos = itr2->second.back();
-            itr2->second.pop_back();
-            //
-            newSize = itr2->first - lenght;
-            newPos = returnPos + lenght;
-            
-            //update or add new position
-            itr = m_rFreeSpace.find(newSize);
-            if(itr != m_rFreeSpace.end())
-            {
-                itr->second.push_back(newPos);
-            }
-            else
-            {
-                FreeSpaceOffsets rFreeSpaceOffsets;
-                rFreeSpaceOffsets.push_back(newPos);
-                m_rFreeSpace[newSize] = std::move(rFreeSpaceOffsets);
-            }
-            
-            //erase from map if empty
-            if(itr2->second.empty())
-            {
-                m_rFreeSpace.erase(itr2);
-            }
-        }
-    }
-    
-    return returnPos;
-}
-
-void Storage::DefragmentFreeSpace()
-{    
-    //TODO: DefragmentFreeSpace
 }
 
 void Storage::GetStats(ByteBuffer &rBuff)

@@ -10,6 +10,7 @@
 #define TransDB_BlockManager_h
 
 class Storage;
+class ClientSocketWorkerTask;
 
 typedef enum BlockManagerStatus
 {
@@ -30,8 +31,8 @@ class BlockManager
     typedef std::map<uint64, uint16>    BlocksIndex;
     
 public:
-    explicit BlockManager(const Storage &pStorage);
-    explicit BlockManager(const Storage &pStorage, const uint64 &x, const Blocks &rBlocks);
+    explicit BlockManager();
+    explicit BlockManager(const uint64 &x, const Blocks &rBlocks);
     ~BlockManager();
     
     uint32 WriteRecord(const uint64 &recordkey, const uint8 *pRecord, const uint16 &recordSize);
@@ -57,7 +58,6 @@ private:
     
     //declarations
     BlocksIndex     m_rBlockIndex;
-    Storage         &m_rStorage;
     Blocks          m_rBlocks;
 };
 

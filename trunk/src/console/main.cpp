@@ -290,6 +290,14 @@ int main(int argc, const char * argv[])
     //load value from config
     LoadConfig();
     
+    //init intel tbb memory allocator soft limit
+    intptr_t softHeapLimit = static_cast<intptr_t>((static_cast<float>(g_MemoryLimit) * 1.10f));
+    int ret = scalable_allocation_mode(TBBMALLOC_SET_SOFT_HEAP_LIMIT, softHeapLimit);
+    if(ret != TBBMALLOC_OK)
+    {
+        Log.Warning(__FUNCTION__, "scalable_allocation_mode failed with return value: %d", ret);
+    }
+    
     //start lib
     StartSharedLib();
        

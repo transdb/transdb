@@ -40,12 +40,17 @@ struct WriteInfo
 class DiskWriter
 {
     friend class Storage;
+    friend class IndexBlock;
     
 public:
     typedef HashMap<uint64, WriteInfo>                  DirtyXQueue;
     typedef Vector<WriteInfo, uint64>                   DirtyXProcess;
     typedef HashMap<uint64, RecordIndex>                RIDelQueue;
+    //freespace
+    typedef Vector<int64>                               FreeSpaceOffsets;
+    typedef std::map<int64, FreeSpaceOffsets>           FreeSpaceBlockMap;
     
+    //destructor
     ~DiskWriter();
     
     void QueueIndexDeletetion(RecordIndexMap::accessor &rWriteAccesor);    
@@ -91,12 +96,26 @@ private:
     void WriteDataWithoutRelocateFlag(const HANDLE &hDataFile, RecordIndexMap::accessor &rWriteAccessor);
     bool WriteDataWithRelocateFlag(const HANDLE &hDataFile, RecordIndexMap::accessor &rWriteAccessor);
     
+    //freespace functions
+	void AddFreeSpace(const int64 &pos, const int64 &lenght);
+	int64 GetFreeSpacePos(const int64 &size);
+	void DefragmentFreeSpace();
+    
     //declarations
     Storage				&m_rStorage;
+    
+    //freespace map
+    FreeSpaceBlockMap   m_rFreeSpace;
+    
+    //queue for changes in data file
     DirtyXQueue         *m_pQueue;
-    RIDelQueue          *m_pRIDelQueue;
     std::mutex          m_rQueueLock;
+    
+    //queue for delete in index file
+    RIDelQueue          *m_pRIDelQueue;
     std::mutex          m_rRIDelQueueLock;
+    
+    //stats
     std::atomic<uint64> m_sumDiskWriteTime;
     std::atomic<uint64> m_lastNumOfItemsInProcess;
     std::atomic<uint64> m_itemsToProcessSize;

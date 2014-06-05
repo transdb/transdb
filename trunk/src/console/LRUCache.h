@@ -34,12 +34,12 @@ public:
     bool remove(const uint64 &x);
     void recycle();
 
-	INLINE uint64 size()
+	INLINE uint64 size() const
     {
         return m_pMap->size();
     }
     
-    INLINE size_t cacheSize()
+    INLINE size_t cacheSize() const
     {
         return m_rCRecCache.GetSize();
     }

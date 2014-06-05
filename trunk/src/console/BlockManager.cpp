@@ -8,13 +8,13 @@
 
 #include "StdAfx.h"
 
-BlockManager::BlockManager(const Storage &pStorage) : m_rStorage(const_cast<Storage&>(pStorage))
+BlockManager::BlockManager()
 {
     //create initial block
     ReallocBlocks();
 }
 
-BlockManager::BlockManager(const Storage &pStorage, const uint64 &x, const Blocks &rBlocks) : m_rStorage(const_cast<Storage&>(pStorage)), m_rBlocks(std::move(rBlocks))
+BlockManager::BlockManager(const uint64 &x, const Blocks &rBlocks) : m_rBlocks(std::move(rBlocks))
 {
     //build index map
     uint8 *pBlock;
@@ -36,7 +36,7 @@ BlockManager::BlockManager(const Storage &pStorage, const uint64 &x, const Block
             if(position < endOfRDFArea)
                 break;
             
-            pRDF = (RDF*)(pBlock+position);
+            pRDF = (RDF*)(pBlock + position);
             m_rBlockIndex.insert(BlocksIndex::value_type(pRDF->m_key, i));
             position -= sizeof(RDF);
         }
@@ -51,13 +51,11 @@ BlockManager::~BlockManager()
 void BlockManager::DeallocBlocks()
 {
     //dealloc blocks
-    BlockSize_T *pBlock;
-    
-    std::lock_guard<std::mutex> rBGuard(m_rStorage.m_rBlockMemPoolLock);
+    uint8 *pBlock;
     for(uint16 i = 0;i < m_rBlocks.size();++i)
     {
-        pBlock = (BlockSize_T*)GetBlock(i);
-        m_rStorage.m_rBlockMemPool.deallocate(pBlock);
+        pBlock = GetBlock(i);
+        scalable_free((void*)pBlock);
     }
     m_rBlocks.clear();
     
@@ -70,10 +68,7 @@ void BlockManager::ReallocBlocks()
     uint8 *pNewBlock;
     
     //get new block
-    {
-        std::lock_guard<std::mutex> rBGuard(m_rStorage.m_rBlockMemPoolLock);        
-        pNewBlock = (uint8*)m_rStorage.m_rBlockMemPool.allocate();
-    }
+    pNewBlock = (uint8*)scalable_malloc(BLOCK_SIZE);
     
     //init new block
     Block::InitBlock(pNewBlock);

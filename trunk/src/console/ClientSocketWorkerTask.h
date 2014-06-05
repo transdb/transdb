@@ -14,7 +14,9 @@ class ClientSocketTaskData;
 class ClientSocketWorker;
 
 class ClientSocketWorkerTask : public ThreadContext
-{
+{    
+    friend class Storage;
+    
 public:
     explicit ClientSocketWorkerTask(ClientSocketWorker &rClientSocketWorker, Storage &rStorage, bool readerTask);
     ~ClientSocketWorkerTask();
@@ -41,11 +43,11 @@ private:
 	DISALLOW_COPY_AND_ASSIGN(ClientSocketWorkerTask);
     
     //declarations
-    ClientSocketWorker  &m_rClientSocketWorker;
-    Storage             &m_rStorage;
-    LRUCache            *m_pLRUCache;
-    HANDLE              m_rDataFileHandle;
-    bool                m_readerThread;
+    ClientSocketWorker          &m_rClientSocketWorker;
+    Storage                     &m_rStorage;
+    LRUCache                    *m_pLRUCache;
+    HANDLE                      m_rDataFileHandle;
+    bool                        m_readerThread;
 };
 
 #endif /* defined(__TransDB__ClientSocketWorkerTask__) */

@@ -45,7 +45,7 @@ public:
         uint64 random;
 
         printf("%lu\n", time(NULL));
-        for(uint64 x = 0;x < 1000000;++x)
+        for(uint64 x = 0;x < 10000;++x)
         {
 //            random = 1;
 //            random = rand() % 1000;

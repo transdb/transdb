@@ -32,13 +32,13 @@ void DiskWriter::Queue(RecordIndexMap::accessor &rWriteAccesor)
     std::lock_guard<std::mutex> rQGuard(m_rQueueLock);
 
 	//check if item exists, if exists replace
-	WriteInfo rWriteInfo(rWriteAccesor->first, rWriteAccesor->second->m_recordStart);
+	WriteInfo rWriteInfo(rWriteAccesor->first, rWriteAccesor->second.m_recordStart);
     
     //add to queue
     m_pQueue->put(rWriteAccesor->first, rWriteInfo);
 
 	//set InDiskWriteQueue flag
-	rWriteAccesor->second->m_flags |= eRIF_InDiskWriteQueue;
+	rWriteAccesor->second.m_flags |= eRIF_InDiskWriteQueue;
 }
 
 void DiskWriter::QueueIndexDeletetion(RecordIndexMap::accessor &rWriteAccesor)
@@ -48,10 +48,10 @@ void DiskWriter::QueueIndexDeletetion(RecordIndexMap::accessor &rWriteAccesor)
     
     //create copy
     RecordIndex rRecordIndex;
-    rRecordIndex.m_recordStart = rWriteAccesor->second->m_recordStart;
-    rRecordIndex.m_blockCount = rWriteAccesor->second->m_blockCount;
-    rRecordIndex.m_IB_recordOffset = rWriteAccesor->second->m_IB_recordOffset;
-    rRecordIndex.m_IB_blockNumber = rWriteAccesor->second->m_IB_blockNumber;
+    rRecordIndex.m_recordStart = rWriteAccesor->second.m_recordStart;
+    rRecordIndex.m_blockCount = rWriteAccesor->second.m_blockCount;
+    rRecordIndex.m_IB_recordOffset = rWriteAccesor->second.m_IB_recordOffset;
+    rRecordIndex.m_IB_blockNumber = rWriteAccesor->second.m_IB_blockNumber;
     //add to queue
     m_pRIDelQueue->put(rWriteAccesor->first, rRecordIndex);
 }
@@ -85,16 +85,16 @@ void DiskWriter::WriteDataWithoutRelocateFlag(const HANDLE &hDataFile, RecordInd
     CIDF *pCIDF;
     int64 blockOffset;
     
-    for(uint16 i = 0;i < rWriteAccessor->second->m_pBlockManager->numOfBlocks();++i)
+    for(uint16 i = 0;i < rWriteAccessor->second.m_pBlockManager->numOfBlocks();++i)
     {
-        pBlock = rWriteAccessor->second->m_pBlockManager->GetBlock(i);
+        pBlock = rWriteAccessor->second.m_pBlockManager->GetBlock(i);
         pCIDF = GetCIDF(pBlock);
         if(pCIDF->m_flags & eBLF_Dirty)
         {
             //clear dirty flag
             pCIDF->m_flags &= ~eBLF_Dirty;
             //calc offset + write to disk
-            blockOffset = rWriteAccessor->second->m_recordStart + (i * BLOCK_SIZE);
+            blockOffset = rWriteAccessor->second.m_recordStart + (i * BLOCK_SIZE);
             IO::fseek(hDataFile, blockOffset, IO::IO_SEEK_SET);
             IO::fwrite(pBlock, BLOCK_SIZE, hDataFile);
         }
@@ -108,12 +108,12 @@ bool DiskWriter::WriteDataWithRelocateFlag(const HANDLE &hDataFile, RecordIndexM
     int64 blockOffset;
     uint8 *pBlock;
     
-    requestDiskSize = rWriteAccessor->second->m_pBlockManager->numOfBlocks() * BLOCK_SIZE;
-    freePos = m_rStorage.GetFreeSpacePos(requestDiskSize);
+    requestDiskSize = rWriteAccessor->second.m_pBlockManager->numOfBlocks() * BLOCK_SIZE;
+    freePos = GetFreeSpacePos(requestDiskSize);
     if(freePos == -1)
     {
         ReallocDataFile(hDataFile, requestDiskSize);
-        freePos = m_rStorage.GetFreeSpacePos(requestDiskSize);
+        freePos = GetFreeSpacePos(requestDiskSize);
         if(freePos == -1)
         {
             Log.Error(__FUNCTION__, "There is no freespace on disk drive. Record: " I64FMTD " is not written.", rWriteAccessor->first);
@@ -122,15 +122,15 @@ bool DiskWriter::WriteDataWithRelocateFlag(const HANDLE &hDataFile, RecordIndexM
     }
     
     //set new record position
-    rWriteAccessor->second->m_recordStart = freePos;
+    rWriteAccessor->second.m_recordStart = freePos;
     
     //clear dirty flag
-    rWriteAccessor->second->m_pBlockManager->ClearDirtyFlags();
+    rWriteAccessor->second.m_pBlockManager->ClearDirtyFlags();
     
     //write to disk
-    for(uint16 i = 0;i < rWriteAccessor->second->m_pBlockManager->numOfBlocks();++i)
+    for(uint16 i = 0;i < rWriteAccessor->second.m_pBlockManager->numOfBlocks();++i)
     {
-        pBlock = rWriteAccessor->second->m_pBlockManager->GetBlock(i);
+        pBlock = rWriteAccessor->second.m_pBlockManager->GetBlock(i);
         //calc offset + write to disk
         blockOffset = freePos + (i * BLOCK_SIZE);
         IO::fseek(hDataFile, blockOffset, IO::IO_SEEK_SET);
@@ -202,17 +202,17 @@ void DiskWriter::Process()
             //check if items exits and load all info about it
             if(m_rStorage.m_dataIndexes.find(rWriteAccessor, itr->m_key))
             {
-                if(!(rWriteAccessor->second->m_flags & eRIF_RelocateBlocks))
+                if(!(rWriteAccessor->second.m_flags & eRIF_RelocateBlocks))
                 {
                     WriteDataWithoutRelocateFlag(hDataFile, rWriteAccessor);
                 }
                 else
                 {
                     //queue adding freespace
-                    if(rWriteAccessor->second->m_recordStart != -1)
+                    if(rWriteAccessor->second.m_recordStart != -1)
                     {
-                        rFreeSpaceToAdd.push_back(FreeSpace(rWriteAccessor->second->m_recordStart,
-                                                            rWriteAccessor->second->m_blockCount * BLOCK_SIZE));
+                        rFreeSpaceToAdd.push_back(FreeSpace(rWriteAccessor->second.m_recordStart,
+                                                            rWriteAccessor->second.m_blockCount * BLOCK_SIZE));
                     }
                     //this funtion will set new m_recordStart
                     //this function will fail if there is no disk space
@@ -232,25 +232,24 @@ void DiskWriter::Process()
                 ++g_NumOfWritesToDisk;
                 
                 //update block count
-                rWriteAccessor->second->m_blockCount = rWriteAccessor->second->m_pBlockManager->numOfBlocks();
+                rWriteAccessor->second.m_blockCount = rWriteAccessor->second.m_pBlockManager->numOfBlocks();
                 
                 //update crc32
-                crc32 = rWriteAccessor->second->m_pBlockManager->GetBlocksCrc32();
-                if(rWriteAccessor->second->m_crc32 != crc32)
+                crc32 = rWriteAccessor->second.m_pBlockManager->GetBlocksCrc32();
+                if(rWriteAccessor->second.m_crc32 != crc32)
                 {
-                    rWriteAccessor->second->m_crc32 = crc32;
-                    rWriteAccessor->second->m_flags |= eRIF_Dirty;
+                    rWriteAccessor->second.m_crc32 = crc32;
+                    rWriteAccessor->second.m_flags |= eRIF_Dirty;
                 }
                 
                 //clear flag eRIF_RelocateBlocks
-                rWriteAccessor->second->m_flags &= ~eRIF_RelocateBlocks;
+                rWriteAccessor->second.m_flags &= ~eRIF_RelocateBlocks;
                 
                 //update index on disk if changed
-                if(rWriteAccessor->second->m_flags & eRIF_Dirty)
+                if(rWriteAccessor->second.m_flags & eRIF_Dirty)
                 {
-                    std::lock_guard<std::mutex> rGuard(m_rStorage.m_rDataIndexDiskWriterLock);
                     m_rStorage.m_pDataIndexDiskWriter->WriteRecordIndexToDisk(hIndexFile, rWriteAccessor);
-                    rWriteAccessor->second->m_flags &= ~eRIF_Dirty;
+                    rWriteAccessor->second.m_flags &= ~eRIF_Dirty;
                     
                     //!!!
                     //sync index file to disk
@@ -280,7 +279,7 @@ void DiskWriter::Process()
                 if(m_pQueue->containsKey(rWriteAccessor->first) == false)
                 {
                     //unset InDiskWriteQueue flag
-                    rWriteAccessor->second->m_flags &= ~eRIF_InDiskWriteQueue;
+                    rWriteAccessor->second.m_flags &= ~eRIF_InDiskWriteQueue;
                 }
             }
             
@@ -297,7 +296,7 @@ void DiskWriter::Process()
         {
             for(Vector<FreeSpace>::iterator itr = rFreeSpaceToAdd.begin();itr != rFreeSpaceToAdd.end();++itr)
             {
-                m_rStorage.AddFreeSpace(itr->m_pos, itr->m_lenght);
+                AddFreeSpace(itr->m_pos, itr->m_lenght);
             }
         }
         
@@ -339,8 +338,8 @@ void DiskWriter::ReallocDataFile(const HANDLE &hDataFile, const int64 &minSize, 
 	//add free space
     if(oAddFreeSpace)
     {
-        m_rStorage.AddFreeSpace(startFreeSpace, reallocSize);
-        m_rStorage.DefragmentFreeSpace();
+        AddFreeSpace(startFreeSpace, reallocSize);
+        DefragmentFreeSpace();
     }
     
     //update dataFileSize
@@ -393,12 +392,11 @@ void DiskWriter::ProcessIndexDeleteQueue()
         //add free space
         if(rRecordIndex.m_recordStart != -1)
         {
-            m_rStorage.AddFreeSpace(rRecordIndex.m_recordStart, rRecordIndex.m_blockCount * BLOCK_SIZE);
+            AddFreeSpace(rRecordIndex.m_recordStart, rRecordIndex.m_blockCount * BLOCK_SIZE);
         }
         
         //delete record index from disk
         {
-            std::lock_guard<std::mutex> rDI_Guard(m_rStorage.m_rDataIndexDiskWriterLock);
             m_rStorage.m_pDataIndexDiskWriter->EraseRecord(hIndexFile, rRecordIndex);
             
             //!!!
@@ -409,7 +407,92 @@ void DiskWriter::ProcessIndexDeleteQueue()
     }
 }
 
+void DiskWriter::AddFreeSpace(const int64 &pos, const int64 &lenght)
+{
+    if(pos < 0 || lenght <= 0)
+    {
+        Log.Warning(__FUNCTION__, "pos < 0 || lenght <= 0");
+        return;
+    }
+    
+    FreeSpaceBlockMap::iterator itr = m_rFreeSpace.find(lenght);
+    if(itr != m_rFreeSpace.end())
+    {
+        itr->second.push_back(pos);
+    }
+    else
+    {
+        FreeSpaceOffsets rFreeSpaceOffsets;
+        rFreeSpaceOffsets.push_back(pos);
+        m_rFreeSpace[lenght] = std::move(rFreeSpaceOffsets);
+    }
+}
 
+struct PredGreater
+{
+    explicit PredGreater(const int64 &x) : m_x(x) {}
+    INLINE bool operator()(const DiskWriter::FreeSpaceBlockMap::value_type & p) { return (m_x < p.first); }
+private:
+    int64 m_x;
+};
+
+int64 DiskWriter::GetFreeSpacePos(const int64 &lenght)
+{
+    int64 returnPos = -1;
+    int64 newSize;
+    int64 newPos;
+    
+    FreeSpaceBlockMap::iterator itr = m_rFreeSpace.find(lenght);
+    if(itr != m_rFreeSpace.end())
+    {
+        returnPos = itr->second.back();
+        itr->second.pop_back();
+        //erase from map if empty
+        if(itr->second.empty())
+        {
+            m_rFreeSpace.erase(itr);
+        }
+    }
+    else
+    {
+        FreeSpaceBlockMap::iterator itr2 = std::find_if(m_rFreeSpace.begin(), m_rFreeSpace.end(), PredGreater(lenght));
+        if(itr2 != m_rFreeSpace.end())
+        {
+            //get 1st position and remove from list
+            returnPos = itr2->second.back();
+            itr2->second.pop_back();
+            //
+            newSize = itr2->first - lenght;
+            newPos = returnPos + lenght;
+            
+            //update or add new position
+            itr = m_rFreeSpace.find(newSize);
+            if(itr != m_rFreeSpace.end())
+            {
+                itr->second.push_back(newPos);
+            }
+            else
+            {
+                FreeSpaceOffsets rFreeSpaceOffsets;
+                rFreeSpaceOffsets.push_back(newPos);
+                m_rFreeSpace[newSize] = std::move(rFreeSpaceOffsets);
+            }
+            
+            //erase from map if empty
+            if(itr2->second.empty())
+            {
+                m_rFreeSpace.erase(itr2);
+            }
+        }
+    }
+    
+    return returnPos;
+}
+
+void DiskWriter::DefragmentFreeSpace()
+{
+    //TODO: DefragmentFreeSpace
+}
 
 
 
