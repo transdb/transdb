@@ -45,34 +45,37 @@ public:
         uint64 random;
 
         printf("%lu\n", time(NULL));
-        for(uint64 x = 0;x < 10000;++x)
+        for(uint64 i = 0;i < 10;++i)
         {
-//            random = 1;
-//            random = rand() % 1000;
-            random = x;
-            
-            for(uint64 y = 1;y < 1000;++y)
+            for(uint64 x = 0;x < 100;++x)
             {
-                datasize = rand()%1024;
-                pData = (uint8*)malloc(datasize);
-                memset(pData, (rand()%255)+1, datasize);
+    //            random = 1;
+    //            random = rand() % 1000;
+                random = x;
                 
-                Packet rPacket(C_MSG_WRITE_DATA, 1024);
-                rPacket << uint32(token);
-                rPacket << uint32(0);
-                rPacket << uint64(x);
-                rPacket << uint64(y); //uint64(GetTickCount64()); //uint64(y);
-                rPacket.append(pData, datasize);
-
-                free(pData);
-                
-                while(m_pSocket->SendPacket(rPacket) != OUTPACKET_RESULT_SUCCESS)
+                for(uint64 y = 1;y < 1000;++y)
                 {
-                    Wait(100);
-                }
+                    datasize = rand()%1024;
+                    pData = (uint8*)malloc(datasize);
+                    memset(pData, (rand()%255)+1, datasize);
+                    
+                    Packet rPacket(C_MSG_WRITE_DATA, 1024);
+                    rPacket << uint32(token);
+                    rPacket << uint32(0);
+                    rPacket << uint64(x);
+                    rPacket << uint64(y); //uint64(GetTickCount64()); //uint64(y);
+                    rPacket.append(pData, datasize);
 
-//                std::this_thread::sleep_for(std::chrono::microseconds(10));
-                ++token;
+                    free(pData);
+                    
+                    while(m_pSocket->SendPacket(rPacket) != OUTPACKET_RESULT_SUCCESS)
+                    {
+                        Wait(100);
+                    }
+
+    //                std::this_thread::sleep_for(std::chrono::microseconds(10));
+                    ++token;
+                }
             }
         }
         printf("%lu\n", time(NULL));

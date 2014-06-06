@@ -99,17 +99,6 @@ static INLINE bool IsEmptyDREC(const DREC *pDREC)
     return (pDREC->m_key == 0 && pDREC->m_recordStart == 0 && pDREC->m_blockCount == 0 && pDREC->m_crc32 == 0);
 }
 
-//for memory pool
-struct IndexBlock_T
-{
-	explicit IndexBlock_T()
-	{
-		memset(&m_val, 0, INDEX_BLOCK_SIZE);
-	}
-
-    uint8 m_val[INDEX_BLOCK_SIZE];
-};
-
 template<typename Key>
 class HashCompare
 {
@@ -159,7 +148,6 @@ private:
     
     //preallocated disk block
     IndexBlockCache             m_rDiskBlockCache;
-    FixedPool<IndexBlock_T>     m_rIndexBlockMemPool;
     LRUCache                    *m_pLRUCache;
 };
 

@@ -127,7 +127,7 @@ bool IndexBlock::Init(const std::string &rIndexFilePath,
     //open index file
     HANDLE hIndexFile = INVALID_HANDLE_VALUE;
     IOHandleGuard rIOHandleGuard(hIndexFile);
-    hIndexFile = IO::fopen(rIndexFilePath.c_str(), IO::IO_RDWR);
+    hIndexFile = IO::fopen(rIndexFilePath.c_str(), IO::IO_READ_ONLY, IO::IO_NORMAL);
     if(hIndexFile == INVALID_HANDLE_VALUE)
     {
         Log.Error(__FUNCTION__, "Cannot open index file: %s.", rIndexFilePath.c_str());
@@ -247,7 +247,8 @@ void IndexBlock::WriteRecordIndexToDisk(const HANDLE &hFile, RecordIndexMap::acc
         if(m_freeBlocks.empty())
         {
             //create new block
-            pDiskBlock = (uint8*)m_rIndexBlockMemPool.allocate();
+            pDiskBlock = (uint8*)scalable_aligned_malloc(INDEX_BLOCK_SIZE, 512);
+            memset(pDiskBlock, 0, INDEX_BLOCK_SIZE);
             
             //add to cache
             m_rDiskBlockCache.insert(IndexBlockCache::value_type(m_blockCount, pDiskBlock));
@@ -393,7 +394,7 @@ uint8 *IndexBlock::GetCachedDiskBlock(const HANDLE &hFile, const size_t &blockDi
             itr = m_rDiskBlockCache.find((uint32)blockToDelete);
             if(itr != m_rDiskBlockCache.end())
             {
-                m_rIndexBlockMemPool.deallocate((IndexBlock_T*)itr->second);
+                scalable_aligned_free((void*)itr->second);
                 m_rDiskBlockCache.erase(itr);
             }
             //remove from LRUCache
@@ -405,7 +406,7 @@ uint8 *IndexBlock::GetCachedDiskBlock(const HANDLE &hFile, const size_t &blockDi
     }
     
     //allocate new block
-    pDiskBlock = (uint8*)m_rIndexBlockMemPool.allocate();
+    pDiskBlock = (uint8*)scalable_aligned_malloc(INDEX_BLOCK_SIZE, 512);
     
     //read from disk
     IO::fseek(hFile, blockDiskPosition, IO::IO_SEEK_SET);

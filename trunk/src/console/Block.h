@@ -57,7 +57,6 @@ static INLINE CIDF *GetCIDF(const uint8 *pBlock)
 //block store
 typedef Vector<uint8*, uint16> Blocks;
 
-
 class Block
 {
 public:

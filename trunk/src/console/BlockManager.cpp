@@ -55,7 +55,7 @@ void BlockManager::DeallocBlocks()
     for(uint16 i = 0;i < m_rBlocks.size();++i)
     {
         pBlock = GetBlock(i);
-        scalable_free((void*)pBlock);
+        scalable_aligned_free((void*)pBlock);
     }
     m_rBlocks.clear();
     
@@ -68,7 +68,8 @@ void BlockManager::ReallocBlocks()
     uint8 *pNewBlock;
     
     //get new block
-    pNewBlock = (uint8*)scalable_malloc(BLOCK_SIZE);
+    pNewBlock = (uint8*)scalable_aligned_malloc(BLOCK_SIZE, 512);
+    memset(pNewBlock, 0, BLOCK_SIZE);
     
     //init new block
     Block::InitBlock(pNewBlock);

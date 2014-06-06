@@ -163,7 +163,7 @@ void DiskWriter::Process()
     //open data file for write
     HANDLE hDataFile = INVALID_HANDLE_VALUE;
     IOHandleGuard rIOHandleDataGuard(hDataFile);
-    hDataFile = IO::fopen(m_rStorage.m_rDataPath.c_str(), IO::IO_WRITE_ONLY);
+    hDataFile = IO::fopen(m_rStorage.m_rDataPath.c_str(), IO::IO_WRITE_ONLY, IO::IO_DIRECT);
     if(hDataFile == INVALID_HANDLE_VALUE)
     {
         Log.Error(__FUNCTION__, "Open datafile: %s failed. Error number: %d", m_rStorage.m_rDataPath.c_str(), errno);
@@ -173,7 +173,7 @@ void DiskWriter::Process()
     //open index file for rw
     HANDLE hIndexFile = INVALID_HANDLE_VALUE;
     IOHandleGuard rIOHandleIndexGuard(hIndexFile);
-    hIndexFile = IO::fopen(m_rStorage.m_rIndexPath.c_str(), IO::IO_RDWR);
+    hIndexFile = IO::fopen(m_rStorage.m_rIndexPath.c_str(), IO::IO_RDWR, IO::IO_DIRECT);
     if(hIndexFile == INVALID_HANDLE_VALUE)
     {
         Log.Error(__FUNCTION__, "Open indexfile: %s failed. Error number: %d", m_rStorage.m_rIndexPath.c_str(), errno);
@@ -223,11 +223,6 @@ void DiskWriter::Process()
                     }
                 }
                 
-                //!!!
-                //sync data file to disk before index file
-                //!!!
-                IO::fsync(hDataFile);
-            
                 //stats
                 ++g_NumOfWritesToDisk;
                 
@@ -250,11 +245,6 @@ void DiskWriter::Process()
                 {
                     m_rStorage.m_pDataIndexDiskWriter->WriteRecordIndexToDisk(hIndexFile, rWriteAccessor);
                     rWriteAccessor->second.m_flags &= ~eRIF_Dirty;
-                    
-                    //!!!
-                    //sync index file to disk
-                    //!!!
-                    IO::fsync(hIndexFile);
                 }
             }
             else
@@ -372,7 +362,7 @@ void DiskWriter::ProcessIndexDeleteQueue()
     //open index file for rw
     HANDLE hIndexFile = INVALID_HANDLE_VALUE;
     IOHandleGuard rIOHandleIndexGuard(hIndexFile);
-    hIndexFile = IO::fopen(m_rStorage.m_rIndexPath.c_str(), IO::IO_RDWR);
+    hIndexFile = IO::fopen(m_rStorage.m_rIndexPath.c_str(), IO::IO_RDWR, IO::IO_DIRECT);
     if(hIndexFile == INVALID_HANDLE_VALUE)
     {
         Log.Error(__FUNCTION__, "Open indexfile: %s failed. Error number: %d", m_rStorage.m_rIndexPath.c_str(), errno);
@@ -396,14 +386,7 @@ void DiskWriter::ProcessIndexDeleteQueue()
         }
         
         //delete record index from disk
-        {
-            m_rStorage.m_pDataIndexDiskWriter->EraseRecord(hIndexFile, rRecordIndex);
-            
-            //!!!
-            //sync index file to disk
-            //!!!
-            IO::fsync(hIndexFile);
-        }
+        m_rStorage.m_pDataIndexDiskWriter->EraseRecord(hIndexFile, rRecordIndex);
     }
 }
 
