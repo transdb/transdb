@@ -44,7 +44,7 @@ bool Storage::Init()
 	//open data file
     HANDLE rDataFileHandle = INVALID_HANDLE_VALUE;
     IOHandleGuard rIOHandleGuard(rDataFileHandle);
-    rDataFileHandle = IO::fopen(m_rDataPath.c_str(), IO::IO_RDWR, IO::IO_DIRECT);
+    rDataFileHandle = IO::fopen(m_rDataPath.c_str(), IO::IO_RDWR, IO::IO_NORMAL);
     if(rDataFileHandle == INVALID_HANDLE_VALUE)
     {
         Log.Error(__FUNCTION__, "Cannot open data file: %s.", m_rDataPath.c_str());
