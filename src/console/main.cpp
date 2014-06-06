@@ -257,7 +257,7 @@ int main(int argc, const char * argv[])
         //create file
         CommonFunctions::CheckFileExists(sPidFilePath.c_str(), true);
         //open file
-        HANDLE hFile = IO::fopen(sPidFilePath.c_str(), IO::IO_WRITE_ONLY);
+        HANDLE hFile = IO::fopen(sPidFilePath.c_str(), IO::IO_WRITE_ONLY, IO::IO_NORMAL);
         if(hFile == INVALID_HANDLE_VALUE)
         {
             Log.Error(__FUNCTION__, "Cannot create pid file: %s", sPidFilePath.c_str());
@@ -295,7 +295,7 @@ int main(int argc, const char * argv[])
     int ret = scalable_allocation_mode(TBBMALLOC_SET_SOFT_HEAP_LIMIT, softHeapLimit);
     if(ret != TBBMALLOC_OK)
     {
-        Log.Warning(__FUNCTION__, "scalable_allocation_mode failed with return value: %d", ret);
+        Log.Warning(__FUNCTION__, "TBBMALLOC_SET_SOFT_HEAP_LIMIT failed with return value: %d", ret);
     }
     
     //start lib

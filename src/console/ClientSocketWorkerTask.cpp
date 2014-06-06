@@ -69,7 +69,7 @@ bool ClientSocketWorkerTask::run()
 
     //open file per thread - read only
     IOHandleGuard rIOHandleGuard(m_rDataFileHandle);
-    m_rDataFileHandle = IO::fopen(m_rStorage.m_rDataPath.c_str(), IO::IO_READ_ONLY);
+    m_rDataFileHandle = IO::fopen(m_rStorage.m_rDataPath.c_str(), IO::IO_READ_ONLY, IO::IO_NORMAL);
     if(m_rDataFileHandle == INVALID_HANDLE_VALUE)
     {
         Log.Error(__FUNCTION__, "Cannot open data file: %s", m_rStorage.m_rDataPath.c_str());
@@ -664,7 +664,7 @@ void ClientSocketWorkerTask::HandleReadConfig(ClientSocketTaskData &rClientSocke
     
     //get config data
     const char *pConfigPath = g_pConfigWatcher->GetConfigPath();
-    HANDLE hFile = IO::fopen(pConfigPath, IO::IO_READ_ONLY);
+    HANDLE hFile = IO::fopen(pConfigPath, IO::IO_READ_ONLY, IO::IO_NORMAL);
     if(hFile != INVALID_HANDLE_VALUE)
     {
         IO::fseek(hFile, 0, IO::IO_SEEK_END);

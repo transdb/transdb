@@ -44,7 +44,7 @@ bool Storage::Init()
 	//open data file
     HANDLE rDataFileHandle = INVALID_HANDLE_VALUE;
     IOHandleGuard rIOHandleGuard(rDataFileHandle);
-    rDataFileHandle = IO::fopen(m_rDataPath.c_str(), IO::IO_RDWR);
+    rDataFileHandle = IO::fopen(m_rDataPath.c_str(), IO::IO_RDWR, IO::IO_DIRECT);
     if(rDataFileHandle == INVALID_HANDLE_VALUE)
     {
         Log.Error(__FUNCTION__, "Cannot open data file: %s.", m_rDataPath.c_str());
@@ -531,7 +531,7 @@ bool Storage::CheckBlockManager(const HANDLE &rDataFileHandle, const uint64 &x, 
         //copy to blocks allocated from memory pool
         for(i = 0;i < rWriteAccessor->second.m_blockCount;++i)
         {
-            pBlock = (uint8*)scalable_malloc(BLOCK_SIZE);
+            pBlock = (uint8*)scalable_aligned_malloc(BLOCK_SIZE, 512);
             rDiskBlocks.read(pBlock, BLOCK_SIZE);
             rBlocks[i] = pBlock;
         }
