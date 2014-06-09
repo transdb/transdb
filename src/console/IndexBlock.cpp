@@ -136,7 +136,7 @@ bool IndexBlock::Init(const std::string &rIndexFilePath,
     
 	//get index file size
     IO::fseek(hIndexFile, 0, IO::IO_SEEK_END);
-    size_t fileSize = IO::ftell(hIndexFile);
+    int64 fileSize = IO::ftell(hIndexFile);
     *indexFileSize = fileSize;
     
     if(fileSize != 0)

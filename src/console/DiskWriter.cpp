@@ -105,8 +105,8 @@ bool DiskWriter::WriteDataWithRelocateFlag(const HANDLE &hDataFile, RecordIndexM
 {
     int64 requestDiskSize;
     int64 freePos;
-    int64 blockOffset;
-    uint8 *pBlock;
+    void *pBlocks;
+    size_t blocksSize;
     
     requestDiskSize = rWriteAccessor->second.m_pBlockManager->numOfBlocks() * BLOCK_SIZE;
     freePos = GetFreeSpacePos(requestDiskSize);
@@ -127,15 +127,14 @@ bool DiskWriter::WriteDataWithRelocateFlag(const HANDLE &hDataFile, RecordIndexM
     //clear dirty flag
     rWriteAccessor->second.m_pBlockManager->ClearDirtyFlags();
     
+    //calc blocks size and get 1st block its address is start
+    blocksSize = rWriteAccessor->second.m_pBlockManager->numOfBlocks() * BLOCK_SIZE;
+    pBlocks = rWriteAccessor->second.m_pBlockManager->GetBlock(0);
+    
     //write to disk
-    for(uint16 i = 0;i < rWriteAccessor->second.m_pBlockManager->numOfBlocks();++i)
-    {
-        pBlock = rWriteAccessor->second.m_pBlockManager->GetBlock(i);
-        //calc offset + write to disk
-        blockOffset = freePos + (i * BLOCK_SIZE);
-        IO::fseek(hDataFile, blockOffset, IO::IO_SEEK_SET);
-        IO::fwrite(pBlock, BLOCK_SIZE, hDataFile);
-    }
+    IO::fseek(hDataFile, freePos, IO::IO_SEEK_SET);
+    IO::fwrite(pBlocks, blocksSize, hDataFile);
+    
     return true;
 }
 
@@ -194,7 +193,7 @@ void DiskWriter::Process()
         m_itemsToProcessSize = rAllItemsToProcess.size();
         
         //sort by recordPosition - asc
-        std::sort(rAllItemsToProcess.begin(), rAllItemsToProcess.end(), _S_SortWriteInfoForWrite);
+        tbb::parallel_sort(rAllItemsToProcess.begin(), rAllItemsToProcess.end(), _S_SortWriteInfoForWrite);
         
         //itreate items and write to disk
         for(DirtyXProcess::iterator itr = rAllItemsToProcess.begin();itr != rAllItemsToProcess.end();++itr)
