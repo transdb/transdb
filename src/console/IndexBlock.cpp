@@ -127,7 +127,7 @@ bool IndexBlock::Init(const std::string &rIndexFilePath,
     //open index file
     HANDLE hIndexFile = INVALID_HANDLE_VALUE;
     IOHandleGuard rIOHandleGuard(hIndexFile);
-    hIndexFile = IO::fopen(rIndexFilePath.c_str(), IO::IO_READ_ONLY, IO::IO_NORMAL);
+    hIndexFile = IO::fopen(rIndexFilePath.c_str(), IO::IO_READ_ONLY, IO::IO_DIRECT);
     if(hIndexFile == INVALID_HANDLE_VALUE)
     {
         Log.Error(__FUNCTION__, "Cannot open index file: %s.", rIndexFilePath.c_str());
@@ -141,7 +141,7 @@ bool IndexBlock::Init(const std::string &rIndexFilePath,
     
     if(fileSize != 0)
     {
-        std::unique_ptr<uint8[]> pData = std::unique_ptr<uint8[]>(new uint8[fileSize]);
+        void *pData = scalable_aligned_malloc(fileSize, 512);
         if(pData == NULL)
         {
             Log.Error(__FUNCTION__, "Cannot allocate memory for index block file.");
@@ -151,11 +151,11 @@ bool IndexBlock::Init(const std::string &rIndexFilePath,
         
         //read
         IO::fseek(hIndexFile, 0, IO::IO_SEEK_SET);
-        IO::fread(pData.get(), fileSize, hIndexFile);
+        IO::fread(pData, fileSize, hIndexFile);
         
         //create struct - save pointers to data and containers
         FillIndex rFillIndex;
-        rFillIndex.m_pData = pData.get();
+        rFillIndex.m_pData = (uint8*)pData;
         rFillIndex.m_pFreeBlocksSet = pFreeBlocksSet.get();
         rFillIndex.m_pIndexDef = pIndexDef.get();
         rFillIndex.m_pRecordIndexMap = &m_rStorage.m_dataIndexes;
@@ -168,6 +168,9 @@ bool IndexBlock::Init(const std::string &rIndexFilePath,
         {
             m_freeBlocks.insert(*itr);
         }
+        
+        //release memory
+        scalable_aligned_free(pData);
 	}
     
     //load free space from index
