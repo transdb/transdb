@@ -32,7 +32,7 @@ class BlockManager
     
 public:
     explicit BlockManager();
-    explicit BlockManager(const uint64 &x, const Blocks &rBlocks);
+    explicit BlockManager(uint8 *pBlocks, const uint16 &blockCount);
     ~BlockManager();
     
     uint32 WriteRecord(const uint64 &recordkey, const uint8 *pRecord, const uint16 &recordSize);
@@ -44,8 +44,8 @@ public:
     void DefragmentData();
     NOINLINE uint32 GetBlocksCrc32();
     
-    INLINE uint16 numOfBlocks() const               { return m_rBlocks.size(); }
-    INLINE uint8 *GetBlock(const uint16 &blockNum)  { return m_rBlocks[blockNum]; }
+    INLINE uint16 numOfBlocks() const               { return m_blockCount; }
+    INLINE uint8 *GetBlock(const uint16 &blockNum)  { return m_pBlocks + (BLOCK_SIZE * blockNum); }
     INLINE size_t numOfRecords() const              { return m_rBlockIndex.size(); }
     
 private:
@@ -58,7 +58,8 @@ private:
     
     //declarations
     BlocksIndex     m_rBlockIndex;
-    Blocks          m_rBlocks;
+    uint8           *m_pBlocks;
+    uint16          m_blockCount;
 };
 
 #endif

@@ -44,7 +44,7 @@ bool Storage::Init()
 	//open data file
     HANDLE rDataFileHandle = INVALID_HANDLE_VALUE;
     IOHandleGuard rIOHandleGuard(rDataFileHandle);
-    rDataFileHandle = IO::fopen(m_rDataPath.c_str(), IO::IO_RDWR, IO::IO_NORMAL);
+    rDataFileHandle = IO::fopen(m_rDataPath.c_str(), IO::IO_RDWR, IO::IO_DIRECT);
     if(rDataFileHandle == INVALID_HANDLE_VALUE)
     {
         Log.Error(__FUNCTION__, "Cannot open data file: %s.", m_rDataPath.c_str());
@@ -502,10 +502,8 @@ bool Storage::CheckBlockManager(const HANDLE &rDataFileHandle, const uint64 &x, 
 {
     if(rWriteAccessor->second.m_pBlockManager == NULL)
     {
-        uint16 i;
-        Blocks rBlocks;
-        uint8 *pBlock;
-        ByteBuffer rDiskBlocks;
+        void *pBlocks;
+        int64 blocksSize;
         uint64 startTime;
         uint64 endTime;
         uint32 crc32;
@@ -521,24 +519,16 @@ bool Storage::CheckBlockManager(const HANDLE &rDataFileHandle, const uint64 &x, 
         startTime = GetTickCount64();
         
 		//preallocate
-        rBlocks.resize(rWriteAccessor->second.m_blockCount);
-        rDiskBlocks.resize(rWriteAccessor->second.m_blockCount * BLOCK_SIZE);
+        blocksSize = rWriteAccessor->second.m_blockCount * BLOCK_SIZE;
+        pBlocks = scalable_aligned_malloc(blocksSize, 512);
         
         //read all blocks in one IO
         IO::fseek(rDataFileHandle, rWriteAccessor->second.m_recordStart, IO::IO_SEEK_SET);
-        IO::fread((void*)rDiskBlocks.contents(), rDiskBlocks.size(), rDataFileHandle);
-        
-        //copy to blocks allocated from memory pool
-        for(i = 0;i < rWriteAccessor->second.m_blockCount;++i)
-        {
-            pBlock = (uint8*)scalable_aligned_malloc(BLOCK_SIZE, 512);
-            rDiskBlocks.read(pBlock, BLOCK_SIZE);
-            rBlocks[i] = pBlock;
-        }
+        IO::fread(pBlocks, blocksSize, rDataFileHandle);
         
 		//create new blockmanager
         void *pBlockManagerMem = scalable_malloc(sizeof(BlockManager));
-        rWriteAccessor->second.m_pBlockManager = new(pBlockManagerMem) BlockManager(x, rBlocks);
+        rWriteAccessor->second.m_pBlockManager = new(pBlockManagerMem) BlockManager((uint8*)pBlocks, rWriteAccessor->second.m_blockCount);
         
         //compute crc32
         crc32 = rWriteAccessor->second.m_pBlockManager->GetBlocksCrc32();
