@@ -54,9 +54,6 @@ static INLINE CIDF *GetCIDF(const uint8 *pBlock)
     return (CIDF*)(pBlock + CIDFOffset);
 }
 
-//block store
-typedef Vector<uint8*, uint16> Blocks;
-
 class Block
 {
 public:

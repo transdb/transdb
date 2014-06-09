@@ -8,13 +8,13 @@
 
 #include "StdAfx.h"
 
-BlockManager::BlockManager()
+BlockManager::BlockManager() : m_pBlocks(NULL), m_blockCount(0)
 {
     //create initial block
     ReallocBlocks();
 }
 
-BlockManager::BlockManager(const uint64 &x, const Blocks &rBlocks) : m_rBlocks(std::move(rBlocks))
+BlockManager::BlockManager(uint8 *pBlocks, const uint16 &blockCount) : m_pBlocks(pBlocks), m_blockCount(blockCount)
 {
     //build index map
     uint8 *pBlock;
@@ -24,7 +24,7 @@ BlockManager::BlockManager(const uint64 &x, const Blocks &rBlocks) : m_rBlocks(s
     RDF *pRDF;
     
     //build index map
-    for(uint16 i = 0;i < m_rBlocks.size();++i)
+    for(uint16 i = 0;i < m_blockCount;++i)
     {
         pBlock = GetBlock(i);
         pCIDF = GetCIDF(pBlock);
@@ -51,13 +51,8 @@ BlockManager::~BlockManager()
 void BlockManager::DeallocBlocks()
 {
     //dealloc blocks
-    uint8 *pBlock;
-    for(uint16 i = 0;i < m_rBlocks.size();++i)
-    {
-        pBlock = GetBlock(i);
-        scalable_aligned_free((void*)pBlock);
-    }
-    m_rBlocks.clear();
+    scalable_aligned_free((void*)m_pBlocks);
+    m_pBlocks = NULL;
     
     //clear indexes
     m_rBlockIndex.clear();
@@ -65,17 +60,24 @@ void BlockManager::DeallocBlocks()
 
 void BlockManager::ReallocBlocks()
 {
-    uint8 *pNewBlock;
+    //inc block count
+    m_blockCount += 1;
+    
+    //realloc block array
+    void *pNewBlocks = scalable_aligned_realloc(m_pBlocks, m_blockCount * BLOCK_SIZE, 512);
+    if(pNewBlocks == NULL)
+    {
+        throw std::bad_alloc();
+    }
+    //set new pointer
+    m_pBlocks = (uint8*)pNewBlocks;
     
     //get new block
-    pNewBlock = (uint8*)scalable_aligned_malloc(BLOCK_SIZE, 512);
+    uint8 *pNewBlock = GetBlock(m_blockCount - 1);
     memset(pNewBlock, 0, BLOCK_SIZE);
     
     //init new block
     Block::InitBlock(pNewBlock);
-    
-    //add
-    m_rBlocks.push_back(pNewBlock);
 }
 
 uint32 BlockManager::WriteRecord(const uint64 &recordkey, const uint8 *pRecord, const uint16 &recordSize)
@@ -176,7 +178,7 @@ uint32 BlockManager::WriteRecord(const uint64 &recordkey, const uint8 *pRecord, 
     
     //PHASE 3 --> try to write
     //find empty space in blocks
-    for(uint16 i = 0;i < m_rBlocks.size();++i)
+    for(uint16 i = 0;i < m_blockCount;++i)
     {
         pBlock = GetBlock(i);
         status = Block::WriteRecord(pBlock, recordkey, pRecord, recordSizeLocal);
@@ -185,7 +187,7 @@ uint32 BlockManager::WriteRecord(const uint64 &recordkey, const uint8 *pRecord, 
             m_rBlockIndex.insert(BlocksIndex::value_type(recordkey, i));
             break;
         }
-        else if(status == eBLS_NO_SPACE_FOR_NEW_DATA && (i == (m_rBlocks.size() - 1)))
+        else if(status == eBLS_NO_SPACE_FOR_NEW_DATA && (i == (m_blockCount - 1)))
         {
             //relloc block + 1
             ReallocBlocks();
@@ -214,10 +216,10 @@ void BlockManager::ReadRecords(ByteBuffer &rData)
 {        
     //pre-realloc buffer
     //key|recordSize|record|....Nx
-    rData.reserve(BLOCK_SIZE * m_rBlocks.size());
+    rData.reserve(BLOCK_SIZE * m_blockCount);
     
     uint8 *pBlock;
-    for(uint16 i = 0;i < m_rBlocks.size();++i)
+    for(uint16 i = 0;i < m_blockCount;++i)
     {
         pBlock = GetBlock(i);
         Block::GetRecords(pBlock, rData);
@@ -269,7 +271,7 @@ void BlockManager::ClearDirtyFlags()
     uint8 *pBlock;
     CIDF *pCIDF;
     
-    for(uint16 i = 0;i < m_rBlocks.size();++i)
+    for(uint16 i = 0;i < m_blockCount;++i)
     {
         pBlock = GetBlock(i);
         pCIDF = GetCIDF(pBlock);
@@ -326,10 +328,10 @@ uint32 BlockManager::GetBlocksCrc32()
 {
     uint32 crc32 = 0;
     uint8 *pBlock;
-    size_t crc32ArraySize = sizeof(uint32) * m_rBlocks.size();
+    size_t crc32ArraySize = sizeof(uint32) * m_blockCount;
     uint32 *pCrc32Array = (uint32*)alloca(crc32ArraySize);
     
-    for(uint16 i = 0;i < m_rBlocks.size();++i)
+    for(uint16 i = 0;i < m_blockCount;++i)
     {
         pBlock = GetBlock(i);
         pCrc32Array[i] = g_CRC32->ComputeCRC32(pBlock, BLOCK_SIZE);
