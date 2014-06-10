@@ -326,7 +326,7 @@ void BlockManager::DefragmentData()
 
 uint32 BlockManager::GetBlocksCrc32()
 {
-    uint32 crc32 = 0;
+    uint32 crc32;
     uint8 *pBlock;
     size_t crc32ArraySize = sizeof(uint32) * m_blockCount;
     uint32 *pCrc32Array = (uint32*)alloca(crc32ArraySize);
