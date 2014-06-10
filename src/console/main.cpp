@@ -298,6 +298,13 @@ int main(int argc, const char * argv[])
         Log.Warning(__FUNCTION__, "TBBMALLOC_SET_SOFT_HEAP_LIMIT failed with return value: %d", ret);
     }
     
+    //set huge pages if OS suports it
+    ret = scalable_allocation_mode(TBBMALLOC_USE_HUGE_PAGES, 1);
+    if(ret != TBBMALLOC_OK)
+    {
+        Log.Warning(__FUNCTION__, "TBBMALLOC_USE_HUGE_PAGES failed with return value: %d", ret);
+    }
+    
     //start lib
     StartSharedLib();
        
