@@ -148,7 +148,7 @@ struct StorageCrc32Check
         uint16 blockCount;
         
         //log progress
-        Log.Notice("Crc32 check", "Starting range from: " I64FMTD " to: " I64FMTD, range.begin(), range.end());
+        Log.Debug("Crc32 check", "Starting range from: " I64FMTD " to: " I64FMTD, range.begin(), range.end());
         
         for(uint64 i = range.begin();i != range.end();++i)
         {
@@ -189,7 +189,7 @@ struct StorageCrc32Check
         }
         
         //log progress
-        Log.Notice("Crc32 check", "Finished range from: " I64FMTD " to: " I64FMTD, range.begin(), range.end());
+        Log.Debug("Crc32 check", "Finished range from: " I64FMTD " to: " I64FMTD, range.begin(), range.end());
     }
 };
 

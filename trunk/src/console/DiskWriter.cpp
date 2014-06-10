@@ -193,7 +193,7 @@ void DiskWriter::Process()
         m_itemsToProcessSize = rAllItemsToProcess.size();
         
         //sort by recordPosition - asc
-        tbb::parallel_sort(rAllItemsToProcess.begin(), rAllItemsToProcess.end(), _S_SortWriteInfoForWrite);
+        tbb::parallel_sort(rAllItemsToProcess.begin(), rAllItemsToProcess.end(), &_S_SortWriteInfoForWrite);
         
         //itreate items and write to disk
         for(DirtyXProcess::iterator itr = rAllItemsToProcess.begin();itr != rAllItemsToProcess.end();++itr)
