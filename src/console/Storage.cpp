@@ -112,15 +112,93 @@ void Storage::LoadFromDisk(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, c
     }
 }
 
+typedef Vector<WriteInfo, uint64> WriteInfoVec;
+
+struct StorageCrc32Check
+{
+    StorageCrc32Check(const RecordIndexMap &rRecordIndexMap,
+                      const WriteInfoVec &rWriteInfoVec,
+                      const std::string &rDataFilePath) : m_rRecordIndexMap(rRecordIndexMap), m_rWriteInfoVec(rWriteInfoVec), m_rDataFilePath(rDataFilePath)
+    {
+        
+    }
+    
+    const RecordIndexMap  &m_rRecordIndexMap;
+    const WriteInfoVec    &m_rWriteInfoVec;
+    const std::string     &m_rDataFilePath;
+    
+    void operator()(const tbb::blocked_range<uint64>& range) const
+    {
+        HANDLE rDataFileHandle = INVALID_HANDLE_VALUE;
+        IOHandleGuard rIOHandleGuard(rDataFileHandle);
+        rDataFileHandle = IO::fopen(m_rDataFilePath.c_str(), IO::IO_READ_ONLY, IO::IO_DIRECT);
+        if(rDataFileHandle == INVALID_HANDLE_VALUE)
+        {
+            Log.Error(__FUNCTION__, "Cannot open data file.");
+            return;
+        }
+        
+        RecordIndexMap::accessor rWriteAccessor;
+        int64 blocksSize;
+        void *pBlocks;
+        uint32 crc32;
+        uint8 *pBlock;
+        size_t crc32ArraySize;
+        uint32 *pCrc32Array;
+        uint16 blockCount;
+        
+        //log progress
+        Log.Notice("Crc32 check", "Starting range from: " I64FMTD " to: " I64FMTD, range.begin(), range.end());
+        
+        for(uint64 i = range.begin();i != range.end();++i)
+        {
+            const WriteInfo &rWriteInfo = m_rWriteInfoVec[i];
+            //get from map
+            if(m_rRecordIndexMap.find(rWriteAccessor, rWriteInfo.m_key))
+            {
+                //preallocate
+                blockCount = rWriteAccessor->second.m_blockCount;
+                blocksSize = blockCount * BLOCK_SIZE;
+                pBlocks = scalable_aligned_malloc(blocksSize, 512);
+                
+                //read all blocks in one IO
+                IO::fseek(rDataFileHandle, rWriteAccessor->second.m_recordStart, IO::IO_SEEK_SET);
+                IO::fread(pBlocks, blocksSize, rDataFileHandle);
+                
+                //calc crc32
+                crc32ArraySize = sizeof(uint32) * blockCount;
+                pCrc32Array = (uint32*)alloca(crc32ArraySize);
+                
+                for(uint16 i = 0;i < blockCount;++i)
+                {
+                    pBlock = ((uint8*)pBlocks + (BLOCK_SIZE * i));
+                    pCrc32Array[i] = g_CRC32->ComputeCRC32(pBlock, BLOCK_SIZE);
+                }
+                
+                //
+                crc32 = g_CRC32->ComputeCRC32((BYTE*)pCrc32Array, crc32ArraySize);
+                //check crc32
+                if(rWriteAccessor->second.m_crc32 != crc32)
+                {
+                    Log.Error("Crc32 check", "CRC32 error - x: " I64FMTD " saved crc: %u loaded crc: %u", rWriteAccessor->first, rWriteAccessor->second.m_crc32, crc32);
+                }
+                
+                //release memory
+                scalable_aligned_free(pBlocks);
+            }
+        }
+        
+        //log progress
+        Log.Notice("Crc32 check", "Finished range from: " I64FMTD " to: " I64FMTD, range.begin(), range.end());
+    }
+};
+
 void Storage::Crc32Check(const HANDLE &rDataFileHandle)
 {
     Log.Notice(__FUNCTION__, "Checking integrity of data file. This can take some time.");
-    uint64 counter = 0;
+    
     size_t dataIndexesSize;
-    typedef Vector<WriteInfo> WriteInfoVec;
     WriteInfoVec rInfo;
-    LRUCache rCache("Temporary Storage", g_LRUCacheMemReserve / sizeof(CRec));
-    RecordIndexMap::accessor rWriteAccessor;
     
     //
     dataIndexesSize = m_dataIndexes.size();
@@ -135,37 +213,8 @@ void Storage::Crc32Check(const HANDLE &rDataFileHandle)
     //sort by record pos
     tbb::parallel_sort(rInfo.begin(), rInfo.end(), &SortWriteInfoForCRC32Check);
     
-    //check crc32
-    for(WriteInfoVec::iterator itr = rInfo.begin();itr != rInfo.end();++itr)
-    {
-        ++counter;
-        LoadFromDisk(rDataFileHandle, rCache, itr->m_key);
-        //
-        CheckMemory(rCache);
-        
-        if(!(counter % 100000))
-        {
-            Log.Notice(__FUNCTION__, "Checked: " I64FMTD " from: " I64FMTD, counter, dataIndexesSize);
-        }
-    }
-    
-    //clean memory
-    m_memoryUsed = 0;
-    
-    //dealloc block managers
-    for(WriteInfoVec::iterator itr = rInfo.begin();itr != rInfo.end();++itr)
-    {
-        if(m_dataIndexes.find(rWriteAccessor, itr->m_key))
-        {
-            if(rWriteAccessor->second.m_pBlockManager != NULL)
-            {
-                //clean memory
-                rWriteAccessor->second.m_pBlockManager->~BlockManager();
-                scalable_free((void*)rWriteAccessor->second.m_pBlockManager);
-                rWriteAccessor->second.m_pBlockManager = NULL;
-            }
-        }
-    }
+    //start paraller crc32
+    tbb::parallel_for(tbb::blocked_range<uint64>(0, rInfo.size()), StorageCrc32Check(m_dataIndexes, rInfo, m_rDataPath));
     
     Log.Notice(__FUNCTION__, "Finished checking integrity of data file.");
 }
