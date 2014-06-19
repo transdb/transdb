@@ -258,7 +258,7 @@ void Storage::ReadData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const
 uint32 Storage::WriteData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x, const uint64 &y, const uint8 *pRecord, const uint16 &recordSize)
 {
     //ret value
-    uint32 status;
+    E_BMS status;
     
     //write accesor
 	RecordIndexMap::accessor rWriteAccesor;
@@ -272,7 +272,7 @@ uint32 Storage::WriteData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, co
         //allocate blockmanager
         //create block manager + add new block for write + update num of blocks
         void *pBlockManagerMem = scalable_malloc(sizeof(BlockManager));
-        rWriteAccesor->second.m_pBlockManager = new(pBlockManagerMem) BlockManager();
+        rWriteAccesor->second.m_pBlockManager = new(pBlockManagerMem) BlockManager(NULL, 0);
         rWriteAccesor->second.m_blockCount = rWriteAccesor->second.m_pBlockManager->numOfBlocks();
         
         //init index block
@@ -391,7 +391,7 @@ void Storage::DeleteData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, con
         CheckBlockManager(rDataFileHandle, x, rWriteAccessor);
         
         //delete
-        rWriteAccessor->second.m_pBlockManager->DeleteRecord(y);
+        rWriteAccessor->second.m_pBlockManager->DeleteRecordByKey(y);
         
         //queue write to disk
         m_pDiskWriter->Queue(rWriteAccessor);
@@ -414,9 +414,10 @@ void Storage::GetAllY(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const 
         
         //read data
         rWriteAccessor->second.m_pBlockManager->GetAllRecordKeys(rY);
+        
+        //debug log
+        Log.Debug(__FUNCTION__, "Read data [x:" I64FMTD ",y:" I64FMTD "] size: " I64FMTD, x, 0, rY.size());
     }
-    
-    Log.Debug(__FUNCTION__, "Read data [x:" I64FMTD ",y:" I64FMTD "] size: " I64FMTD, x, 0, rY.size());
 }
 
 void Storage::DefragmentData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x)

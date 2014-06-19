@@ -5,8 +5,8 @@ CFLAGS= -std=c++11 -c -Wall -Werror -O2 -DNDEBUG
 CFLAGSD= -std=c++11 -c -Wall -DDEBUG -ggdb
 INC=-I. $(shell python-config --includes)
 LIB=-ltbb -ltbbmalloc -lz $(shell python-config --libs)
-SRC_CONSOLE = $(shell find ./src/console/ -name *.cpp) 
-SRC_SHARED = $(shell find ./src/shared/ -name *.cpp | grep -v "StackWalker.cpp") 
+SRC_CONSOLE = $(shell find ./src/console/ -name *.cpp -o -name *.c) 
+SRC_SHARED = $(shell find ./src/shared/ -name *.cpp -o -name *.c | grep -v "StackWalker.cpp")
 SRC= $(SRC_SHARED) $(SRC_CONSOLE) 
 OBJ=$(SRC:.cpp=.o)
 OBJD=$(SRC:.cpp=.od)

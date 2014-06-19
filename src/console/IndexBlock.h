@@ -18,7 +18,7 @@ class LRUCache;
 //Control interval
 typedef struct IndexControlIntervalDefinitionField
 {
-    uint16              m_amoutOfFreeSpace;         //2
+    uint16              m_amountOfFreeSpace;        //2
     uint16              m_location;                 //2 - not used any more
 } ICIDF;
 
