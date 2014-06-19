@@ -50,7 +50,6 @@ BlockManager::BlockManager(uint8 *pBlocks, const uint16 &blockCount) : m_pBlockI
     //init traverser
     Record rRecord;
     RecordTraverser rT;
-    Block::RecordTraverserInit(&rT, pBlock);
     
     //build index map if there is any buffer
     if(m_pBlocks != NULL)
