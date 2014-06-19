@@ -1,37 +1,51 @@
 # Define required macros here
 SHELL = /bin/sh
-CC=g++
-CFLAGS= -std=c++11 -c -Wall -Werror -O2 -DNDEBUG
-CFLAGSD= -std=c++11 -c -Wall -DDEBUG -ggdb
+CXX=g++
+CC=gcc
+CXXFLAGS= -std=c++11 -c -Wall -Werror -O2 -DNDEBUG
+CXXFLAGSD= -std=c++11 -c -Wall -DDEBUG -ggdb
+CFLAGS= -Wall -c -Werror -O2 -DNDEBUG
+CFLAGSD= -Wall -c -Werror
 INC=-I. $(shell python-config --includes)
 LIB=-ltbb -ltbbmalloc -lz $(shell python-config --libs)
-SRC_CONSOLE = $(shell find ./src/console/ -name *.cpp -o -name *.c) 
-SRC_SHARED = $(shell find ./src/shared/ -name *.cpp -o -name *.c | grep -v "StackWalker.cpp")
-SRC= $(SRC_SHARED) $(SRC_CONSOLE) 
-OBJ=$(SRC:.cpp=.o)
-OBJD=$(SRC:.cpp=.od)
+CXX_SRC_CONSOLE = $(shell find ./src/console/ -name *.cpp)
+CXX_SRC_SHARED = $(shell find ./src/shared/ -name *.cpp | grep -v "StackWalker.cpp")
+CC_SRC_CONSOLE = $(shell find ./src/console/ -name *.c)
+CC_SRC_SHARED = $(shell find ./src/shared/ -name *.c | grep -v "zlib")
+CXX_SRC = $(CXX_SRC_SHARED) $(CXX_SRC_CONSOLE)
+CC_SRC = $(CC_SRC_CONSOLE) $(CC_SRC_SHARED)
+OBJCXX=$(CXX_SRC:.cpp=.o)
+OBJCXXD=$(CXX_SRC:.cpp=.od)
+OBJCC=$(CC_SRC:.c=.o)
+OBJCCD=$(CC_SRC:.c=.od)
 EXE=transdb
 EXED=transdb_d
 
 all: debug release
 
-release: $(SRC_SHARED) $(SRC_CONSOLE) $(EXE)
+release: $(CC_SRC_SHARED) $(CC_SRC_CONSOLE) $(CXX_SRC_SHARED) $(CXX_SRC_CONSOLE) $(EXE)
 	cp $(EXE) ../
 
 debug: $(SRC_SHARED) $(SRC_CONSOLE) ${EXED}
 	cp $(EXED) ../
 
-$(EXE): $(OBJ)
-	$(CC) $(OBJ) $(LIB) -s -o $@ 
+$(EXE): $(OBJCC) $(OBJCXX)
+	$(CXX) $(OBJCXX) $(OBJCC) $(LIB) -s -o $@ 
 
-$(EXED): $(OBJD)
-	$(CC) $(OBJD) $(LIB) -o $@
+$(EXED): $(OBJCCD) $(OBJCXXD)
+	$(CXX) $(OBJCXXD) $(OBJCCD) $(LIB) -o $@
 
 %.o: %.cpp
-	$(CC) $(CFLAGS) ${INC} $< -o $@
+	$(CXX) $(CXXFLAGS) ${INC} $< -o $@
 
 %.od: %.cpp
-	$(CC) $(CFLAGSD) ${INC} $< -o $@
+	$(CXX) $(CXXFLAGSD) ${INC} $< -o $@
+
+%.o: %.c
+	$(CC) $(CFLAGS) $< -o $@
+
+%.od: %.c
+	$(CC) $(CFLAGSD) $< -o $@
 
 .PHONY: clean
 clean:
