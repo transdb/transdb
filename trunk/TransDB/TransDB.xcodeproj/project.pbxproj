@@ -43,10 +43,11 @@
 		8D33EE76192B8FAE007F448C /* zutil.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D33EE5F192B8FAE007F448C /* zutil.c */; };
 		8D33EE77192B8FAE007F448C /* zutil.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D33EE60192B8FAE007F448C /* zutil.h */; };
 		8D3E57DF188EA4CD00D54CBC /* SortedVector.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D3E57DE188EA4CD00D54CBC /* SortedVector.h */; };
-		8D679408189BCA6F0041722B /* tree.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D679407189BCA6F0041722B /* tree.h */; };
 		8D691523165101D7002D4A28 /* ClientSocketWorker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D691521165101D7002D4A28 /* ClientSocketWorker.cpp */; };
 		8D69152716510D56002D4A28 /* ClientSocketWorkerTask.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D69152516510D56002D4A28 /* ClientSocketWorkerTask.cpp */; };
 		8D7251B415E6211600E9E1EB /* Block.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D7251B315E6211600E9E1EB /* Block.cpp */; };
+		8D86F237194F47F700E783BF /* avl.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D86F235194F47F700E783BF /* avl.c */; };
+		8D86F238194F47F700E783BF /* avl.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D86F236194F47F700E783BF /* avl.h */; };
 		8D8F15601635741600A72AD7 /* MemoryAllocator.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D8F155B1635741600A72AD7 /* MemoryAllocator.h */; };
 		8D922B9E15F49DD900F8AAF7 /* ClientSocketHolder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D922B9D15F49DD900F8AAF7 /* ClientSocketHolder.cpp */; };
 		8D997D21166CB34200A5F84B /* StatGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D997D1F166CB34200A5F84B /* StatGenerator.cpp */; };
@@ -188,13 +189,14 @@
 		8D58E9471891432500D68538 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
 		8D58E9481891432500D68538 /* templates.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = templates.py; path = ../Python/templates.py; sourceTree = "<group>"; };
 		8D58E9491891432500D68538 /* transDB.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = transDB.py; path = ../Python/transDB.py; sourceTree = "<group>"; };
-		8D679407189BCA6F0041722B /* tree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tree.h; sourceTree = "<group>"; };
 		8D691521165101D7002D4A28 /* ClientSocketWorker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ClientSocketWorker.cpp; sourceTree = "<group>"; };
 		8D691522165101D7002D4A28 /* ClientSocketWorker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ClientSocketWorker.h; sourceTree = "<group>"; };
 		8D69152516510D56002D4A28 /* ClientSocketWorkerTask.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ClientSocketWorkerTask.cpp; sourceTree = "<group>"; };
 		8D69152616510D56002D4A28 /* ClientSocketWorkerTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ClientSocketWorkerTask.h; sourceTree = "<group>"; };
 		8D7251B015E6178400E9E1EB /* Block.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Block.h; sourceTree = "<group>"; };
 		8D7251B315E6211600E9E1EB /* Block.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Block.cpp; sourceTree = "<group>"; usesTabs = 0; };
+		8D86F235194F47F700E783BF /* avl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = avl.c; sourceTree = "<group>"; };
+		8D86F236194F47F700E783BF /* avl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = avl.h; sourceTree = "<group>"; };
 		8D8F155B1635741600A72AD7 /* MemoryAllocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MemoryAllocator.h; sourceTree = "<group>"; };
 		8D922B9C15F49DD300F8AAF7 /* ClientSocketHolder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ClientSocketHolder.h; sourceTree = "<group>"; };
 		8D922B9D15F49DD900F8AAF7 /* ClientSocketHolder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ClientSocketHolder.cpp; sourceTree = "<group>"; };
@@ -417,7 +419,8 @@
 		8D48B9B31666062B005156B2 /* Containers */ = {
 			isa = PBXGroup;
 			children = (
-				8D679407189BCA6F0041722B /* tree.h */,
+				8D86F235194F47F700E783BF /* avl.c */,
+				8D86F236194F47F700E783BF /* avl.h */,
 				8D15F40118883B2400EC443F /* HashMap.h */,
 				8DAC6D50188D3BE3001851BB /* Vector.h */,
 				8D3E57DE188EA4CD00D54CBC /* SortedVector.h */,
@@ -681,12 +684,12 @@
 				8DFE27CE15E22C35007F75A3 /* Log.h in Headers */,
 				8D33EE77192B8FAE007F448C /* zutil.h in Headers */,
 				8DFE27D015E22C35007F75A3 /* BaseSocket.h in Headers */,
+				8D86F238194F47F700E783BF /* avl.h in Headers */,
 				8DFE27D115E22C35007F75A3 /* CircularBuffer.h in Headers */,
 				8D33EE70192B8FAE007F448C /* inftrees.h in Headers */,
 				8DFE27D215E22C35007F75A3 /* ListenSocketLinux.h in Headers */,
 				8DFE27D315E22C35007F75A3 /* ListenSocketWin32.h in Headers */,
 				8DFE27D415E22C35007F75A3 /* Network.h in Headers */,
-				8D679408189BCA6F0041722B /* tree.h in Headers */,
 				8D33EE6B192B8FAE007F448C /* inffast.h in Headers */,
 				8DFE27D515E22C35007F75A3 /* SocketDefines.h in Headers */,
 				8D33EE64192B8FAE007F448C /* crc32.h in Headers */,
@@ -815,6 +818,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8D86F237194F47F700E783BF /* avl.c in Sources */,
 				8D33EE69192B8FAE007F448C /* infback.c in Sources */,
 				8D33EE6F192B8FAE007F448C /* inftrees.c in Sources */,
 				8D99BEB315EE5C2200BCE873 /* Config.cpp in Sources */,

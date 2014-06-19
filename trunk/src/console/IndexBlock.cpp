@@ -83,7 +83,7 @@ struct FillIndex
             }
             
             //add block with free space
-            if(pICIDF->m_amoutOfFreeSpace >= sizeof(DREC))
+            if(pICIDF->m_amountOfFreeSpace >= sizeof(DREC))
             {
                 m_pFreeBlocksSet->insert(i);
             }
@@ -259,7 +259,7 @@ void IndexBlock::WriteRecordIndexToDisk(const HANDLE &hFile, RecordIndexMap::acc
             
             //create ICIDF
             pICIDF = GetICIDF(pDiskBlock);
-            pICIDF->m_amoutOfFreeSpace = INDEX_BLOCK_SIZE - sizeof(DREC) - sizeof(ICIDF);
+            pICIDF->m_amountOfFreeSpace = INDEX_BLOCK_SIZE - sizeof(DREC) - sizeof(ICIDF);
             
             //add record
             memcpy(pDiskBlock, &rDiskRecord, sizeof(DREC));
@@ -297,7 +297,7 @@ void IndexBlock::WriteRecordIndexToDisk(const HANDLE &hFile, RecordIndexMap::acc
             {
                 Log.Error(__FUNCTION__, "GetEmptyDREC returned NULL for block number: %u, disk position: " I64FMTD, freeBlock, diskPosition);
                 Log.Error(__FUNCTION__, "=== ICIDF");
-                Log.Error(__FUNCTION__, "m_amoutOfFreeSpace = %u", pICIDF->m_amoutOfFreeSpace);
+                Log.Error(__FUNCTION__, "m_amoutOfFreeSpace = %u", pICIDF->m_amountOfFreeSpace);
                 Log.Error(__FUNCTION__, "m_location = %u", pICIDF->m_location);
                 //
                 //dirty fix erase from free blocks and write to another block
@@ -314,10 +314,10 @@ void IndexBlock::WriteRecordIndexToDisk(const HANDLE &hFile, RecordIndexMap::acc
                 rWriteAccesor->second.m_IB_recordOffset = recordOffset;
                 
                 //update ICIDF
-                pICIDF->m_amoutOfFreeSpace -= sizeof(DREC);
+                pICIDF->m_amountOfFreeSpace -= sizeof(DREC);
                 
                 //check free space
-                if(pICIDF->m_amoutOfFreeSpace < sizeof(DREC))
+                if(pICIDF->m_amountOfFreeSpace < sizeof(DREC))
                 {
                     m_freeBlocks.erase(freeBlock);
                 }
@@ -365,7 +365,7 @@ void IndexBlock::EraseRecord(const HANDLE &hFile, const RecordIndex &rRecordInde
     memset(pDREC, 0, sizeof(DREC));
     
     //update ICIDF
-    pICIDF->m_amoutOfFreeSpace += sizeof(DREC);
+    pICIDF->m_amountOfFreeSpace += sizeof(DREC);
     
     //block has freespace
     m_freeBlocks.insert(rRecordIndex.m_IB_blockNumber);
