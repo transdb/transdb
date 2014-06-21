@@ -9,6 +9,9 @@
 #ifndef TransDB_BlockManager_h
 #define TransDB_BlockManager_h
 
+class Storage;
+class ClientSocketWorkerTask;
+
 typedef enum BlockManagerStatus
 {
     eBMS_Ok                     = 1,
@@ -20,23 +23,22 @@ typedef enum BlockManagerStatus
     eBMS_NeedDefrag             = 64
 } E_BMS;
 
-typedef struct _BlockIndexNode
-{
-    uint64  m_key;
-    uint16  m_blockNumber;
-} BlockIndexNode;
 
 //for Y
 class BlockManager
 {
+    //must be ordered map
+    typedef std::map<uint64, uint16>    BlocksIndex;
+    
 public:
+    explicit BlockManager();
     explicit BlockManager(uint8 *pBlocks, const uint16 &blockCount);
     ~BlockManager();
     
-    E_BMS WriteRecord(const uint64 &recordKey, const uint8 *pRecord, uint16 recordSize);
-    void ReadRecord(const uint64 &recordKey, ByteBuffer &rData);
+    uint32 WriteRecord(const uint64 &recordkey, const uint8 *pRecord, const uint16 &recordSize);
+    void ReadRecord(const uint64 &recordkey, ByteBuffer &rData);
     void ReadRecords(ByteBuffer &rData);
-    void DeleteRecordByKey(const uint64 &recordKey);
+    void DeleteRecord(const uint64 &recordkey);
     void GetAllRecordKeys(ByteBuffer &rY);
     void ClearDirtyFlags();
     void DefragmentData();
@@ -44,17 +46,18 @@ public:
     
     INLINE uint16 numOfBlocks() const               { return m_blockCount; }
     INLINE uint8 *GetBlock(const uint16 &blockNum)  { return m_pBlocks + (BLOCK_SIZE * blockNum); }
-    INLINE size_t numOfRecords() const              { return m_pBlockIndex->avl_count; }
+    INLINE size_t numOfRecords() const              { return m_rBlockIndex.size(); }
     
 private:
 	//disable copy constructor and assign
 	DISALLOW_COPY_AND_ASSIGN(BlockManager);
-
+    
+    void DeallocBlocks();
     void ReallocBlocks();
-    void DeleteRecord(BlockIndexNode *pBlockIndexNode);
+    void DeleteRecord(BlocksIndex::iterator &itr);
     
     //declarations
-    avl_table       *m_pBlockIndex;
+    BlocksIndex     m_rBlockIndex;
     uint8           *m_pBlocks;
     uint16          m_blockCount;
 };

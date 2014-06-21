@@ -88,7 +88,7 @@ void DiskWriter::WriteDataWithoutRelocateFlag(const HANDLE &hDataFile, RecordInd
     for(uint16 i = 0;i < rWriteAccessor->second.m_pBlockManager->numOfBlocks();++i)
     {
         pBlock = rWriteAccessor->second.m_pBlockManager->GetBlock(i);
-        pCIDF = Block::GetCIDF(pBlock);
+        pCIDF = GetCIDF(pBlock);
         if(pCIDF->m_flags & eBLF_Dirty)
         {
             //clear dirty flag
