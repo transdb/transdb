@@ -258,7 +258,7 @@ void Storage::ReadData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const
 uint32 Storage::WriteData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x, const uint64 &y, const uint8 *pRecord, const uint16 &recordSize)
 {
     //ret value
-    E_BMS status;
+    uint32 status;
     
     //write accesor
 	RecordIndexMap::accessor rWriteAccesor;
@@ -391,7 +391,7 @@ void Storage::DeleteData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, con
         CheckBlockManager(rDataFileHandle, x, rWriteAccessor);
         
         //delete
-        rWriteAccessor->second.m_pBlockManager->DeleteRecordByKey(y);
+        rWriteAccessor->second.m_pBlockManager->DeleteRecord(y);
         
         //queue write to disk
         m_pDiskWriter->Queue(rWriteAccessor);

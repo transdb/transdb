@@ -342,7 +342,7 @@ class LoadTransDB:
 if __name__ == '__main__':
     try:
         ld = LoadTransDB()
-        ld.run("/Users/miroslavkudrnac/SVN/TransStorageServer/trunk/cfg/transdb.conf", "/Users/wvi/work/Logs", "localhost", 5555, 8888)
+        ld.run("localhost", 5555, 8888)
     except KeyboardInterrupt as e:
         print("\nSIGINT caught ... shutdown")
         ld.shutdown()

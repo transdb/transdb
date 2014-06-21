@@ -266,7 +266,15 @@ void ClientSocket::HandleReadData(ByteBuffer &rPacket)
 
 void ClientSocket::HandleDeleteData(ByteBuffer &rPacket)
 {
-
+    uint32 token;
+    uint32 flags;
+    uint64 x;
+    rPacket >> token >> flags >> x;
+    
+    if(!(token % 1000))
+	{
+		printf("%u\n", token);
+	}
 }
 
 void ClientSocket::HandleGetAllX(ByteBuffer &rPacket)

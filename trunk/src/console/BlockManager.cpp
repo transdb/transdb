@@ -8,79 +8,54 @@
 
 #include "StdAfx.h"
 
-BlockIndexNode *BlockIndexNode_new(uint64 key, uint16 blockNumber)
+BlockManager::BlockManager() : m_pBlocks(NULL), m_blockCount(0)
 {
-    BlockIndexNode *pNode = (BlockIndexNode*)malloc(sizeof(BlockIndexNode));
-    pNode->m_key = key;
-    pNode->m_blockNumber = blockNumber;
-    return pNode;
+    //create initial block
+    ReallocBlocks();
 }
 
-void BlockIndexNode_Delete(void *avl_item, void *avl_param)
-{
-    free(avl_item);
-}
-
-void BlockIndexNode_Delete_RemoveFromTree(avl_table *pTree, BlockIndexNode *pNode)
-{
-    //delete from map + free node memory
-    void *avl_item = avl_delete(pTree, pNode);
-    BlockIndexNode_Delete(avl_item, pTree->avl_param);
-}
-
-int BlockIndexNode_compare(const void *avl_a, const void *avl_b, void *avl_param)
-{
-    const BlockIndexNode *pNode1 = (BlockIndexNode*)avl_a;
-    const BlockIndexNode *pNode2 = (BlockIndexNode*)avl_b;
-    
-    if (pNode1->m_key < pNode2->m_key)
-        return -1;
-    else if (pNode1->m_key > pNode2->m_key)
-        return +1;
-    else
-        return 0;
-}
-
-BlockManager::BlockManager(uint8 *pBlocks, const uint16 &blockCount) : m_pBlockIndex(avl_create(&BlockIndexNode_compare, NULL, NULL)),
-                                                                       m_pBlocks(pBlocks),
-                                                                       m_blockCount(blockCount)
+BlockManager::BlockManager(uint8 *pBlocks, const uint16 &blockCount) : m_pBlocks(pBlocks), m_blockCount(blockCount)
 {
     //build index map
     uint8 *pBlock;
-    //init traverser
-    Record rRecord;
-    RecordTraverser rT;
+    uint16 position;
+    uint16 endOfRDFArea;
+    CIDF *pCIDF;
+    RDF *pRDF;
     
-    //build index map if there is any buffer
-    if(m_pBlocks != NULL)
+    //build index map
+    for(uint16 i = 0;i < m_blockCount;++i)
     {
-        for(uint16 i = 0;i < m_blockCount;++i)
+        pBlock = GetBlock(i);
+        pCIDF = GetCIDF(pBlock);
+        position = CIDFOffset - sizeof(RDF);
+        endOfRDFArea = pCIDF->m_location + pCIDF->m_amoutOfFreeSpace;
+        for(;;)
         {
-            pBlock = GetBlock(i);
-            //init RDF traverser and build index map for block
-            Block::RecordTraverserInit(&rT, pBlock);
-            while(Block::RecordTraverserNext(&rT, &rRecord))
-            {
-                avl_insert(m_pBlockIndex, BlockIndexNode_new(rRecord.m_pRDF->m_key, i));
-            }
+            //end of RDF area
+            if(position < endOfRDFArea)
+                break;
+            
+            pRDF = (RDF*)(pBlock + position);
+            m_rBlockIndex.insert(BlocksIndex::value_type(pRDF->m_key, i));
+            position -= sizeof(RDF);
         }
-    }
-    else
-    {
-        //create initial block
-        ReallocBlocks();
     }
 }
 
 BlockManager::~BlockManager()
 {
-    //delete blocks
-    scalable_aligned_free(m_pBlocks);
+    DeallocBlocks();
+}
+
+void BlockManager::DeallocBlocks()
+{
+    //dealloc blocks
+    scalable_aligned_free((void*)m_pBlocks);
     m_pBlocks = NULL;
     
     //clear indexes
-    avl_destroy(m_pBlockIndex, &BlockIndexNode_Delete);
-    m_pBlockIndex = NULL;
+    m_rBlockIndex.clear();
 }
 
 void BlockManager::ReallocBlocks()
@@ -105,99 +80,99 @@ void BlockManager::ReallocBlocks()
     Block::InitBlock(pNewBlock);
 }
 
-E_BMS BlockManager::WriteRecord(const uint64 &recordKey, const uint8 *pRecord, uint16 recordSize)
+uint32 BlockManager::WriteRecord(const uint64 &recordkey, const uint8 *pRecord, const uint16 &recordSize)
 {
     //size check
     if(recordSize > MAX_RECORD_SIZE)
-    {
         return eBMS_FailRecordTooBig;
-    }
     
-    //declarations
-    E_BMS writeStatus = eBMS_Ok;
-    E_BLS blockStatus;
+    E_BLS status;
     uint8 *pBlock;
+    uint16 RDFPosition;
+    uint16 recordPosition;
+    BlocksIndex::iterator itr;
+    uint64 recordKeyTmp;
+    
+    int removedRecords = 0;
+    uint32 retStatus = eBMS_Ok;
+    
+    uint16 recordSizeLocal;
     ByteBuffer rOut;
+    int cStatus;
     
     //PHASE 0 --> compression
+    //save variables
+    recordSizeLocal = recordSize;
+    
     //try to compress
-    if(recordSize > g_RecordSizeForCompression)
+    if(recordSizeLocal > g_RecordSizeForCompression)
     {
-        int cStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, pRecord, recordSize, rOut);
+        cStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, pRecord, recordSizeLocal, rOut);
         if(cStatus == Z_OK)
         {
-            if(rOut.size() < recordSize)
+            if(rOut.size() < recordSizeLocal)
             {
-                pRecord = (uint8*)rOut.contents();
-                recordSize = (uint16)rOut.size();
-                ++g_NumOfRecordCompressions;
+                pRecord = rOut.contents();
+                recordSizeLocal = (uint16)rOut.size();
+                g_NumOfRecordCompressions++;
             }
             else
             {
-                Log.Warning(__FUNCTION__, "Compression generated bigger size. Source size: %u, new size: " I64FMTD, recordSize, rOut.size());
+                Log.Warning(__FUNCTION__, "Compression generated bigger size. Source size: %u, new size: " I64FMTD, recordSizeLocal, rOut.size());
             }
         }
     }
     
     //PHASE 1 --> try to update
     //try to update record first
-    BlockIndexNode rNodeToFind = { recordKey };
-    BlockIndexNode *pFindNode = (BlockIndexNode*)avl_find(m_pBlockIndex, &rNodeToFind);
-    if(pFindNode != NULL)
+    itr = m_rBlockIndex.find(recordkey);
+    if(itr != m_rBlockIndex.end())
     {
         //get block
-        pBlock = GetBlock(pFindNode->m_blockNumber);
+        pBlock = GetBlock(itr->second);
         //update
-        blockStatus = Block::UpdateRecord(pBlock, recordKey, pRecord, recordSize);
-        if(blockStatus == eBLS_OK)
+        status = Block::UpdateRecord(pBlock, recordkey, pRecord, recordSizeLocal, NULL, &RDFPosition, &recordPosition);
+        if(status == eBLS_OK)
         {
-            return eBMS_Ok;
+            return retStatus;
         }
         
         //delete key will be on another block
-        BlockIndexNode_Delete_RemoveFromTree(m_pBlockIndex, pFindNode);
+        m_rBlockIndex.erase(itr);
     }
     
     //PHASE 2 --> check record limit
     //block limit - start to rewrite from begin (record key is timestamp)
-    size_t recordLimit = static_cast<size_t>(g_RecordLimit);
-    if(g_EnableRecordLimit && m_pBlockIndex->avl_count >= recordLimit)
+    BlocksIndex::size_type recordLimit = static_cast<BlocksIndex::size_type>(g_RecordLimit);
+    if(g_EnableRecordLimit && m_rBlockIndex.size() >= recordLimit)
     {
-        int removedRecords = 0;
         //limit can be lowed so delete all records
-        while(m_pBlockIndex->avl_count >= recordLimit)
+        while(m_rBlockIndex.size() >= recordLimit)
         {
-            //init traverser
-            struct avl_traverser rAvl_traverser;
-            avl_t_init(&rAvl_traverser, m_pBlockIndex);
-            
             //delete 1st one (the oldest)
-            BlockIndexNode *pFirstNode = (BlockIndexNode*)avl_t_first(&rAvl_traverser, m_pBlockIndex);
-            if(pFirstNode == NULL)
-                break;
+            itr = m_rBlockIndex.begin();
             
             //DO NOT ADD OLDER DATA
             //check if new data are not the older one
-            if(recordKey < pFirstNode->m_key)
+            recordKeyTmp = itr->first;
+            if(recordkey < recordKeyTmp)
             {
-                writeStatus = (E_BMS)(writeStatus | (eBMS_RecordCountLimit | eBMS_OldRecord));
-                return writeStatus;
+                retStatus |= (eBMS_RecordCountLimit | eBMS_OldRecord);
+                return retStatus;
             }
             
             //update counter
             ++removedRecords;
-            
-            //delete record from block + index map
-            DeleteRecord(pFirstNode);
-            
+            //this invalidate iterator
+            DeleteRecord(itr);
             //set return status
-            writeStatus = (E_BMS)(writeStatus | eBMS_RecordCountLimit);
+            retStatus |= eBMS_RecordCountLimit;
         }
         
         //request defragment
         if(removedRecords >= g_DefragAfterRecordDelete)
         {
-            writeStatus = (E_BMS)(writeStatus | eBMS_NeedDefrag);
+            retStatus |= eBMS_NeedDefrag;
         }
     }
     
@@ -206,37 +181,39 @@ E_BMS BlockManager::WriteRecord(const uint64 &recordKey, const uint8 *pRecord, u
     for(uint16 i = 0;i < m_blockCount;++i)
     {
         pBlock = GetBlock(i);
-        blockStatus = Block::WriteRecord(pBlock, recordKey, pRecord, recordSize);
-        if(blockStatus == eBLS_OK)
+        status = Block::WriteRecord(pBlock, recordkey, pRecord, recordSizeLocal);
+        if(status == eBLS_OK)
         {
-            avl_insert(m_pBlockIndex, BlockIndexNode_new(recordKey, i));
+            m_rBlockIndex.insert(BlocksIndex::value_type(recordkey, i));
             break;
         }
-        else if(blockStatus == eBLS_NO_SPACE_FOR_NEW_DATA && (i == (m_blockCount - 1)))
+        else if(status == eBLS_NO_SPACE_FOR_NEW_DATA && (i == (m_blockCount - 1)))
         {
             //relloc block + 1
             ReallocBlocks();
             //set status
-            writeStatus = (E_BMS)(writeStatus | eBMS_ReallocatedBlocks);
+            retStatus |= eBMS_ReallocatedBlocks;
         }
     }
-    return writeStatus;
+    
+    return retStatus;
 }
 
-void BlockManager::ReadRecord(const uint64 &recordKey, ByteBuffer &rData)
+void BlockManager::ReadRecord(const uint64 &recordkey, ByteBuffer &rData)
 {
-    //find block number where is block
-    BlockIndexNode rNodeToFind = { recordKey };
-    BlockIndexNode *pNode = (BlockIndexNode*)avl_find(m_pBlockIndex, &rNodeToFind);
-    if(pNode != NULL)
+    uint8 *pBlock;
+    BlocksIndex::iterator itr;
+    
+    itr = m_rBlockIndex.find(recordkey);
+    if(itr != m_rBlockIndex.end())
     {
-        uint8 *pBlock = GetBlock(pNode->m_blockNumber);
-        Block::GetRecord(pBlock, recordKey, rData);
+        pBlock = GetBlock(itr->second);
+        Block::GetRecord(pBlock, recordkey, rData);
     }
 }
 
 void BlockManager::ReadRecords(ByteBuffer &rData)
-{        
+{
     //pre-realloc buffer
     //key|recordSize|record|....Nx
     rData.reserve(BLOCK_SIZE * m_blockCount);
@@ -249,51 +226,42 @@ void BlockManager::ReadRecords(ByteBuffer &rData)
     }
 }
 
-void BlockManager::DeleteRecordByKey(const uint64 &recordKey)
+void BlockManager::DeleteRecord(const uint64 &recordkey)
 {
-    BlockIndexNode rNodeToFind = { recordKey };
-    BlockIndexNode *pNode = (BlockIndexNode*)avl_find(m_pBlockIndex, &rNodeToFind);
-    if(pNode != NULL)
+    BlocksIndex::iterator itr = m_rBlockIndex.find(recordkey);
+    if(itr != m_rBlockIndex.end())
     {
-        DeleteRecord(pNode);
+        DeleteRecord(itr);
     }
 }
 
-void BlockManager::DeleteRecord(BlockIndexNode *pBlockIndexNode)
-{    
+void BlockManager::DeleteRecord(BlocksIndex::iterator &itr)
+{
     uint8 *pBlock;
+    uint16 RDFPosition;
+    uint16 recordPosition;
     E_BLS deleteStatus;
     
-    //get block + delete record from block
-    pBlock = GetBlock(pBlockIndexNode->m_blockNumber);
-    deleteStatus = Block::DeleteRecordByKey(pBlock, pBlockIndexNode->m_key);
+    //delete
+    pBlock = GetBlock(itr->second);
+    deleteStatus = Block::DeleteRecord(pBlock, itr->first, NULL, &RDFPosition, &recordPosition);
     if(deleteStatus != eBLS_OK)
     {
-        Log.Warning(__FUNCTION__, "Trying to delete non-existant key: " I64FMTD " in block number: %u", pBlockIndexNode->m_key, pBlockIndexNode->m_blockNumber);
+        Log.Warning(__FUNCTION__, "Trying to delete non-existant key: " I64FMTD " in block number: %u", itr->first, itr->second);
     }
-    //delete from tree + delete Node from memory
-    BlockIndexNode_Delete_RemoveFromTree(m_pBlockIndex, pBlockIndexNode);
+    m_rBlockIndex.erase(itr);
 }
 
 void BlockManager::GetAllRecordKeys(ByteBuffer &rY)
 {
-    if(m_pBlockIndex->avl_count != 0)
+    if(!m_rBlockIndex.empty())
     {
         //prealloc
-        rY.reserve(m_pBlockIndex->avl_count * sizeof(uint64));
-        
-        //init traverser
-        struct avl_traverser rAvl_traverser;
-        avl_t_init(&rAvl_traverser, m_pBlockIndex);
-        
-        for(;;)
+        rY.reserve(m_rBlockIndex.size() * sizeof(uint64));
+        //add to buffer
+        for(BlocksIndex::iterator itr = m_rBlockIndex.begin();itr != m_rBlockIndex.end();++itr)
         {
-            BlockIndexNode *pNode = (BlockIndexNode*)avl_t_next(&rAvl_traverser);
-            if(pNode == NULL)
-                break;
-            
-            //add to buffer
-            rY << uint64(pNode->m_key);
+            rY << uint64(itr->first);
         }
     }
 }
@@ -306,7 +274,7 @@ void BlockManager::ClearDirtyFlags()
     for(uint16 i = 0;i < m_blockCount;++i)
     {
         pBlock = GetBlock(i);
-        pCIDF = Block::GetCIDF(pBlock);
+        pCIDF = GetCIDF(pBlock);
         pCIDF->m_flags &= ~eBLF_Dirty;
     }
 }
@@ -332,17 +300,8 @@ void BlockManager::DefragmentData()
     //read all data - key|recordSize|record|....Nx
     ReadRecords(rData);
     
-    //delete blocks
-    scalable_aligned_free(m_pBlocks);
-    m_pBlocks = NULL;
-    
-    //set block count to 0 !!!
-    m_blockCount = 0;
-    
-    //clear indexes + create empty
-    avl_destroy(m_pBlockIndex, &BlockIndexNode_Delete);
-    m_pBlockIndex = avl_create(&BlockIndexNode_compare, NULL, NULL);
-    
+    //deallloc blocks
+    DeallocBlocks();
     //create empty one
     ReallocBlocks();
     
@@ -362,7 +321,7 @@ void BlockManager::DefragmentData()
     }
     
     //update counter
-    ++g_NumOfRecordDeframentations;
+    g_NumOfRecordDeframentations++;
 }
 
 uint32 BlockManager::GetBlocksCrc32()
