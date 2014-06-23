@@ -272,7 +272,7 @@ uint32 Storage::WriteData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, co
         //allocate blockmanager
         //create block manager + add new block for write + update num of blocks
         void *pBlockManagerMem = scalable_malloc(sizeof(BlockManager));
-        rWriteAccesor->second.m_pBlockManager = new(pBlockManagerMem) BlockManager(NULL, 0);
+        rWriteAccesor->second.m_pBlockManager = new(pBlockManagerMem) BlockManager();
         rWriteAccesor->second.m_blockCount = rWriteAccesor->second.m_pBlockManager->numOfBlocks();
         
         //init index block
