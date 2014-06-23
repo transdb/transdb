@@ -59,12 +59,12 @@ public:
                     pData = (uint8*)malloc(datasize);
                     memset(pData, (rand()%255)+1, datasize);
                     
-                    Packet rPacket(C_MSG_DELETE_DATA, 1024);
+                    Packet rPacket(C_MSG_WRITE_DATA, 1024);
                     rPacket << uint32(token);
                     rPacket << uint32(0);
                     rPacket << uint64(x);
-//                    rPacket << uint64(y); //uint64(GetTickCount64()); //uint64(y);
-//                    rPacket.append(pData, datasize);
+                    rPacket << uint64(y); //uint64(GetTickCount64()); //uint64(y);
+                    rPacket.append(pData, datasize);
 
                     free(pData);
                     

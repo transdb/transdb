@@ -27,7 +27,7 @@ BlockManager::BlockManager(uint8 *pBlocks, const uint16 &blockCount) : m_pBlocks
     for(uint16 i = 0;i < m_blockCount;++i)
     {
         pBlock = GetBlock(i);
-        pCIDF = GetCIDF(pBlock);
+        pCIDF = Block::GetCIDF(pBlock);
         position = CIDFOffset - sizeof(RDF);
         endOfRDFArea = pCIDF->m_location + pCIDF->m_amoutOfFreeSpace;
         for(;;)
@@ -53,6 +53,9 @@ void BlockManager::DeallocBlocks()
     //dealloc blocks
     scalable_aligned_free((void*)m_pBlocks);
     m_pBlocks = NULL;
+    
+    //set block count to 0
+    m_blockCount = 0;
     
     //clear indexes
     m_rBlockIndex.clear();
@@ -274,7 +277,7 @@ void BlockManager::ClearDirtyFlags()
     for(uint16 i = 0;i < m_blockCount;++i)
     {
         pBlock = GetBlock(i);
-        pCIDF = GetCIDF(pBlock);
+        pCIDF = Block::GetCIDF(pBlock);
         pCIDF->m_flags &= ~eBLF_Dirty;
     }
 }
