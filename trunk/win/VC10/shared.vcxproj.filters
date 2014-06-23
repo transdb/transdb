@@ -90,6 +90,12 @@
     <ClCompile Include="..\..\src\shared\IO\IO.cpp">
       <Filter>IO</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\shared\Packets\http_parser.c">
+      <Filter>Packets</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared\Containers\avl.c">
+      <Filter>Containers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\shared\CallBack.h" />
@@ -227,6 +233,12 @@
     </ClInclude>
     <ClInclude Include="..\..\src\shared\IO\IO.h">
       <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\Packets\http_parser.h">
+      <Filter>Packets</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\Containers\avl.h">
+      <Filter>Containers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
