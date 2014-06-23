@@ -89,7 +89,7 @@ private:
 
 int main(int argc, const char * argv[])
 {
-    assert(StartSharedLib());    
+    StartSharedLib();    
     
     
     ClientSocket *pSocket = ConnectTCPSocket<ClientSocket>("localhost", 5555);

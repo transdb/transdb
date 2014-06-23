@@ -32,7 +32,6 @@
     <ClCompile Include="..\..\src\console\Launcher.cpp" />
     <ClCompile Include="..\..\src\console\LRUCache.cpp" />
     <ClCompile Include="..\..\src\console\main.cpp" />
-    <ClCompile Include="..\..\src\console\MemoryWatcher.cpp" />
     <ClCompile Include="..\..\src\console\PythonInterface.cpp" />
     <ClCompile Include="..\..\src\console\ServiceWin32.cpp" />
     <ClCompile Include="..\..\src\console\StatGenerator.cpp" />
@@ -55,7 +54,6 @@
     <ClInclude Include="..\..\src\console\IndexBlock.h" />
     <ClInclude Include="..\..\src\console\Launcher.h" />
     <ClInclude Include="..\..\src\console\LRUCache.h" />
-    <ClInclude Include="..\..\src\console\MemoryWatcher.h" />
     <ClInclude Include="..\..\src\console\PythonInterface.h" />
     <ClInclude Include="..\..\src\console\ServiceWin32.h" />
     <ClInclude Include="..\..\src\console\StatGenerator.h" />
@@ -151,6 +149,7 @@
       <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
       <ExceptionHandling>Async</ExceptionHandling>
       <PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

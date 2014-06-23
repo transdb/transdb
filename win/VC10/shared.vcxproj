@@ -31,6 +31,7 @@
     <ClCompile Include="..\..\src\shared\CallBack.cpp" />
     <ClCompile Include="..\..\src\shared\CommonFunctions.cpp" />
     <ClCompile Include="..\..\src\shared\Config\Config.cpp" />
+    <ClCompile Include="..\..\src\shared\Containers\avl.c" />
     <ClCompile Include="..\..\src\shared\CrashHandler.cpp" />
     <ClCompile Include="..\..\src\shared\Defines.cpp" />
     <ClCompile Include="..\..\src\shared\IO\IO.cpp" />
@@ -46,6 +47,7 @@
     <ClCompile Include="..\..\src\shared\Network\SocketOpsWin32.cpp" />
     <ClCompile Include="..\..\src\shared\Network\SocketWindows.cpp" />
     <ClCompile Include="..\..\src\shared\Packets\GeewaPacket.cpp" />
+    <ClCompile Include="..\..\src\shared\Packets\http_parser.c" />
     <ClCompile Include="..\..\src\shared\StackWalker.cpp" />
     <ClCompile Include="..\..\src\shared\Threading\ThreadPool.cpp" />
     <ClCompile Include="..\..\src\shared\zlib\adler32.c" />
@@ -66,6 +68,7 @@
     <ClInclude Include="..\..\src\shared\CallBack.h" />
     <ClInclude Include="..\..\src\shared\CommonFunctions.h" />
     <ClInclude Include="..\..\src\shared\Config\Config.h" />
+    <ClInclude Include="..\..\src\shared\Containers\avl.h" />
     <ClInclude Include="..\..\src\shared\Containers\HashMap.h" />
     <ClInclude Include="..\..\src\shared\Containers\SortedVector.h" />
     <ClInclude Include="..\..\src\shared\Containers\UniqueVector.h" />
@@ -94,6 +97,7 @@
     <ClInclude Include="..\..\src\shared\Network\SocketWindows.h" />
     <ClInclude Include="..\..\src\shared\Packets\ByteBuffer.h" />
     <ClInclude Include="..\..\src\shared\Packets\GeewaPacket.h" />
+    <ClInclude Include="..\..\src\shared\Packets\http_parser.h" />
     <ClInclude Include="..\..\src\shared\Packets\Packets.h" />
     <ClInclude Include="..\..\src\shared\Packets\StackBuffer.h" />
     <ClInclude Include="..\..\src\shared\Singleton.h" />
@@ -222,6 +226,7 @@
       <PrecompiledHeaderOutputFile>.\shared___Win64_Debug\shared.pch</PrecompiledHeaderOutputFile>
       <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
       <ExceptionHandling>Async</ExceptionHandling>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
