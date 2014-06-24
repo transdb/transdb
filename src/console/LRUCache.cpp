@@ -8,7 +8,7 @@
 
 #include "StdAfx.h"
 
-LRUCache::LRUCache(const char *pName, const uint64 &cacheSize) : m_last(NULL), m_first(NULL)
+LRUCache::LRUCache(const char *pName, uint64 cacheSize) : m_last(NULL), m_first(NULL)
 {
 	//prepare hashmap
     m_pMap = new LRUMap(cacheSize);
@@ -46,7 +46,7 @@ INLINE void LRUCache::ChangeChain(CRec *pCRecFind)
     }
 }
 
-void LRUCache::put(const uint64 &x)
+void LRUCache::put(uint64 x)
 {
     CRec *pCRec;
 
@@ -84,7 +84,7 @@ void LRUCache::put(const uint64 &x)
     m_pMap->put(x, pCRec);
 }
 
-bool LRUCache::remove(const uint64 &x)
+bool LRUCache::remove(uint64 x)
 {
 	CRec *pCRecFind;
     

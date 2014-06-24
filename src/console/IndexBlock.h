@@ -127,8 +127,8 @@ class IndexBlock
 public:
     ~IndexBlock();
     
-    void WriteRecordIndexToDisk(const HANDLE &hFile, RecordIndexMap::accessor &rWriteAccesor);
-    void EraseRecord(const HANDLE &hFile, const RecordIndex &rRecordIndex);
+    void WriteRecordIndexToDisk(HANDLE hFile, RecordIndexMap::accessor &rWriteAccesor);
+    void EraseRecord(HANDLE hFile, const RecordIndex &rRecordIndex);
     
 private:
     //private ctor only created from Storage
@@ -138,7 +138,7 @@ private:
 	//disable copy constructor and assign
 	DISALLOW_COPY_AND_ASSIGN(IndexBlock);
     
-    uint8 *GetCachedDiskBlock(const HANDLE &hFile, const size_t &blockDiskPosition, const uint32 &blockNumber);
+    uint8 *GetCachedDiskBlock(HANDLE hFile, size_t blockDiskPosition, uint32 blockNumber);
     DREC *GetEmptyDREC(const uint8 *pDiskBlock, int16 *newRecordOffset);
 
     //declarations

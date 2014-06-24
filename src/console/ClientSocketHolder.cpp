@@ -48,7 +48,7 @@ void ClientSocketHolder::RemoveSocket(ClientSocket *pClientSocket)
     m_clientSockets.erase(pClientSocket->GetSocketID());
 }
 
-void ClientSocketHolder::SendPacket(const uint64 &socketID, const Packet &rPacket)
+void ClientSocketHolder::SendPacket(uint64 socketID, const Packet &rPacket)
 {
     std::lock_guard<std::recursive_mutex> rGuard(m_lock);
     ClientSocketMap::iterator itr = m_clientSockets.find(socketID);
@@ -58,7 +58,7 @@ void ClientSocketHolder::SendPacket(const uint64 &socketID, const Packet &rPacke
     }
 }
 
-void ClientSocketHolder::SendPacket(const uint64 &socketID, const StackPacket &rPacket)
+void ClientSocketHolder::SendPacket(uint64 socketID, const StackPacket &rPacket)
 {
     std::lock_guard<std::recursive_mutex> rGuard(m_lock);
     ClientSocketMap::iterator itr = m_clientSockets.find(socketID);

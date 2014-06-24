@@ -24,16 +24,16 @@ public:
 	~Storage();
     
 	//handlers
-    void ReadData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x, const uint64 &y, ByteBuffer &rData);
-    void ReadData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x, ByteBuffer &rData);
-    uint32 WriteData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x, const uint64 &y, const uint8 *pRecord, const uint16 &recordSize);
-    void DeleteData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x, const uint64 &y);
-    void DeleteData(LRUCache &rLRUCache, const uint64 &x);
+    void ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, uint64 y, ByteBuffer &rData);
+    void ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, ByteBuffer &rData);
+    uint32 WriteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, uint64 y, const uint8 *pRecord, uint16 recordSize);
+    void DeleteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, uint64 y);
+    void DeleteData(LRUCache &rLRUCache, uint64 x);
     void GetAllX(uint8 **pX, uint64 *xSize);
-    void GetAllY(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x, ByteBuffer &rY);
+    void GetAllY(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, ByteBuffer &rY);
     void GetStats(ByteBuffer &rBuff);
-    void DefragmentData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x);
-    void GetFreeSpaceDump(ByteBuffer &rBuff, const uint32 &dumpFlags);
+    void DefragmentData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x);
+    void GetFreeSpaceDump(ByteBuffer &rBuff, uint32 dumpFlags);
     
 	//thread
     bool run();
@@ -50,7 +50,7 @@ private:
     void DefragmentDataInternal(RecordIndexMap::accessor &rWriteAccessor);
     
     //for CRC32 check
-    void LoadFromDisk(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x);
+    void LoadFromDisk(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, uint64 x);
     void Crc32Check(const HANDLE &rDataFileHandle);
     
     //check if data for blockmanager are in memory and load it from disk

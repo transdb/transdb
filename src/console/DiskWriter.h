@@ -16,7 +16,7 @@ struct WriteInfo
         
     }
     
-    explicit WriteInfo(const uint64 &key, const int64 &recordPosition) : m_key(key), m_recordPosition(recordPosition)
+    explicit WriteInfo(uint64 key, int64 recordPosition) : m_key(key), m_recordPosition(recordPosition)
     {
         
     }
@@ -55,7 +55,7 @@ public:
     
     void QueueIndexDeletetion(RecordIndexMap::accessor &rWriteAccesor);    
     void Queue(RecordIndexMap::accessor &rWriteAccesor);
-    void Remove(const uint64 &x);
+    void Remove(uint64 x);
 	void Process();
     
 	bool HasTasks()
@@ -82,7 +82,7 @@ public:
     }
 
     //reallocating
-	void ReallocDataFile(const HANDLE &hDataFile, const int64 &minSize, bool oAddFreeSpace = true);
+	void ReallocDataFile(HANDLE hDataFile, int64 minSize, bool oAddFreeSpace = true);
     
 private:
     //private ctor only created from Storage
@@ -92,12 +92,12 @@ private:
 
     //private functions
     void ProcessIndexDeleteQueue();
-    void WriteDataWithoutRelocateFlag(const HANDLE &hDataFile, RecordIndexMap::accessor &rWriteAccessor);
-    bool WriteDataWithRelocateFlag(const HANDLE &hDataFile, RecordIndexMap::accessor &rWriteAccessor);
+    void WriteDataWithoutRelocateFlag(HANDLE hDataFile, RecordIndexMap::accessor &rWriteAccessor);
+    bool WriteDataWithRelocateFlag(HANDLE hDataFile, RecordIndexMap::accessor &rWriteAccessor);
     
     //freespace functions
-	void AddFreeSpace(const int64 &pos, const int64 &lenght);
-	int64 GetFreeSpacePos(const int64 &size);
+	void AddFreeSpace(int64 pos, int64 lenght);
+	int64 GetFreeSpacePos(int64 size);
 	void DefragmentFreeSpace();
     
     //declarations

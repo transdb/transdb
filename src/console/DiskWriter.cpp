@@ -79,7 +79,7 @@ NOINLINE static bool _S_DiskWriter_ProcessQueue(DiskWriter::DirtyXQueue *pQueue,
     return false;
 }
 
-void DiskWriter::WriteDataWithoutRelocateFlag(const HANDLE &hDataFile, RecordIndexMap::accessor &rWriteAccessor)
+void DiskWriter::WriteDataWithoutRelocateFlag(HANDLE hDataFile, RecordIndexMap::accessor &rWriteAccessor)
 {
     uint8 *pBlock;
     CIDF *pCIDF;
@@ -101,7 +101,7 @@ void DiskWriter::WriteDataWithoutRelocateFlag(const HANDLE &hDataFile, RecordInd
     }
 }
 
-bool DiskWriter::WriteDataWithRelocateFlag(const HANDLE &hDataFile, RecordIndexMap::accessor &rWriteAccessor)
+bool DiskWriter::WriteDataWithRelocateFlag(HANDLE hDataFile, RecordIndexMap::accessor &rWriteAccessor)
 {
     int64 requestDiskSize;
     int64 freePos;
@@ -297,13 +297,13 @@ void DiskWriter::Process()
     } /* end if */
 }
 
-void DiskWriter::Remove(const uint64 &x)
+void DiskWriter::Remove(uint64 x)
 {
     std::lock_guard<std::mutex> rQGuard(m_rQueueLock);
     m_pQueue->remove(x);
 }
 
-void DiskWriter::ReallocDataFile(const HANDLE &hDataFile, const int64 &minSize, bool oAddFreeSpace /*= true*/)
+void DiskWriter::ReallocDataFile(HANDLE hDataFile, int64 minSize, bool oAddFreeSpace /*= true*/)
 {
 	int64 reallocSize;
     int64 startFreeSpace;
@@ -383,7 +383,7 @@ void DiskWriter::ProcessIndexDeleteQueue()
     }
 }
 
-void DiskWriter::AddFreeSpace(const int64 &pos, const int64 &lenght)
+void DiskWriter::AddFreeSpace(int64 pos, int64 lenght)
 {
     if(pos < 0 || lenght <= 0)
     {
@@ -406,13 +406,13 @@ void DiskWriter::AddFreeSpace(const int64 &pos, const int64 &lenght)
 
 struct PredGreater
 {
-    explicit PredGreater(const int64 &x) : m_x(x) {}
+    explicit PredGreater(int64 x) : m_x(x) {}
     INLINE bool operator()(const DiskWriter::FreeSpaceBlockMap::value_type & p) { return (m_x < p.first); }
 private:
     int64 m_x;
 };
 
-int64 DiskWriter::GetFreeSpacePos(const int64 &lenght)
+int64 DiskWriter::GetFreeSpacePos(int64 lenght)
 {
     int64 returnPos = -1;
     int64 newSize;

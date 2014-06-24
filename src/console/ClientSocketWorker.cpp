@@ -143,7 +143,7 @@ void ClientSocketWorker::DestroyStorage()
     m_pStorage = NULL;
 }
 
-void ClientSocketWorker::QueuePacket(const uint16 &opcode, const uint64 &socketID, ClientSocketBuffer &rPacket)
+void ClientSocketWorker::QueuePacket(uint16 opcode, uint64 socketID, ClientSocketBuffer &rPacket)
 {
 	void *pClientSocketTaskDataMem;
     ClientSocketTaskData *pClientSocketTaskData;    
@@ -160,7 +160,7 @@ void ClientSocketWorker::QueuePacket(const uint16 &opcode, const uint64 &socketI
 	m_rTaskDataQueue.push(pClientSocketTaskData);
 }
 
-void ClientSocketWorker::QueueReadPacket(const uint16 &opcode, const uint64 &socketID, ClientSocketBuffer &rPacket)
+void ClientSocketWorker::QueueReadPacket(uint16 opcode, uint64 socketID, ClientSocketBuffer &rPacket)
 {
 	void *pClientSocketTaskDataMem;
     ClientSocketTaskData *pClientSocketTaskData;

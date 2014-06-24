@@ -192,7 +192,7 @@ void ClientSocket::OnDisconnect()
     g_rClientSocketHolder.RemoveSocket(this);
 }
 
-void ClientSocket::OutPacket(const uint16 &opcode, const size_t &len, const void* data)
+void ClientSocket::OutPacket(uint16 opcode, size_t len, const void* data)
 {
     OUTPACKET_RESULT result;
     //try to send
@@ -258,7 +258,7 @@ void ClientSocket::ProcessQueue()
     }
 }
 
-OUTPACKET_RESULT ClientSocket::_OutPacket(const uint16 &opcode, const size_t &len, const void* data)
+OUTPACKET_RESULT ClientSocket::_OutPacket(uint16 opcode, size_t len, const void* data)
 {
 	bool rv;
 	if(!IsConnected())

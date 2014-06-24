@@ -44,10 +44,10 @@ public:
     uint64 GetQueueSize();
     
     //ID
-    INLINE const uint64 &GetSocketID() const    { return m_socketID; }
+    INLINE const uint64 GetSocketID() const    { return m_socketID; }
     
     //sender
-    void OutPacket(const uint16 &opcode, const size_t &len, const void* data);
+    void OutPacket(uint16 opcode, size_t len, const void* data);
     
     //ping
     void SendPing();
@@ -58,7 +58,7 @@ private:
 	//disable copy constructor and assign
 	DISALLOW_COPY_AND_ASSIGN(ClientSocket);
     
-    OUTPACKET_RESULT _OutPacket(const uint16 &opcode, const size_t &len, const void* data);
+    OUTPACKET_RESULT _OutPacket(uint16 opcode, size_t len, const void* data);
     
     uint64                  m_socketID;
     uint32                  m_latency;
