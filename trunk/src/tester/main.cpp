@@ -25,7 +25,7 @@ public:
 //        Packet rPacket(C_MSG_DELETE_X, 1024);
 //        rPacket << uint32(0);
 //        rPacket << uint32(0);
-//        rPacket << uint64(100000);
+//        rPacket << uint64(12884921714);
 ////        rPacket << uint64(1);
 //        m_pSocket->SendPacket(rPacket);
 //        return true;
@@ -47,7 +47,7 @@ public:
         printf("%lu\n", time(NULL));
         for(uint64 i = 0;i < 10;++i)
         {
-            for(uint64 x = 0;x < 100;++x)
+            for(uint64 x = 0;x < 1000;++x)
             {
     //            random = 1;
     //            random = rand() % 1000;

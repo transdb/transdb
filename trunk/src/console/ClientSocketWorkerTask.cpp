@@ -78,8 +78,6 @@ bool ClientSocketWorkerTask::run()
     
     //data from queue
 	ClientSocketTaskData *pClientSocketTaskData;
-    //LRU recycle timer
-    time_t checkTime = UNIXTIME + g_MemoryPoolsRecycleTimer;
     
     try
     {
@@ -115,15 +113,7 @@ bool ClientSocketWorkerTask::run()
             
             //check memory
             m_rStorage.CheckMemory(*m_pLRUCache);
-            
-            //recycle memory pools timer
-            if(checkTime < UNIXTIME)
-            {
-                m_pLRUCache->recycle();
-                //update next check time
-                checkTime = UNIXTIME + g_MemoryPoolsRecycleTimer;
-            }
-            
+                        
             //call ~ctor + dealloc task data
             pClientSocketTaskData->~ClientSocketTaskData();
 			m_rClientSocketWorker.m_pFixedPool->free(pClientSocketTaskData);

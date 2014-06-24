@@ -14,7 +14,7 @@ BlockManager::BlockManager() : m_pBlocks(NULL), m_blockCount(0)
     ReallocBlocks();
 }
 
-BlockManager::BlockManager(uint8 *pBlocks, const uint16 &blockCount) : m_pBlocks(pBlocks), m_blockCount(blockCount)
+BlockManager::BlockManager(uint8 *pBlocks, uint16 blockCount) : m_pBlocks(pBlocks), m_blockCount(blockCount)
 {
     //build index map
     uint8 *pBlock;
@@ -83,7 +83,7 @@ void BlockManager::ReallocBlocks()
     Block::InitBlock(pNewBlock);
 }
 
-uint32 BlockManager::WriteRecord(const uint64 &recordkey, const uint8 *pRecord, const uint16 &recordSize)
+uint32 BlockManager::WriteRecord(uint64 recordkey, const uint8 *pRecord, uint16 recordSize)
 {
     //size check
     if(recordSize > MAX_RECORD_SIZE)
@@ -202,7 +202,7 @@ uint32 BlockManager::WriteRecord(const uint64 &recordkey, const uint8 *pRecord, 
     return retStatus;
 }
 
-void BlockManager::ReadRecord(const uint64 &recordkey, ByteBuffer &rData)
+void BlockManager::ReadRecord(uint64 recordkey, ByteBuffer &rData)
 {
     uint8 *pBlock;
     BlocksIndex::iterator itr;
@@ -229,7 +229,7 @@ void BlockManager::ReadRecords(ByteBuffer &rData)
     }
 }
 
-void BlockManager::DeleteRecord(const uint64 &recordkey)
+void BlockManager::DeleteRecord(uint64 recordkey)
 {
     BlocksIndex::iterator itr = m_rBlockIndex.find(recordkey);
     if(itr != m_rBlockIndex.end())

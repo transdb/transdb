@@ -32,20 +32,20 @@ class BlockManager
     
 public:
     explicit BlockManager();
-    explicit BlockManager(uint8 *pBlocks, const uint16 &blockCount);
+    explicit BlockManager(uint8 *pBlocks, uint16 blockCount);
     ~BlockManager();
     
-    uint32 WriteRecord(const uint64 &recordkey, const uint8 *pRecord, const uint16 &recordSize);
-    void ReadRecord(const uint64 &recordkey, ByteBuffer &rData);
+    uint32 WriteRecord(uint64 recordkey, const uint8 *pRecord, uint16 recordSize);
+    void ReadRecord(uint64 recordkey, ByteBuffer &rData);
     void ReadRecords(ByteBuffer &rData);
-    void DeleteRecord(const uint64 &recordkey);
+    void DeleteRecord(uint64 recordkey);
     void GetAllRecordKeys(ByteBuffer &rY);
     void ClearDirtyFlags();
     void DefragmentData();
-    NOINLINE uint32 GetBlocksCrc32();
+    uint32 GetBlocksCrc32();
     
     INLINE uint16 numOfBlocks() const               { return m_blockCount; }
-    INLINE uint8 *GetBlock(const uint16 &blockNum)  { return m_pBlocks + (BLOCK_SIZE * blockNum); }
+    INLINE uint8 *GetBlock(uint16 blockNum) const   { return m_pBlocks + (BLOCK_SIZE * blockNum); }
     INLINE size_t numOfRecords() const              { return m_rBlockIndex.size(); }
     
 private:

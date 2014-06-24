@@ -303,12 +303,6 @@ void DiskWriter::Remove(const uint64 &x)
     m_pQueue->remove(x);
 }
 
-void DiskWriter::RecycleQueue()
-{
-    _S_FixedPool_Recycle("DiskQueue", m_rQueueLock, *m_pQueue);
-    _S_FixedPool_Recycle("RIDelQueue", m_rRIDelQueueLock, *m_pRIDelQueue);
-}
-
 void DiskWriter::ReallocDataFile(const HANDLE &hDataFile, const int64 &minSize, bool oAddFreeSpace /*= true*/)
 {
 	int64 reallocSize;
