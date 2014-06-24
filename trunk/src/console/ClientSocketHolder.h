@@ -22,8 +22,8 @@ public:
     void RemoveSocket(ClientSocket *pClientSocket);
     
     //send packet
-    void SendPacket(const uint64 &socketID, const Packet &rPacket);
-    void SendPacket(const uint64 &socketID, const StackPacket &rPacket);
+    void SendPacket(uint64 socketID, const Packet &rPacket);
+    void SendPacket(uint64 socketID, const StackPacket &rPacket);
     
     //for stats
     uint64 GetAllSocketPacketQueueSize();

@@ -212,7 +212,7 @@ bool IndexBlock::Init(const std::string &rIndexFilePath,
     return true;
 }
 
-void IndexBlock::WriteRecordIndexToDisk(const HANDLE &hFile, RecordIndexMap::accessor &rWriteAccesor)
+void IndexBlock::WriteRecordIndexToDisk(HANDLE hFile, RecordIndexMap::accessor &rWriteAccesor)
 {
     ICIDF *pICIDF;
     uint32 freeBlock;
@@ -330,7 +330,7 @@ void IndexBlock::WriteRecordIndexToDisk(const HANDLE &hFile, RecordIndexMap::acc
     }
 }
 
-void IndexBlock::EraseRecord(const HANDLE &hFile, const RecordIndex &rRecordIndex)
+void IndexBlock::EraseRecord(HANDLE hFile, const RecordIndex &rRecordIndex)
 {
     //not written yet
     if(rRecordIndex.m_IB_recordOffset == -1)
@@ -375,7 +375,7 @@ void IndexBlock::EraseRecord(const HANDLE &hFile, const RecordIndex &rRecordInde
     IO::fwrite(pDiskBlock, INDEX_BLOCK_SIZE, hFile);
 }
 
-uint8 *IndexBlock::GetCachedDiskBlock(const HANDLE &hFile, const size_t &blockDiskPosition, const uint32 &blockNumber)
+uint8 *IndexBlock::GetCachedDiskBlock(HANDLE hFile, size_t blockDiskPosition, uint32 blockNumber)
 {
     uint8 *pDiskBlock;
     uint64 blockToDelete;

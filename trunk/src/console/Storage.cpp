@@ -99,7 +99,7 @@ Storage::~Storage()
 	m_pDataIndexDiskWriter = NULL;
 }
 
-void Storage::LoadFromDisk(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x)
+void Storage::LoadFromDisk(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, uint64 x)
 {
     RecordIndexMap::accessor rWriteAccessor;
     if(m_dataIndexes.find(rWriteAccessor, x))
@@ -219,7 +219,7 @@ void Storage::Crc32Check(const HANDLE &rDataFileHandle)
     Log.Notice(__FUNCTION__, "Finished checking integrity of data file.");
 }
 
-void Storage::ReadData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x, const uint64 &y, ByteBuffer &rData)
+void Storage::ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, uint64 y, ByteBuffer &rData)
 {
     RecordIndexMap::accessor rWriteAccessor;
     if(m_dataIndexes.find(rWriteAccessor, x))
@@ -237,7 +237,7 @@ void Storage::ReadData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const
     Log.Debug(__FUNCTION__, "Read data [x:" I64FMTD ",y:" I64FMTD "] size: " I64FMTD, x, y, rData.size());
 }
 
-void Storage::ReadData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x, ByteBuffer &rData)
+void Storage::ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, ByteBuffer &rData)
 {
     RecordIndexMap::accessor rWriteAccessor;
     if(m_dataIndexes.find(rWriteAccessor, x))
@@ -255,7 +255,7 @@ void Storage::ReadData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const
     Log.Debug(__FUNCTION__, "Read data [x:" I64FMTD ",y:" I64FMTD "] size: " I64FMTD, x, 0, rData.size());
 }
 
-uint32 Storage::WriteData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x, const uint64 &y, const uint8 *pRecord, const uint16 &recordSize)
+uint32 Storage::WriteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, uint64 y, const uint8 *pRecord, uint16 recordSize)
 {
     //ret value
     uint32 status;
@@ -342,7 +342,7 @@ uint32 Storage::WriteData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, co
     return status;
 }
 
-void Storage::DeleteData(LRUCache &rLRUCache, const uint64 &x)
+void Storage::DeleteData(LRUCache &rLRUCache, uint64 x)
 {
 	uint64 recordSize;
 
@@ -379,7 +379,7 @@ void Storage::DeleteData(LRUCache &rLRUCache, const uint64 &x)
 	m_pDiskWriter->Remove(x);
 }
 
-void Storage::DeleteData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x, const uint64 &y)
+void Storage::DeleteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, uint64 y)
 {
     RecordIndexMap::accessor rWriteAccessor;
     if(m_dataIndexes.find(rWriteAccessor, x))
@@ -401,7 +401,7 @@ void Storage::DeleteData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, con
     }
 }
 
-void Storage::GetAllY(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x, ByteBuffer &rY)
+void Storage::GetAllY(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, ByteBuffer &rY)
 {
     RecordIndexMap::accessor rWriteAccessor;
     if(m_dataIndexes.find(rWriteAccessor, x))
@@ -420,7 +420,7 @@ void Storage::GetAllY(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const 
     }
 }
 
-void Storage::DefragmentData(const HANDLE &rDataFileHandle, LRUCache &rLRUCache, const uint64 &x)
+void Storage::DefragmentData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x)
 {
     RecordIndexMap::accessor rWriteAccessor;
     if(m_dataIndexes.find(rWriteAccessor, x))
@@ -471,7 +471,7 @@ void Storage::DefragmentDataInternal(RecordIndexMap::accessor &rWriteAccessor)
     Log.Debug(__FUNCTION__, "Defragmented data x:" I64FMTD, rWriteAccessor->first);
 }
 
-void Storage::GetFreeSpaceDump(ByteBuffer &rBuff, const uint32 &dumpFlags)
+void Storage::GetFreeSpaceDump(ByteBuffer &rBuff, uint32 dumpFlags)
 {
 //    //lock
 //    std::lock_guard<std::mutex> rGuard(m_rFreeSpaceLock);

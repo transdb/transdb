@@ -12,8 +12,8 @@
 class ClientSocketTaskData
 {
 public:
-    explicit ClientSocketTaskData(const uint16 &opcode,
-                                  const uint64 &socketID,
+    explicit ClientSocketTaskData(uint16 opcode,
+                                  uint64 socketID,
                                   ClientSocketBuffer &rPacket) : m_socketID(socketID),
                                                                  m_opcode(opcode),
                                                                  m_rpos(0),
@@ -83,9 +83,9 @@ public:
     //write pending write to disk and destroy storage
     void DestroyStorage();
     //queue item
-    void QueuePacket(const uint16 &opcode, const uint64 &socketID, ClientSocketBuffer &rPacket);
+    void QueuePacket(uint16 opcode, uint64 socketID, ClientSocketBuffer &rPacket);
     //queuen items from opcode C_MSG_READ_DATA
-    void QueueReadPacket(const uint16 &opcode, const uint64 &socketID, ClientSocketBuffer &rPacket);
+    void QueueReadPacket(uint16 opcode, uint64 socketID, ClientSocketBuffer &rPacket);
 	//get queue size
 	size_t GetQueueSize();
     //get read queue size
