@@ -55,20 +55,20 @@ void LRUCache::put(const uint64 &x)
     if(m_pMap->get(x, pCRec))
     {
         ChangeChain(pCRec);
-        m_rCRecCache.deallocate(pCRec);
+        scalable_free(pCRec);
     }
 
     //init 1st
-    if(m_first == NULL)
+    if(m_first != NULL)
     {
-        m_first = m_rCRecCache.allocate();
-        pCRec = m_first;
+        pCRec = (CRec*)scalable_malloc(sizeof(CRec));
     }
     else
     {
-        pCRec = m_rCRecCache.allocate();
+        m_first = (CRec*)scalable_malloc(sizeof(CRec));
+        pCRec = m_first;
     }
-
+    
     //init
     pCRec->m_key = x;
     pCRec->m_pPrev = m_last;
@@ -95,7 +95,7 @@ bool LRUCache::remove(const uint64 &x)
         ChangeChain(pCRecFind);
 
 		//delete
-		m_rCRecCache.deallocate(pCRecFind);
+        scalable_free(pCRecFind);
 		m_pMap->remove(x);
         return true;
 	}
@@ -110,11 +110,5 @@ bool LRUCache::get(uint64 *retVal)
 		return true;
 	}
     return false;
-}
-
-void LRUCache::recycle()
-{
-    m_rCRecCache.recycle();
-    m_pMap->recycle();
 }
 

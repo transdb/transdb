@@ -617,8 +617,6 @@ bool Storage::run()
 #ifdef WIN32
         _set_se_translator(trans_func);
 #endif
-        //set start time
-        time_t checkTime = UNIXTIME + g_MemoryPoolsRecycleTimer;
         
         while(m_threadRunning)
         {                
@@ -627,13 +625,6 @@ bool Storage::run()
             {
                 //process disk operations
                 m_pDiskWriter->Process();
-            }
-            
-            //diskwriter queue recycle timer
-            if(checkTime < UNIXTIME)
-            {
-                m_pDiskWriter->RecycleQueue();
-                checkTime = UNIXTIME + g_MemoryPoolsRecycleTimer;
             }
 
             Wait(100);
