@@ -409,7 +409,6 @@ struct FillXKeys
     void operator()(const tbb::blocked_range<uint32>& range) const
     {
         uint8 *pBlock;
-        ICIDF *pICIDF;
         uint16 position;
         DREC *pDREC;
         
@@ -418,7 +417,6 @@ struct FillXKeys
         {
             position = 0;
             pBlock = (m_pData + (INDEX_BLOCK_SIZE * i));
-            pICIDF = GetICIDF(pBlock);
             
             //read record
             for(;;)
