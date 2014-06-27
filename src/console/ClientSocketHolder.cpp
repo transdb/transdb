@@ -68,6 +68,28 @@ void ClientSocketHolder::SendPacket(uint64 socketID, const StackPacket &rPacket)
     }
 }
 
+OUTPACKET_RESULT ClientSocketHolder::StartStreamSend(uint64 socketID, const Packet &rPacket, size_t dataSize)
+{
+    std::lock_guard<std::recursive_mutex> rGuard(m_lock);
+    ClientSocketMap::iterator itr = m_clientSockets.find(socketID);
+    if(itr != m_clientSockets.end())
+    {
+        return itr->second->StartStreamSend(rPacket, dataSize);
+    }
+    return OUTPACKET_RESULT_SOCKET_ERROR;
+}
+
+OUTPACKET_RESULT ClientSocketHolder::StreamSend(uint64 socketID, const void *dataChunk, size_t chunkSize)
+{
+    std::lock_guard<std::recursive_mutex> rGuard(m_lock);
+    ClientSocketMap::iterator itr = m_clientSockets.find(socketID);
+    if(itr != m_clientSockets.end())
+    {
+        return itr->second->StreamSend(dataChunk, chunkSize);
+    }
+    return OUTPACKET_RESULT_SOCKET_ERROR;
+}
+
 void ClientSocketHolder::Update()
 {
     //called every 500ms

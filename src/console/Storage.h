@@ -29,7 +29,7 @@ public:
     uint32 WriteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, uint64 y, const uint8 *pRecord, uint16 recordSize);
     void DeleteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, uint64 y);
     void DeleteData(LRUCache &rLRUCache, uint64 x);
-    void GetAllX(uint8 **pX, uint64 *xSize);
+    void GetAllX(ByteBuffer &rX);
     void GetAllY(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, ByteBuffer &rY);
     void GetStats(ByteBuffer &rBuff);
     void DefragmentData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x);

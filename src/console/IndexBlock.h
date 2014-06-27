@@ -116,6 +116,8 @@ public:
 
 //main map for indexes
 typedef tbb::concurrent_hash_map<uint64, RecordIndex, HashCompare<uint64> >         RecordIndexMap;
+//for getting all X keys
+typedef tbb::concurrent_vector<uint64>                                              XKeyVec;
 
 class IndexBlock
 {

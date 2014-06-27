@@ -19,7 +19,7 @@ bool ConfigWatcher::run()
 {
     CommonFunctions::SetThreadName("ConfigWatcher thread");
     
-    ByteBuffer rBuff;
+    //
     time_t lastFileModification;
     time_t lastFileModificationNew;
     

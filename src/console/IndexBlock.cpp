@@ -163,6 +163,9 @@ bool IndexBlock::Init(const std::string &rIndexFilePath,
         //iterate and fill containers
         tbb::parallel_for(tbb::blocked_range<uint32>(0, m_blockCount), rFillIndex);
         
+        //defragment
+        pIndexDef->shrink_to_fit();
+        
         //add data to m_freeBlocks
         for(Init_FreeBlocksSet::iterator itr = pFreeBlocksSet->begin();itr != pFreeBlocksSet->end();++itr)
         {
