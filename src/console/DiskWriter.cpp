@@ -9,6 +9,7 @@
 #include "StdAfx.h"
 
 DiskWriter::DiskWriter(Storage &rStorage) : m_rStorage(rStorage),
+                                            m_pFreeSpaceDump(new FreeSpaceDumpTask(32)),
                                             m_pQueue(new DirtyXQueue(4*1024)),
                                             m_pRIDelQueue(new RIDelQueue(4*1024)),
                                             m_sumDiskWriteTime(0),
@@ -24,6 +25,8 @@ DiskWriter::~DiskWriter()
     m_pQueue = NULL;
     delete m_pRIDelQueue;
     m_pRIDelQueue = NULL;
+    delete m_pFreeSpaceDump;
+    m_pFreeSpaceDump = NULL;
 }
 
 void DiskWriter::Queue(RecordIndexMap::accessor &rWriteAccesor)
@@ -54,6 +57,12 @@ void DiskWriter::QueueIndexDeletetion(RecordIndexMap::accessor &rWriteAccesor)
     rRecordIndex.m_IB_blockNumber = rWriteAccesor->second.m_IB_blockNumber;
     //add to queue
     m_pRIDelQueue->put(rWriteAccesor->first, rRecordIndex);
+}
+
+void DiskWriter::QueueFreeSpaceDump(uint64 socketID, uint32 token, uint32 dumpFlags)
+{
+    std::lock_guard<std::mutex> rGuard(m_rFreeSpaceDumpLock);
+    m_pFreeSpaceDump->put(socketID, FreeSpaceTask(token, dumpFlags));
 }
 
 INLINE static bool _S_SortWriteInfoForWrite(const WriteInfo &rWriteInfo1, const WriteInfo &rWriteInfo2)
@@ -149,6 +158,11 @@ void DiskWriter::Process()
     //process index delete queue (delete from disk)
     {
         ProcessIndexDeleteQueue();
+    }
+    
+    //process freespace dump task -> Send dump over socket
+    {
+        ProcessFreeSpaceDump();
     }
     
     //check if we have items to process
@@ -469,6 +483,182 @@ void DiskWriter::DefragmentFreeSpace()
 {
     //TODO: DefragmentFreeSpace
 }
+
+NOINLINE static void _S_DiskWriter_GetItemsFromFreeSpaceDump(DiskWriter::FreeSpaceDumpTask *pFreeSpaceDump,
+                                                             std::mutex &rFreeSpaceDumpLock,
+                                                             Vector<std::pair<uint64, FreeSpaceTask> > &rKeyPair)
+{
+    std::lock_guard<std::mutex> rGuard(rFreeSpaceDumpLock);
+    if(pFreeSpaceDump->size())
+    {
+        rKeyPair.reserve(pFreeSpaceDump->size());
+        pFreeSpaceDump->getKeyValuePairs(rKeyPair);
+        pFreeSpaceDump->clear();
+    }
+}
+
+static uint32 _S_DiskWriter_GetFreeSpaceDump(ByteBuffer &rBuff,
+                                           DiskWriter::FreeSpaceBlockMap &rFreeSpaceBlockMap,
+                                           int64 dataFileSize,
+                                           bool fullDump)
+{
+    //prealloc buffer
+    if(fullDump == true)
+    {
+        size_t reserveSize = 0;
+        for(DiskWriter::FreeSpaceBlockMap::iterator itr = rFreeSpaceBlockMap.begin();itr != rFreeSpaceBlockMap.end();++itr)
+        {
+            reserveSize += sizeof(int64);
+            reserveSize += itr->second.size() * sizeof(int64);
+        }
+        rBuff.reserve(reserveSize + sizeof(uint64));
+    }
+    
+    //data file size
+    rBuff << uint64(dataFileSize);
+    //freeSpace size
+    rBuff << uint64(rFreeSpaceBlockMap.size());
+    //
+    for(DiskWriter::FreeSpaceBlockMap::iterator itr = rFreeSpaceBlockMap.begin();itr != rFreeSpaceBlockMap.end();++itr)
+    {
+        rBuff << uint64(itr->first);
+        rBuff << uint64(itr->second.size());
+        if(fullDump == true)
+        {
+            for(DiskWriter::FreeSpaceOffsets::iterator itr2 = itr->second.begin();itr2 != itr->second.end();++itr2)
+            {
+                rBuff << uint64(*itr2);
+            }
+        }
+    }
+    
+	//try to compress
+	if(rBuff.size() > (size_t)g_DataSizeForCompression)
+	{
+        ByteBuffer rBuffOut;
+		int compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rBuff.contents(), rBuff.size(), rBuffOut);
+		if(compressionStatus == Z_OK)
+		{
+			Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rBuff.size(), rBuffOut.size());
+            //add compressed data
+            rBuff.clear();
+            rBuff.append(rBuffOut);
+            return ePF_COMPRESSED;
+		}
+        else
+        {
+            Log.Error(__FUNCTION__, "Data compression failed.");
+        }
+	}
+    
+    return ePF_NULL;
+}
+
+void DiskWriter::ProcessFreeSpaceDump()
+{
+    {
+        std::lock_guard<std::mutex> rGuard(m_rFreeSpaceDumpLock);
+        if(m_pFreeSpaceDump->size() == 0)
+            return;
+    }
+    
+    //copy to vector clean data from map
+    Vector<std::pair<uint64, FreeSpaceTask> > rKeyPair;
+    _S_DiskWriter_GetItemsFromFreeSpaceDump(m_pFreeSpaceDump, m_rFreeSpaceDumpLock, rKeyPair);
+    
+    //
+    ByteBuffer rDump;
+    uint32 dumpFlags;
+    ByteBuffer rFullDump;
+    uint32 fullDumpFlags;
+    OUTPACKET_RESULT result;
+    
+    //fill buffers
+    for(size_t i = 0;i < rKeyPair.size();++i)
+    {
+        const FreeSpaceTask &rFreeSpaceTask = rKeyPair[i].second;
+        if(rFreeSpaceTask.m_dumpFlags == eSFSDF_FULL && rFullDump.size() == 0)
+        {
+            fullDumpFlags = _S_DiskWriter_GetFreeSpaceDump(rFullDump, m_rFreeSpace, m_rStorage.m_dataFileSize, true);
+        }
+        else if(rDump.size() == 0)
+        {
+            dumpFlags = _S_DiskWriter_GetFreeSpaceDump(rDump, m_rFreeSpace, m_rStorage.m_dataFileSize, false);
+        }
+    }
+
+    //distribute to clients
+    for(size_t i = 0;i < rKeyPair.size();++i)
+    {
+        const std::pair<uint64, FreeSpaceTask> &rPair = rKeyPair[i];
+        
+        //set variables
+        ByteBuffer &rBuff = rPair.second.m_dumpFlags == eSFSDF_FULL ? rFullDump : rDump;
+        uint32 flags = rPair.second.m_dumpFlags == eSFSDF_FULL ? fullDumpFlags : dumpFlags;
+        size_t dataSize = rPair.second.m_dumpFlags == eSFSDF_FULL ? rFullDump.size() : rDump.size();
+        
+        //init stream send
+        Packet rResponse(S_MSG_GET_FREESPACE, 32);
+        rResponse << rPair.second.m_token;
+        rResponse << flags;
+        result = g_rClientSocketHolder.StartStreamSend(rPair.first, rResponse, dataSize);
+        //socket disconnection or something go to next socket
+        if(result != OUTPACKET_RESULT_SUCCESS)
+            continue;
+        
+        //send all chunks
+        uint8 arChunk[4096];
+        size_t remainingData;
+        size_t readDataSize;
+        while(rBuff.rpos() < rBuff.size())
+        {
+            remainingData = rBuff.size() - rBuff.rpos();
+            readDataSize = std::min(remainingData, sizeof(arChunk));
+            rBuff.read((uint8*)&arChunk, readDataSize);
+            //send chunk
+        trySendAgain:
+            result = g_rClientSocketHolder.StreamSend(rPair.first, &arChunk, readDataSize);
+            if(result == OUTPACKET_RESULT_SUCCESS)
+            {
+                //send is ok continue with sending
+                continue;
+            }
+            else if(result == OUTPACKET_RESULT_NO_ROOM_IN_BUFFER)
+            {
+                //socket buffer is full wait for
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                goto trySendAgain;
+            }
+            else
+            {
+                //error interupt sending
+                Log.Error(__FUNCTION__, "StreamSend error: %u", (uint32)result);
+                break;
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

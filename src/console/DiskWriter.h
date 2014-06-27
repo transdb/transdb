@@ -37,6 +37,17 @@ struct WriteInfo
     int64   m_recordPosition;
 };
 
+struct FreeSpaceTask
+{
+    explicit FreeSpaceTask(uint32 token, uint32 dumpFlags) : m_token(token), m_dumpFlags(dumpFlags)
+    {
+        
+    }
+    
+    uint32 m_token;
+    uint32 m_dumpFlags;
+};
+
 class DiskWriter
 {
     friend class Storage;
@@ -49,6 +60,8 @@ public:
     //freespace
     typedef Vector<int64>                                                                   FreeSpaceOffsets;
     typedef std::map<int64, FreeSpaceOffsets>                                               FreeSpaceBlockMap;
+    //freespace dump
+    typedef HashMap<uint64, FreeSpaceTask>                                                  FreeSpaceDumpTask;
     
     //destructor
     ~DiskWriter();
@@ -57,6 +70,9 @@ public:
     void Queue(RecordIndexMap::accessor &rWriteAccesor);
     void Remove(uint64 x);
 	void Process();
+    
+    //queue task for freespace dump
+    void QueueFreeSpaceDump(uint64 socketID, uint32 token, uint32 dumpFlags);
     
 	bool HasTasks()
 	{
@@ -99,12 +115,17 @@ private:
 	void AddFreeSpace(int64 pos, int64 lenght);
 	int64 GetFreeSpacePos(int64 size);
 	void DefragmentFreeSpace();
+    //freespace dump
+    void ProcessFreeSpaceDump();
     
     //declarations
     Storage				&m_rStorage;
     
     //freespace map
     FreeSpaceBlockMap   m_rFreeSpace;
+    //freespace dump queue
+    FreeSpaceDumpTask   *m_pFreeSpaceDump;
+    std::mutex          m_rFreeSpaceDumpLock;
     
     //queue for changes in data file
     DirtyXQueue         *m_pQueue;

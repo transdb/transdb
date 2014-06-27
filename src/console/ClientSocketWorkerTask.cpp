@@ -323,7 +323,7 @@ void ClientSocketWorkerTask::HandleGetAllX(ClientSocketTaskData &rClientSocketTa
             else
             {
                 //error interupt sending
-                Log.Error(__FUNCTION__, "StreamSend error: %u", result);
+                Log.Error(__FUNCTION__, "StreamSend error: %u", (uint32)result);
                 return;
             }
         }
@@ -551,43 +551,14 @@ void ClientSocketWorkerTask::HandleGetFreeSpace(ClientSocketTaskData &rClientSoc
     uint32 token;
     uint32 flags;
     uint32 dumpFlags; //0 - full dump, 1 - only counts
-    ByteBuffer rBuff;
-    
-	//for compresion
-	int compressionStatus = Z_ERRNO;
-	ByteBuffer rBuffOut;
     
     //read data from packet
     rClientSocketTaskData >> token >> flags >> dumpFlags;
     
     //get data
-    m_rStorage.GetFreeSpaceDump(rBuff, dumpFlags);
+    m_rStorage.GetFreeSpaceDump(rClientSocketTaskData.socketID(), token, dumpFlags);
     
-    if(rBuff.size() > (uint32)g_DataSizeForCompression)
-    {
-        compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rBuff.contents(), rBuff.size(), rBuffOut);
-        if(compressionStatus == Z_OK)
-        {
-            Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rBuff.size(), rBuffOut.size());
-            flags = ePF_COMPRESSED;
-        }
-        else
-        {
-            Log.Error(__FUNCTION__, "Data compression failed.");
-        }
-    }
-    
-    //send back data
-    Packet rResponse(S_MSG_GET_FREESPACE, sizeof(token)+sizeof(flags)+rBuff.size());
-    rResponse << token;
-    rResponse << flags;
-    
-    if(compressionStatus == Z_OK)
-        rResponse.append(rBuffOut);
-    else
-        rResponse.append(rBuff);
-    
-    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
+    //Response will be send from DiskWriter
 }
 
 void ClientSocketWorkerTask::HandleWriteDataNum(ClientSocketTaskData &rClientSocketTaskData)
