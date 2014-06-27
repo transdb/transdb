@@ -556,7 +556,7 @@ void ClientSocketWorkerTask::HandleGetFreeSpace(ClientSocketTaskData &rClientSoc
     rClientSocketTaskData >> token >> flags >> dumpFlags;
     
     //get data
-    m_rStorage.GetFreeSpaceDump(rClientSocketTaskData.socketID(), token, dumpFlags);
+    m_rStorage.GetFreeSpaceDump(rClientSocketTaskData.socketID(), token, flags, dumpFlags);
     
     //Response will be send from DiskWriter
 }
