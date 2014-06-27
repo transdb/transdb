@@ -284,7 +284,14 @@ void ClientSocket::HandleGetAllX(ByteBuffer &rPacket)
     
     rPacket >> token >> flags;
     
-    printf("%lu\n", rPacket.size());    
+    printf("%lu\n", rPacket.size());
+    
+    while(rPacket.rpos() != rPacket.size())
+    {
+        uint64 x;
+        rPacket >> x;
+        printf(I64FMTD "\n", x);
+    }
 }
 
 void ClientSocket::HandlePing(ByteBuffer &rPacket)
