@@ -569,40 +569,9 @@ void Storage::DefragmentDataInternal(RecordIndexMap::accessor &rWriteAccessor)
     Log.Debug(__FUNCTION__, "Defragmented data x:" I64FMTD, rWriteAccessor->first);
 }
 
-void Storage::GetFreeSpaceDump(ByteBuffer &rBuff, uint32 dumpFlags)
+void Storage::GetFreeSpaceDump(uint64 socketID, uint32 token, uint32 dumpFlags)
 {
-//    //lock
-//    std::lock_guard<std::mutex> rGuard(m_rFreeSpaceLock);
-//    
-//    //prealloc buffer
-//    if(dumpFlags == eSFSDF_FULL)
-//    {
-//        size_t reserveSize = 0;
-//        for(FreeSpaceBlockMap::iterator itr = m_rFreeSpace.begin();itr != m_rFreeSpace.end();++itr)
-//        {
-//            reserveSize += sizeof(int64);
-//            reserveSize += itr->second.size() * sizeof(int64);
-//        }
-//        rBuff.reserve(reserveSize + sizeof(uint64));
-//    }
-//    
-    //data file size
-    rBuff << uint64(m_dataFileSize);
-    //freeSpace size
-    rBuff << uint64(0);
-//    //
-//    for(FreeSpaceBlockMap::iterator itr = m_rFreeSpace.begin();itr != m_rFreeSpace.end();++itr)
-//    {
-//        rBuff << uint64(itr->first);
-//        rBuff << uint64(itr->second.size());
-//        if(dumpFlags == eSFSDF_FULL)
-//        {
-//            for(FreeSpaceOffsets::iterator itr2 = itr->second.begin();itr2 != itr->second.end();++itr2)
-//            {
-//                rBuff << uint64(*itr2);
-//            }
-//        }
-//    }
+    m_pDiskWriter->QueueFreeSpaceDump(socketID, token, dumpFlags);
 }
 
 void Storage::CheckMemory(LRUCache &rLRUCache)
