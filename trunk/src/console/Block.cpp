@@ -83,9 +83,9 @@ E_BLS Block::WriteRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pRecord, 
     positionOfNewRDS = (pCIDF->m_location + pCIDF->m_amoutOfFreeSpace) - sizeof(RDF);
     
     //write RDS
-    pRDF = (RDF*)(pBlock+positionOfNewRDS);
-    pRDF->m_key				= recordKey;
-    pRDF->m_recordLength	= recordSize;
+    pRDF = (RDF*)(pBlock + positionOfNewRDS);
+    pRDF->m_key = recordKey;
+    pRDF->m_recordLength = recordSize;
     
     //save data to block
     memcpy(pBlock + pCIDF->m_location, pRecord, recordSize);
@@ -228,7 +228,7 @@ void Block::GetRecord(uint8 *pBlock, uint64 recordKey, ByteBuffer &rData)
         {
             pRecordLocal = (uint8*)rOut.contents();
             recordSizeLocal = (uint16)rOut.size();
-            g_NumOfRecordDecompressions++;
+            ++g_NumOfRecordDecompressions;
         }
     }
     
@@ -274,7 +274,7 @@ void Block::GetRecords(uint8 *pBlock, ByteBuffer &rData)
             {
                 pRecordLocal = (uint8*)rOut.contents();
                 recordSizeLocal = (uint16)rOut.size();
-                g_NumOfRecordDecompressions++;
+                ++g_NumOfRecordDecompressions;
             }
         }
         

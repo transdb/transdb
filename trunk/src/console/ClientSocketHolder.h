@@ -24,6 +24,10 @@ public:
     //send packet
     void SendPacket(uint64 socketID, const Packet &rPacket);
     void SendPacket(uint64 socketID, const StackPacket &rPacket);
+   
+    //stream supoort
+    OUTPACKET_RESULT StartStreamSend(uint64 socketID, const Packet &rPacket, size_t dataSize);
+    OUTPACKET_RESULT StreamSend(uint64 socketID, const void *dataChunk, size_t chunkSize);
     
     //for stats
     uint64 GetAllSocketPacketQueueSize();

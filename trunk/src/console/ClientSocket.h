@@ -49,6 +49,10 @@ public:
     //sender
     void OutPacket(uint16 opcode, size_t len, const void* data);
     
+    //stream support
+    OUTPACKET_RESULT StartStreamSend(const Packet &rPacket, size_t dataSize);
+    OUTPACKET_RESULT StreamSend(const void *dataChunk, size_t chunkSize);
+    
     //ping
     void SendPing();
     std::atomic<time_t> m_lastPong;

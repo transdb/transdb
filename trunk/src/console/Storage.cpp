@@ -401,6 +401,104 @@ void Storage::DeleteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, 
     }
 }
 
+struct FillXKeys
+{
+    uint8       *m_pData;
+    XKeyVec     *m_pXKeys;
+    
+    void operator()(const tbb::blocked_range<uint32>& range) const
+    {
+        uint8 *pBlock;
+        ICIDF *pICIDF;
+        uint16 position;
+        DREC *pDREC;
+        
+        //build index map
+        for(uint32 i = range.begin();i != range.end();++i)
+        {
+            position = 0;
+            pBlock = (m_pData + (INDEX_BLOCK_SIZE * i));
+            pICIDF = GetICIDF(pBlock);
+            
+            //read record
+            for(;;)
+            {
+                if(position > IMAX_RECORD_POS)
+                    break;
+                
+                //get record
+                pDREC = (DREC*)(pBlock + position);
+                
+                //has data
+                if(!IsEmptyDREC(pDREC))
+                {
+                    //add key
+                    m_pXKeys->push_back(pDREC->m_key);
+                }
+                
+                //update position
+                position += sizeof(DREC);
+            }
+        }
+    }
+};
+
+void Storage::GetAllX(ByteBuffer &rX)
+{
+    //open index file for rw
+    HANDLE hIndexFile = INVALID_HANDLE_VALUE;
+    IOHandleGuard rIOHandleIndexGuard(hIndexFile);
+    hIndexFile = IO::fopen(m_rIndexPath.c_str(), IO::IO_READ_ONLY, IO::IO_DIRECT);
+    if(hIndexFile == INVALID_HANDLE_VALUE)
+    {
+        Log.Error(__FUNCTION__, "Open indexfile: %s failed. Error number: %d", m_rIndexPath.c_str(), errno);
+        return;
+    }
+    
+    //get index file size and blockcount
+    IO::fseek(hIndexFile, 0, IO::IO_SEEK_END);
+    int64 fileSize = IO::ftell(hIndexFile);
+    uint32 blockCount = static_cast<uint32>(fileSize / INDEX_BLOCK_SIZE);
+    
+    //alloc buffer
+    void *pData = scalable_aligned_malloc(fileSize, 512);
+    if(pData == NULL)
+    {
+        Log.Error(__FUNCTION__, "Cannot allocate memory for index block file.");
+        return;
+    }
+    
+    //read from disk in 1 IO
+    IO::fseek(hIndexFile, 0, IO::IO_SEEK_SET);
+    IO::fread(pData, fileSize, hIndexFile);
+    
+    //prealloc vector
+    XKeyVec rXKeyVec;
+    rXKeyVec.reserve(m_dataIndexes.size());
+    
+    //create struct
+    FillXKeys rFillXKeys;
+    rFillXKeys.m_pData = (uint8*)pData;
+    rFillXKeys.m_pXKeys = &rXKeyVec;
+    
+    //iterate and fill container with X keys
+    tbb::parallel_for(tbb::blocked_range<uint32>(0, blockCount), rFillXKeys);
+ 
+    //defragment
+    rXKeyVec.shrink_to_fit();
+    
+    //free
+    scalable_aligned_free(pData);
+    
+    //reserve buffer size
+    rX.reserve(rXKeyVec.size() * sizeof(uint64));
+    //add data to buffer
+    for(XKeyVec::iterator itr = rXKeyVec.begin();itr != rXKeyVec.end();++itr)
+    {
+        rX << uint64(*itr);
+    }
+}
+
 void Storage::GetAllY(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, ByteBuffer &rY)
 {
     RecordIndexMap::accessor rWriteAccessor;

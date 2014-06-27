@@ -117,7 +117,7 @@ uint32 BlockManager::WriteRecord(uint64 recordkey, const uint8 *pRecord, uint16 
             {
                 pRecord = rOut.contents();
                 recordSizeLocal = (uint16)rOut.size();
-                g_NumOfRecordCompressions++;
+                ++g_NumOfRecordCompressions;
             }
             else
             {

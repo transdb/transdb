@@ -250,16 +250,84 @@ void ClientSocketWorkerTask::HandleGetAllX(ClientSocketTaskData &rClientSocketTa
     uint32 flags;
     static const size_t packetSize = sizeof(token)+sizeof(flags);
     
+    OUTPACKET_RESULT result;
+    
+    //buffer for read data
+    ByteBuffer rX;
+    
+	//for compresion
+	int compressionStatus = Z_ERRNO;
+	ByteBuffer rBuffOut;
+    
     //read data from packet
     rClientSocketTaskData >> token >> flags;
     
-    //not implemented
+    //load all keys
+    m_rStorage.GetAllX(rX);
     
-    //send back data
+	//try to compress
+	if(rX.size() > (size_t)g_DataSizeForCompression)
+	{
+		compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rX.contents(), rX.size(), rBuffOut);
+		if(compressionStatus == Z_OK)
+		{
+			Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rX.size(), rBuffOut.size());
+			flags = ePF_COMPRESSED;
+            //add compressed data
+            rX.clear();
+            rX.append(rBuffOut);
+            rBuffOut.clear();
+		}
+        else
+        {
+            Log.Error(__FUNCTION__, "Data compression failed.");
+        }
+	}
+    
+    //init stream send
     Packet rResponse(S_MSG_GET_ALL_X, packetSize);
     rResponse << token;
     rResponse << flags;
-    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
+    result = g_rClientSocketHolder.StartStreamSend(rClientSocketTaskData.socketID(), rResponse, rX.size());
+    if(result == OUTPACKET_RESULT_SOCKET_ERROR)
+    {
+        Log.Error(__FUNCTION__, "StartStreamSend failed.");
+        return;
+    }
+    
+    //send all chunks
+    uint8 arChunk[4096];
+    size_t remainingData;
+    size_t readDataSize;
+    
+    while(rX.rpos() < rX.size())
+    {
+        remainingData = rX.size() - rX.rpos();
+        readDataSize = std::min(remainingData, sizeof(arChunk));
+        rX.read((uint8*)&arChunk, readDataSize);
+        //
+        for(;;)
+        {
+            result = g_rClientSocketHolder.StreamSend(rClientSocketTaskData.socketID(), &arChunk, readDataSize);
+            if(result == OUTPACKET_RESULT_SUCCESS)
+            {
+                //send is ok continue with sending
+                break;
+            }
+            else if(result == OUTPACKET_RESULT_NO_ROOM_IN_BUFFER)
+            {
+                //socket buffer is full wait for
+                Wait(100);
+                continue;
+            }
+            else
+            {
+                //error interupt sending
+                Log.Error(__FUNCTION__, "StreamSend error: %u", result);
+                return;
+            }
+        }
+    }
 }
 
 void ClientSocketWorkerTask::HandleGetAllY(ClientSocketTaskData &rClientSocketTaskData)
