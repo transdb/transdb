@@ -59,10 +59,10 @@ void DiskWriter::QueueIndexDeletetion(RecordIndexMap::accessor &rWriteAccesor)
     m_pRIDelQueue->put(rWriteAccesor->first, rRecordIndex);
 }
 
-void DiskWriter::QueueFreeSpaceDump(uint64 socketID, uint32 token, uint32 dumpFlags)
+void DiskWriter::QueueFreeSpaceDump(uint64 socketID, uint32 token, uint32 flags, uint32 dumpFlags)
 {
     std::lock_guard<std::mutex> rGuard(m_rFreeSpaceDumpLock);
-    m_pFreeSpaceDump->put(socketID, FreeSpaceTask(token, dumpFlags));
+    m_pFreeSpaceDump->put(socketID, FreeSpaceTask(token, flags, dumpFlags));
 }
 
 INLINE static bool _S_SortWriteInfoForWrite(const WriteInfo &rWriteInfo1, const WriteInfo &rWriteInfo2)
@@ -568,9 +568,9 @@ void DiskWriter::ProcessFreeSpaceDump()
     
     //
     ByteBuffer rDump;
-    uint32 dumpFlags;
     ByteBuffer rFullDump;
-    uint32 fullDumpFlags;
+    uint32 dumpFlags = 0;
+    uint32 fullDumpFlags = 0;
     OUTPACKET_RESULT result;
     
     //fill buffers

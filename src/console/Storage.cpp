@@ -569,9 +569,9 @@ void Storage::DefragmentDataInternal(RecordIndexMap::accessor &rWriteAccessor)
     Log.Debug(__FUNCTION__, "Defragmented data x:" I64FMTD, rWriteAccessor->first);
 }
 
-void Storage::GetFreeSpaceDump(uint64 socketID, uint32 token, uint32 dumpFlags)
+void Storage::GetFreeSpaceDump(uint64 socketID, uint32 token, uint32 flags, uint32 dumpFlags)
 {
-    m_pDiskWriter->QueueFreeSpaceDump(socketID, token, dumpFlags);
+    m_pDiskWriter->QueueFreeSpaceDump(socketID, token, flags, dumpFlags);
 }
 
 void Storage::CheckMemory(LRUCache &rLRUCache)

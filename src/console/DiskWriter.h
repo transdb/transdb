@@ -39,12 +39,13 @@ struct WriteInfo
 
 struct FreeSpaceTask
 {
-    explicit FreeSpaceTask(uint32 token, uint32 dumpFlags) : m_token(token), m_dumpFlags(dumpFlags)
+    explicit FreeSpaceTask(uint32 token, uint32 flags, uint32 dumpFlags) : m_token(token), m_flags(flags), m_dumpFlags(dumpFlags)
     {
         
     }
     
     uint32 m_token;
+    uint32 m_flags;
     uint32 m_dumpFlags;
 };
 
@@ -72,7 +73,7 @@ public:
 	void Process();
     
     //queue task for freespace dump
-    void QueueFreeSpaceDump(uint64 socketID, uint32 token, uint32 dumpFlags);
+    void QueueFreeSpaceDump(uint64 socketID, uint32 token, uint32 flags, uint32 dumpFlags);
     
 	bool HasTasks()
 	{
