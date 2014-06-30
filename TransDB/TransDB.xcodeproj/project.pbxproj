@@ -174,11 +174,8 @@
 		8D33EE5F192B8FAE007F448C /* zutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = zutil.c; sourceTree = "<group>"; };
 		8D33EE60192B8FAE007F448C /* zutil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = zutil.h; sourceTree = "<group>"; };
 		8D3E57DE188EA4CD00D54CBC /* SortedVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SortedVector.h; sourceTree = "<group>"; };
-		8D3F749C190FC526002778F7 /* leaderboard.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = leaderboard.py; path = ../Python/leaderboard.py; sourceTree = "<group>"; };
 		8D3F749D190FC622002778F7 /* consts.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = consts.py; path = ../Python/consts.py; sourceTree = "<group>"; };
 		8D462C8518B790DE00142BBF /* common.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = common.py; path = ../Python/common.py; sourceTree = "<group>"; };
-		8D50482618FBDB05007381C1 /* crypto.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = crypto.py; path = ../Python/crypto.py; sourceTree = "<group>"; };
-		8D50482718FBDB3B007381C1 /* statistics.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = statistics.py; path = ../Python/statistics.py; sourceTree = "<group>"; };
 		8D50482818FBDB6B007381C1 /* packets.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = packets.py; path = ../Python/packets.py; sourceTree = "<group>"; };
 		8D58E9401891432500D68538 /* loadtransDB.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = loadtransDB.py; path = ../Python/loadtransDB.py; sourceTree = "<group>"; };
 		8D58E9411891432500D68538 /* make-templates.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = "make-templates.py"; path = "../Python/make-templates.py"; sourceTree = "<group>"; };
@@ -211,8 +208,6 @@
 		8DC9C50F15F4F621001058CC /* IndexBlock.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IndexBlock.h; sourceTree = "<group>"; };
 		8DC9C51015F4F62B001058CC /* IndexBlock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IndexBlock.cpp; sourceTree = "<group>"; };
 		8DDB5435173268E400A69B7D /* cpuid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cpuid.h; sourceTree = "<group>"; };
-		8DDB644918B67C3C0033E142 /* clientSocket.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = clientSocket.py; path = ../Python/clientSocket.py; sourceTree = "<group>"; };
-		8DDCE54018F83B4A0098E4C2 /* dailyChallenge.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = dailyChallenge.html; sourceTree = "<group>"; };
 		8DE1A22C1671ED9000159613 /* CrashHandler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CrashHandler.cpp; sourceTree = "<group>"; };
 		8DE1A22D1671ED9000159613 /* CrashHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CrashHandler.h; sourceTree = "<group>"; };
 		8DE49CCB18A3D4EE00F7D0EB /* libtbb_debug.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libtbb_debug.dylib; path = ../tbb/lib/libtbb_debug.dylib; sourceTree = "<group>"; };
@@ -366,12 +361,8 @@
 				8D58E9421891432500D68538 /* template_src */,
 				8D58E9481891432500D68538 /* templates.py */,
 				8D58E9491891432500D68538 /* transDB.py */,
-				8DDB644918B67C3C0033E142 /* clientSocket.py */,
 				8D462C8518B790DE00142BBF /* common.py */,
-				8D50482618FBDB05007381C1 /* crypto.py */,
-				8D50482718FBDB3B007381C1 /* statistics.py */,
 				8D50482818FBDB6B007381C1 /* packets.py */,
-				8D3F749C190FC526002778F7 /* leaderboard.py */,
 				8D3F749D190FC622002778F7 /* consts.py */,
 			);
 			name = Python;
@@ -431,7 +422,6 @@
 		8D58E9421891432500D68538 /* template_src */ = {
 			isa = PBXGroup;
 			children = (
-				8DDCE54018F83B4A0098E4C2 /* dailyChallenge.html */,
 				8D25816F18AA2E960094B58E /* editor.html */,
 				8D25816E18AA2DF10094B58E /* style.css */,
 				8DB7891118A3902200560037 /* log.html */,

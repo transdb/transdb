@@ -6,6 +6,7 @@ import threading
 import json
 import select
 import multiprocessing
+import time
 from collections import OrderedDict
 
 import cfunctions
@@ -54,12 +55,12 @@ def getToken():
         lock.release()
         return token
     except Exception as e:
-        cfunctions.Log_Error("trandDB.getToken: " + str(e))
+        cfunctions.Log_Error("transDB.getToken: " + str(e))
 
 def inspectFreeSpaceFragment(data):
     """
-    Parse file fragmentation data.
-    """
+        Parse file fragmentation data.
+        """
     try:
         fmt_s = "<QQ"
         fmt_sz = struct.calcsize(fmt_s)
@@ -72,7 +73,7 @@ def inspectFreeSpaceFragment(data):
             blocks[blocksize] = blockcount
         return data_sz, items, blocks
     except Exception as e:
-        cfunctions.Log_Error("trandDB.inspectFreeSpaceFragment: " + str(e))
+        cfunctions.Log_Error("transDB.inspectFreeSpaceFragment: " + str(e))
 
 def getData(token):
     """ get data by token """
@@ -87,9 +88,9 @@ def getData(token):
                     return data
             except Queue.Empty as e:
                 pass
-
+    
     except Exception as e:
-        cfunctions.Log_Error("trandDB.getData: " + str(e))
+        cfunctions.Log_Error("transDB.getData: " + str(e))
 
 def stats():
     """ Get basic statistics. """
@@ -101,7 +102,7 @@ def stats():
         data = getData(token)
         return json.loads(data[:-1])
     except Exception as e:
-        cfunctions.Log_Error("trandDB.stats: " + str(e))
+        cfunctions.Log_Error("transDB.stats: " + str(e))
 
 def fragment():
     """ Get file fragmentation info. """
@@ -113,7 +114,7 @@ def fragment():
         data = getData(token)
         return inspectFreeSpaceFragment(data)
     except Exception as e:
-        cfunctions.Log_Error("trandDB.fragment: " + str(e))
+        cfunctions.Log_Error("transDB.fragment: " + str(e))
 
 def readData(x, y):
     """ Get data from DB """
@@ -125,7 +126,7 @@ def readData(x, y):
         data = getData(token)
         return data
     except Exception as e:
-        cfunctions.Log_Error("trandDB.readData: " + str(e))
+        cfunctions.Log_Error("transDB.readData: " + str(e))
 
 def writeData(x, y, data):
     """ Write data to DB """
@@ -137,7 +138,7 @@ def writeData(x, y, data):
         data = getData(token)
         return data
     except Exception as e:
-        cfunctions.Log_Error("trandDB.writeData: " + str(e))
+        cfunctions.Log_Error("transDB.writeData: " + str(e))
 
 def deleteData(x, y):
     """ Delete data in DB if y=0 delete all data for x """
@@ -149,7 +150,7 @@ def deleteData(x, y):
         data = getData(token)
         return data
     except Exception as e:
-        cfunctions.Log_Error("trandDB.deleteData: " + str(e))
+        cfunctions.Log_Error("transDB.deleteData: " + str(e))
 
 def writeDataNum(x, data):
     """ Write key|recordSize|record|....Nx array to DB """
@@ -170,7 +171,7 @@ def writeDataNum(x, data):
         data = getData(token)
         return data
     except Exception as e:
-        cfunctions.Log_Error("trandDB.writeDataNum: " + str(e))
+        cfunctions.Log_Error("transDB.writeDataNum: " + str(e))
 
 def readLog():
     """ Read log """
@@ -182,7 +183,7 @@ def readLog():
         data = getData(token)
         return data
     except Exception as e:
-        cfunctions.Log_Error("trandDB.readLog: " + str(e))
+        cfunctions.Log_Error("transDB.readLog: " + str(e))
 
 def readConfig():
     """ Read config """
@@ -194,94 +195,114 @@ def readConfig():
         data = getData(token)
         return data
     except Exception as e:
-        cfunctions.Log_Error("trandDB.readLog: " + str(e))
+        cfunctions.Log_Error("transDB.readLog: " + str(e))
 
 
 def socket_run(rcv_queue, send_queue, stop_event, addr, port):
-    """ 
-    TransDB connection thread function, handles all communication utilizing Queues.
-    """
+    """ TransDB connection thread function, handles all communication utilizing Queues. """
     try:
-        #create socket + connect
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((addr, port))
+        #if socket is connected
+        socketConnected = False
         
         #loop
         while not stop_event.is_set():
-            #wait for socket read event or queue read event
-            readSet, writeSet, errorSet = select.select([s, sendQueue._reader], [], [], SELECT_WAIT_TIME)
-            #process client socket
-            if s in readSet:
-                packetHeader = ''
-                #wait for header
-                headerLen = struct.calcsize("<IH")
-                while len(packetHeader) < headerLen:
-                    chunk = s.recv(headerLen - len(packetHeader))
-                    if chunk == '':
-                        raise RuntimeError("Socket connection broken")
-                    packetHeader = packetHeader + chunk
-                
-                #get rest of the packet data
-                size, opcode  = struct.unpack("<IH", packetHeader)
-                data = ''
-                while len(data) < size:
-                    chunk = s.recv(size - len(data))
-                    if chunk == '':
-                        raise RuntimeError("Socket connection broken")
-                    data = data + chunk
-                
-                #opcode handler
-                if opcode == S_MSG_PING:
-                    packet = packets.TransDBPacket(C_MSG_PONG)
-                    packet.data = data
-                    sendQueue.put(packet)
-                else:
-                    #uint32 token, flag
-                    offset = 8
+            try:
+                #create socket + connect
+                if socketConnected == False:
+                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    s.connect((addr, port))
+                    socketConnected = True
+            except socket.error as e:
+                socketConnected = False
+                cfunctions.Log_Error("socket_run: " + str(e))
+                time.sleep(1)
+                continue
+            
+            try:
+                #wait for socket read event or queue read event
+                readSet, writeSet, errorSet = select.select([s, sendQueue._reader], [], [], SELECT_WAIT_TIME)
+                #process client socket
+                if s in readSet:
+                    packetHeader = ''
+                    #wait for header
+                    headerLen = struct.calcsize("<IH")
+                    while len(packetHeader) < headerLen:
+                        chunk = s.recv(headerLen - len(packetHeader))
+                        if chunk == '':
+                            raise RuntimeError("Socket connection broken")
+                        packetHeader = packetHeader + chunk
                     
-                    if opcode == S_MSG_READ_DATA:
-                        #uint64 x, y
-                        offset += 16
+                    #get rest of the packet data
+                    size, opcode  = struct.unpack("<IH", packetHeader)
+                    data = ''
+                    while len(data) < size:
+                        chunk = s.recv(size - len(data))
+                        if chunk == '':
+                            raise RuntimeError("Socket connection broken")
+                        data = data + chunk
                     
-                    elif opcode == S_MSG_DELETE_DATA:
-                        #uint64 x, y
-                        offset += 16
-                    
-                    elif opcode == S_MSG_WRITE_DATA:
-                        #uint64 x, y
-                        #uint32 writeStatus
-                        offset += 20
-                    
-                    elif opcode == C_MSG_WRITE_DATA_NUM:
-                        #uint64 x
-                        #uint32 writeStatus
-                        offset += 12
-                    
-                    token, flag = struct.unpack_from("<II", data)
-                    if flag == GZIP:
-                        try:
-                            data = zlib.decompress(data[offset:], 16+zlib.MAX_WBITS)
-                        except zlib.error as e:
-                            print(str(e))
+                    #opcode handler
+                    if opcode == S_MSG_PING:
+                        packet = packets.TransDBPacket(C_MSG_PONG)
+                        packet.data = data
+                        sendQueue.put(packet)
                     else:
-                        data = data[offset:]
-                    
-                    rcv_queue.put((token, data))
-
-            #process send queue
-            if sendQueue._reader in readSet:
+                        #uint32 token, flag
+                        offset = 8
+                        if opcode == S_MSG_READ_DATA:
+                            #uint64 x, y
+                            offset += 16
+                        elif opcode == S_MSG_DELETE_DATA:
+                            #uint64 x, y
+                            offset += 16
+                        elif opcode == S_MSG_WRITE_DATA:
+                            #uint64 x, y
+                            #uint32 writeStatus
+                            offset += 20
+                        elif opcode == C_MSG_WRITE_DATA_NUM:
+                            #uint64 x
+                            #uint32 writeStatus
+                            offset += 12
+                        
+                        #get token + flags -> if GZIP decompress
+                        token, flag = struct.unpack_from("<II", data)
+                        if flag == GZIP:
+                            try:
+                                data = zlib.decompress(data[offset:], 16+zlib.MAX_WBITS)
+                            except zlib.error as e:
+                                cfunctions.Log_Error("socket_run: " + str(e))
+                        else:
+                            data = data[offset:]
+                        
+                        #put token and data to rcv_queue another thread will pickup data
+                        rcv_queue.put((token, data))
+                
+                #process send queue
+                if sendQueue._reader in readSet:
+                    try:
+                        while True:
+                            packet = sendQueue.get_nowait()
+                            packetData = packet.createPacket()
+                            s.sendall(packetData)
+                    except Queue.Empty as e:
+                        pass
+            
+            #handle socket error --> disconnect socket and connect again
+            except (socket.error, select.error, RuntimeError) as e:
+                socketConnected = False
+                cfunctions.Log_Error("socket_run: " + str(e))
+                #try to close socket will be created new
                 try:
-                    while True:
-                        packet = sendQueue.get_nowait()
-                        packetData = packet.createPacket()
-                        s.sendall(packetData)
-                except Queue.Empty as e:
+                    #close socket
+                    s.shutdown(1)
+                    s.close()
+                except Exception as e:
                     pass
-
+        
         #close socket
         s.shutdown(1)
         s.close()
-
     except Exception as e:
         cfunctions.Log_Error("socket_run: " + str(e))
+
 

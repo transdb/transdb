@@ -525,10 +525,7 @@ static uint32 _S_DiskWriter_GetFreeSpaceDump(ByteBuffer &rBuff,
         rBuff << uint64(itr->second.size());
         if(fullDump == true)
         {
-            for(DiskWriter::FreeSpaceOffsets::iterator itr2 = itr->second.begin();itr2 != itr->second.end();++itr2)
-            {
-                rBuff << uint64(*itr2);
-            }
+            rBuff.append(itr->second.data(), itr->second.size() * sizeof(uint64));
         }
     }
     
