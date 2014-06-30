@@ -4,16 +4,12 @@ import time
 import socket
 import threading
 import urlparse
-import asyncore
-import json
 import base64
 import zlib
 from string import Template
 
 import transDB
-import clientSocket
 import cfunctions
-import statistics
 from templates import *
 
 
@@ -21,7 +17,7 @@ HTML = "text/html"
 CSS = "text/css"
 g_authKey = base64.b64encode("transdb:A1b2C3d4")
 
-urls = (("/", "index"), ("/fragment", "fragment"), ("/config", "config"), ("/log", "log"), ("/style.css", "css"), ("/editor", "editor"), ("/dailyChallenge", "dailyChallenge"))
+urls = (("/", "index"), ("/fragment", "fragment"), ("/config", "config"), ("/log", "log"), ("/style.css", "css"), ("/editor", "editor"))
 
 def render(template, args):
     """ Render template with provided arguments. """
@@ -162,24 +158,6 @@ class TransDBHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         
         return (buff, None, HTML)
 
-    def dailyChallenge(self, body=None):
-        """ Daily challenge stats page """
-        buff = ''
-        try:
-            stats = statistics.Stats()
-            stats.loadStatsFromDB()
-            userJSONString = stats.dumpUserStatsToJSON()
-            opcodesJSONString = json.dumps(stats.opcodesCount, ensure_ascii=False)
-            
-            dailyChallengeString = "<pre>" + userJSONString + "</pre>"
-            dailyChallengeString += "<pre>" + opcodesJSONString + "</pre>"
-            
-            buff = render("dailyChallenge", {'title':"TransDB DailyChallenge", 'dailyChallenge':dailyChallengeString})
-        except (socket.error, RuntimeError, KeyError) as e :
-            return (str(e), 500, HTML)
-        
-        return (buff, None, HTML)
-
     def do_AUTHHEAD(self):
         self.send_response(401)
         self.send_header('WWW-Authenticate', 'Basic realm=\"TransDB - Web Access\"')
@@ -270,37 +248,11 @@ def http_socket_run(stop_event, listenHost, listenPort):
     except Exception as e:
         cfunctions.Log_Error("http_socket_run: " + str(e))
 
-def client_socket_run(stop_event, listenHost, listenPort):
-    try:
-        #load leadeboard data from DB
-        clientSocket.leaderboard.loadDataFromDatabase()
-        
-        #timer
-        lastTick = time.time()
-        pollTimeout = 10
-        
-        #start Client interface
-        server = clientSocket.TCPServer(listenHost, listenPort)
-        while not stop_event.is_set():
-            #every XX secods
-            if lastTick < time.time():
-                clientSocket.leaderboard.TickForDailyChallenge()
-                clientSocket.leaderboard.stats.saveDailyChallengeOpcodeStats()
-                lastTick = time.time() + pollTimeout
-            #asyncore loop
-            asyncore.loop(timeout=pollTimeout, count=1, use_poll=True)
-        #close
-        server.close()
-        asyncore.close_all()
-    except Exception as e:
-        cfunctions.Log_Error("client_socket_run: " + str(e))
-
 class LoadTransDB:
 
     def __init__(self):
         self.transdbThread = None
         self.httpdThread = None
-        self.clientSocketThread = None
         self.stopEvent = threading.Event()
 
     def run(self, transDBListenHost, transDBListenPort, webServiceListenPort):
@@ -318,10 +270,6 @@ class LoadTransDB:
             #start HTTP interface thread
             self.httpdThread = threading.Thread(target=http_socket_run, args=[self.stopEvent, transDBListenHost, webServiceListenPort])
             self.httpdThread.start()
-            
-            #start client socket thread
-            self.clientSocketThread = threading.Thread(target=client_socket_run, args=[self.stopEvent, transDBListenHost, 9339])
-            self.clientSocketThread.start()
     
             #loop until shutdown
             while not self.stopEvent.is_set():
@@ -333,7 +281,6 @@ class LoadTransDB:
     def shutdown(self):
         try:
             self.stopEvent.set()
-            self.clientSocketThread.join()
             self.httpdThread.join()
             self.transdbThread.join()
         except Exception as e:
