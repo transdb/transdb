@@ -74,6 +74,8 @@ public:
     
     //queue task for freespace dump
     void QueueFreeSpaceDump(uint64 socketID, uint32 token, uint32 flags, uint32 dumpFlags);
+    //freespace dump
+    void ProcessFreeSpaceDump();
     
 	bool HasTasks()
 	{
@@ -116,8 +118,6 @@ private:
 	void AddFreeSpace(int64 pos, int64 lenght);
 	int64 GetFreeSpacePos(int64 size);
 	void DefragmentFreeSpace();
-    //freespace dump
-    void ProcessFreeSpaceDump();
     
     //declarations
     Storage				&m_rStorage;

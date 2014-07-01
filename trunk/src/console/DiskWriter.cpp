@@ -160,11 +160,6 @@ void DiskWriter::Process()
         ProcessIndexDeleteQueue();
     }
     
-    //process freespace dump task -> Send dump over socket
-    {
-        ProcessFreeSpaceDump();
-    }
-    
     //check if we have items to process
     {
         //lock

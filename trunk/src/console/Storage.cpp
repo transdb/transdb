@@ -691,6 +691,11 @@ bool Storage::run()
                 //process disk operations
                 m_pDiskWriter->Process();
             }
+            
+            //process freespace dump task -> Send dump over socket
+            {
+                m_pDiskWriter->ProcessFreeSpaceDump();
+            }
 
             Wait(100);
         }
