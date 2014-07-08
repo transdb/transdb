@@ -449,7 +449,7 @@ void Storage::GetAllX(ByteBuffer &rX)
     hIndexFile = IO::fopen(m_rIndexPath.c_str(), IO::IO_READ_ONLY, IO::IO_DIRECT);
     if(hIndexFile == INVALID_HANDLE_VALUE)
     {
-        Log.Error(__FUNCTION__, "Open indexfile: %s failed. Error number: %d", m_rIndexPath.c_str(), errno);
+        Log.Error(__FUNCTION__, "Open indexfile: %s failed. Error number: %d", m_rIndexPath.c_str(), IO::ferror());
         return;
     }
     
