@@ -174,7 +174,7 @@ void DiskWriter::Process()
     hDataFile = IO::fopen(m_rStorage.m_rDataPath.c_str(), IO::IO_WRITE_ONLY, IO::IO_DIRECT);
     if(hDataFile == INVALID_HANDLE_VALUE)
     {
-        Log.Error(__FUNCTION__, "Open datafile: %s failed. Error number: %d", m_rStorage.m_rDataPath.c_str(), errno);
+        Log.Error(__FUNCTION__, "Open datafile: %s failed. Error number: %d", m_rStorage.m_rDataPath.c_str(), IO::ferror());
         return;
     }
     
@@ -184,7 +184,7 @@ void DiskWriter::Process()
     hIndexFile = IO::fopen(m_rStorage.m_rIndexPath.c_str(), IO::IO_RDWR, IO::IO_DIRECT);
     if(hIndexFile == INVALID_HANDLE_VALUE)
     {
-        Log.Error(__FUNCTION__, "Open indexfile: %s failed. Error number: %d", m_rStorage.m_rIndexPath.c_str(), errno);
+        Log.Error(__FUNCTION__, "Open indexfile: %s failed. Error number: %d", m_rStorage.m_rIndexPath.c_str(), IO::ferror());
         return;
     }
     
@@ -367,7 +367,7 @@ void DiskWriter::ProcessIndexDeleteQueue()
     hIndexFile = IO::fopen(m_rStorage.m_rIndexPath.c_str(), IO::IO_RDWR, IO::IO_DIRECT);
     if(hIndexFile == INVALID_HANDLE_VALUE)
     {
-        Log.Error(__FUNCTION__, "Open indexfile: %s failed. Error number: %d", m_rStorage.m_rIndexPath.c_str(), errno);
+        Log.Error(__FUNCTION__, "Open indexfile: %s failed. Error number: %d", m_rStorage.m_rIndexPath.c_str(), IO::ferror());
         return;
     }
     
@@ -596,7 +596,10 @@ void DiskWriter::ProcessFreeSpaceDump()
         result = g_rClientSocketHolder.StartStreamSend(rPair.first, rResponse, dataSize);
         //socket disconnection or something go to next socket
         if(result != OUTPACKET_RESULT_SUCCESS)
+        {
+            Log.Error(__FUNCTION__, "StartStreamSend - Socket ID: " I64FMTD " disconnected.", rPair.first);
             continue;
+        }
         
         //send all chunks
         uint8 arChunk[4096];
