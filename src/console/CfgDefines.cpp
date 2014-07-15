@@ -30,7 +30,6 @@ std::string g_ActivityID                = "pool-3";
 int         g_PingTimeout               = 60;
 int         g_PingSendInterval          = 15;
 uint64      g_LRUCacheMemReserve		= 4*1024*1024;
-int         g_MemoryPoolsRecycleTimer   = 60*60;
 int         g_MaxParallelTasks          = 4;
 int         g_MaxParallelReadTasks      = 4;
 int         g_MaxTasksInQueue           = 100;
@@ -121,7 +120,6 @@ void LoadConfig()
     GET_CONFIG_VALUE(status, GetInt, "Memory", "MemoryFlushCoef", &g_MemoryFlushCoef);
     GET_CONFIG_VALUE(status, GetInt, "Memory", "LRUCacheMemReserve", &LRUCacheMemReserve);
     GET_CONFIG_VALUE(status, GetInt, "Memory", "IndexBlockCache", &indexBlockCacheSize);
-    GET_CONFIG_VALUE(status, GetInt, "Memory", "MemoryPoolsRecycleTimer", &g_MemoryPoolsRecycleTimer);
     GET_CONFIG_VALUE(status, GetString, "PublicSocket", "Host", &g_ListenHost);
     GET_CONFIG_VALUE(status, GetInt, "PublicSocket", "Port", &g_ListenPort);
     GET_CONFIG_VALUE(status, GetInt, "PublicSocket", "ReadBufferSize", &readBufferSize);
