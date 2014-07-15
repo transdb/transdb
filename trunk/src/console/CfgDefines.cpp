@@ -15,7 +15,6 @@ int         g_DiskFlushCoef             = 100;
 std::string g_DataFilePath              = "";
 std::string g_IndexFilePath             = "";
 uint64      g_MemoryLimit               = 64*1024*1024;
-int         g_MemoryFlushCoef		    = 1;
 int64       g_ReallocSize               = 128;
 std::string g_ListenHost                = "0.0.0.0";
 int         g_ListenPort                = 5555;
@@ -117,7 +116,6 @@ void LoadConfig()
 	GET_CONFIG_VALUE(status, GetString, "Storage", "DataFileName", &g_DataFileName);
 	GET_CONFIG_VALUE(status, GetInt, "Storage", "DefragAfterRecordDelete", &g_DefragAfterRecordDelete);
     GET_CONFIG_VALUE(status, GetInt, "Memory", "MemoryLimit", &memmoryLimitMB);
-    GET_CONFIG_VALUE(status, GetInt, "Memory", "MemoryFlushCoef", &g_MemoryFlushCoef);
     GET_CONFIG_VALUE(status, GetInt, "Memory", "LRUCacheMemReserve", &LRUCacheMemReserve);
     GET_CONFIG_VALUE(status, GetInt, "Memory", "IndexBlockCache", &indexBlockCacheSize);
     GET_CONFIG_VALUE(status, GetString, "PublicSocket", "Host", &g_ListenHost);

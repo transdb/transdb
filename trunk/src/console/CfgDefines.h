@@ -16,7 +16,6 @@ extern int g_DiskFlushCoef;
 extern std::string g_DataFilePath;
 extern std::string g_IndexFilePath;
 extern uint64 g_MemoryLimit;
-extern int g_MemoryFlushCoef;
 extern int64 g_ReallocSize;
 extern std::string g_ListenHost;
 extern int g_ListenPort;
