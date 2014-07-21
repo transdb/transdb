@@ -428,7 +428,7 @@ struct FillXKeys
                 pDREC = (DREC*)(pBlock + position);
                 
                 //has data
-                if(!IsEmptyDREC(pDREC))
+                if(!IndexBlock::IsEmptyDREC(pDREC))
                 {
                     //add key
                     m_pXKeys->push_back(pDREC->m_key);

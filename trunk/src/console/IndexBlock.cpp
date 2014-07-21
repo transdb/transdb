@@ -47,7 +47,7 @@ struct FillIndex
         {
             position = 0;
             pBlock = (m_pData + (INDEX_BLOCK_SIZE * i));
-            pICIDF = GetICIDF(pBlock);
+            pICIDF = IndexBlock::GetICIDF(pBlock);
             
             //read record
             for(;;)
@@ -59,7 +59,7 @@ struct FillIndex
                 pDREC = (DREC*)(pBlock + position);
                 
                 //has data
-                if(!IsEmptyDREC(pDREC))
+                if(!IndexBlock::IsEmptyDREC(pDREC))
                 {
                     //create storage index
                     RecordIndex rRecordIndex;
@@ -378,7 +378,17 @@ void IndexBlock::EraseRecord(HANDLE hFile, const RecordIndex &rRecordIndex)
     IO::fwrite(pDiskBlock, INDEX_BLOCK_SIZE, hFile);
 }
 
-uint8 *IndexBlock::GetCachedDiskBlock(HANDLE hFile, size_t blockDiskPosition, uint32 blockNumber)
+ICIDF *IndexBlock::GetICIDF(const uint8 *pBlock)
+{
+    return (ICIDF*)(pBlock + ICIDFOffset);
+}
+
+bool IndexBlock::IsEmptyDREC(const DREC *pDREC)
+{
+    return (pDREC->m_key == 0 && pDREC->m_recordStart == 0 && pDREC->m_blockCount == 0 && pDREC->m_crc32 == 0);
+}
+
+uint8 *IndexBlock::GetCachedDiskBlock(HANDLE hFile, int64 blockDiskPosition, uint32 blockNumber)
 {
     uint8 *pDiskBlock;
     uint64 blockToDelete;
