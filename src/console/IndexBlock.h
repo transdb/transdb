@@ -35,7 +35,7 @@ typedef struct DiskRecordIndex
 struct FreeSpace
 {
 	FreeSpace() : m_pos(0), m_lenght(0)	{}
-	FreeSpace(const int64 &pos, const int64 &lenght) : m_pos(pos), m_lenght(lenght) {}
+	FreeSpace(int64 pos, int64 lenght) : m_pos(pos), m_lenght(lenght) {}
     
 	int64 m_pos;
 	int64 m_lenght;
@@ -87,18 +87,7 @@ static const uint16 ICIDFOffset         = (INDEX_BLOCK_SIZE - sizeof(ICIDF));
 //max record position
 static const uint16 IMAX_RECORD_POS     = (ICIDFOffset - sizeof(DREC));
 
-//macro for CIDF
-static INLINE ICIDF *GetICIDF(const uint8 *pBlock)
-{
-    return (ICIDF*)(pBlock + ICIDFOffset);
-}
-
-//
-static INLINE bool IsEmptyDREC(const DREC *pDREC)
-{
-    return (pDREC->m_key == 0 && pDREC->m_recordStart == 0 && pDREC->m_blockCount == 0 && pDREC->m_crc32 == 0);
-}
-
+//for key hash
 template<typename Key>
 class HashCompare
 {
@@ -129,8 +118,21 @@ class IndexBlock
 public:
     ~IndexBlock();
     
+    /** Create DiskRecordIndex and write/update on disk
+     */
     void WriteRecordIndexToDisk(HANDLE hFile, RecordIndexMap::accessor &rWriteAccesor);
+    
+    /** Mark DiskRecordIndex as empty
+     */
     void EraseRecord(HANDLE hFile, const RecordIndex &rRecordIndex);
+    
+    /** Get IndexControlIntervalDefinitionField from block
+     */
+    static ICIDF *GetICIDF(const uint8 *pBlock);
+    
+    /** check if DREC is empty
+     */
+    static bool IsEmptyDREC(const DREC *pDREC);
     
 private:
     //private ctor only created from Storage
@@ -140,7 +142,12 @@ private:
 	//disable copy constructor and assign
 	DISALLOW_COPY_AND_ASSIGN(IndexBlock);
     
-    uint8 *GetCachedDiskBlock(HANDLE hFile, size_t blockDiskPosition, uint32 blockNumber);
+    /** return block from cache if not in cache loads from disk
+     */
+    uint8 *GetCachedDiskBlock(HANDLE hFile, int64 blockDiskPosition, uint32 blockNumber);
+    
+    /** find empty DiskRecordIndex in block
+     */
     DREC *GetEmptyDREC(const uint8 *pDiskBlock, int16 *newRecordOffset);
 
     //declarations

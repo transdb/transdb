@@ -70,9 +70,9 @@ INLINE static bool _S_SortWriteInfoForWrite(const WriteInfo &rWriteInfo1, const 
     return rWriteInfo1.m_recordPosition < rWriteInfo2.m_recordPosition;
 }
 
-NOINLINE static bool _S_DiskWriter_ProcessQueue(DiskWriter::DirtyXQueue *pQueue,
-                                                std::mutex &rQueueLock,
-                                                DiskWriter::DirtyXProcess &rAllItemsToProcess)
+static bool _S_DiskWriter_ProcessQueue(DiskWriter::DirtyXQueue *pQueue,
+                                       std::mutex &rQueueLock,
+                                       DiskWriter::DirtyXProcess &rAllItemsToProcess)
 {
     //lock
     std::lock_guard<std::mutex> rQGuard(rQueueLock);
@@ -339,9 +339,9 @@ void DiskWriter::ReallocDataFile(HANDLE hDataFile, int64 minSize, bool oAddFreeS
 }
 
 
-NOINLINE static void _S_DiskWriter_GetItemsFromIndexDelQueue(DiskWriter::RIDelQueue *pRIDelQueue,
-                                                             std::mutex &rRIDelQueueLock,
-                                                             Vector<RecordIndex, uint64> &rDeleteQueue)
+static void _S_DiskWriter_GetItemsFromIndexDelQueue(DiskWriter::RIDelQueue *pRIDelQueue,
+                                                    std::mutex &rRIDelQueueLock,
+                                                    Vector<RecordIndex, uint64> &rDeleteQueue)
 {
     std::lock_guard<std::mutex> rRIDel_Guard(rRIDelQueueLock);
     if(pRIDelQueue->size())
@@ -477,11 +477,15 @@ int64 DiskWriter::GetFreeSpacePos(int64 lenght)
 void DiskWriter::DefragmentFreeSpace()
 {
     //TODO: DefragmentFreeSpace
+    
+    
+    
+    
 }
 
-NOINLINE static void _S_DiskWriter_GetItemsFromFreeSpaceDump(DiskWriter::FreeSpaceDumpTask *pFreeSpaceDump,
-                                                             std::mutex &rFreeSpaceDumpLock,
-                                                             Vector<std::pair<uint64, FreeSpaceTask> > &rKeyPair)
+static void _S_DiskWriter_GetItemsFromFreeSpaceDump(DiskWriter::FreeSpaceDumpTask *pFreeSpaceDump,
+                                                    std::mutex &rFreeSpaceDumpLock,
+                                                    Vector<std::pair<uint64, FreeSpaceTask> > &rKeyPair)
 {
     std::lock_guard<std::mutex> rGuard(rFreeSpaceDumpLock);
     if(pFreeSpaceDump->size())
@@ -493,9 +497,9 @@ NOINLINE static void _S_DiskWriter_GetItemsFromFreeSpaceDump(DiskWriter::FreeSpa
 }
 
 static uint32 _S_DiskWriter_GetFreeSpaceDump(ByteBuffer &rBuff,
-                                           DiskWriter::FreeSpaceBlockMap &rFreeSpaceBlockMap,
-                                           int64 dataFileSize,
-                                           bool fullDump)
+                                             DiskWriter::FreeSpaceBlockMap &rFreeSpaceBlockMap,
+                                             int64 dataFileSize,
+                                             bool fullDump)
 {
     //prealloc buffer
     if(fullDump == true)
