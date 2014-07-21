@@ -42,7 +42,7 @@ public:
     void GetAllRecordKeys(ByteBuffer &rY);
     void ClearDirtyFlags();
     void DefragmentData();
-    uint32 GetBlocksCrc32();
+    uint32 GetBlocksCrc32() const;
     
     INLINE uint16 numOfBlocks() const               { return m_blockCount; }
     INLINE uint8 *GetBlock(uint16 blockNum) const   { return m_pBlocks + (BLOCK_SIZE * blockNum); }

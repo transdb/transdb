@@ -327,7 +327,7 @@ void BlockManager::DefragmentData()
     g_NumOfRecordDeframentations++;
 }
 
-uint32 BlockManager::GetBlocksCrc32()
+uint32 BlockManager::GetBlocksCrc32() const
 {
     uint32 crc32;
     uint8 *pBlock;
