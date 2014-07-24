@@ -8,26 +8,6 @@
 
 #include "StdAfx.h"
 
-struct IndexDef
-{
-	explicit IndexDef(const uint64 &key, const int64 &dataPosition, const int64 &dataLen) : m_key(key), m_dataPosition(dataPosition), m_dataLen(dataLen)
-	{
-        
-	}
-    
-    uint64  m_key;
-    int64   m_dataPosition;
-    int64   m_dataLen;
-};
-
-INLINE static bool SortFreeSpace(const IndexDef &rIndexDefStruct1, const IndexDef &rIndexDefStruc2)
-{
-	return (rIndexDefStruct1.m_dataPosition < rIndexDefStruc2.m_dataPosition);
-}
-
-typedef tbb::concurrent_unordered_set<uint32>   Init_FreeBlocksSet;
-typedef tbb::concurrent_vector<IndexDef>        Init_IndexDefVec;
-
 struct FillIndex
 {
     uint8                   *m_pData;
@@ -61,18 +41,22 @@ struct FillIndex
                 //has data
                 if(!IndexBlock::IsEmptyDREC(pDREC))
                 {
-                    //create storage index
-                    RecordIndex rRecordIndex;
-                    rRecordIndex.m_recordStart        = pDREC->m_recordStart;
-                    rRecordIndex.m_blockCount         = pDREC->m_blockCount;
-                    rRecordIndex.m_crc32              = pDREC->m_crc32;
-                    rRecordIndex.m_pBlockManager      = NULL;
-                    //flags
-                    rRecordIndex.m_flags              = eRIF_None;
-                    //set internal index
-                    rRecordIndex.m_IB_blockNumber     = i;
-                    rRecordIndex.m_IB_recordOffset    = position;
-                    m_pRecordIndexMap->insert(RecordIndexMap::value_type(pDREC->m_key, rRecordIndex));
+                    //can be NULL when used for freespace defragmentation
+                    if(m_pRecordIndexMap != NULL)
+                    {
+                        //create storage index
+                        RecordIndex rRecordIndex;
+                        rRecordIndex.m_recordStart        = pDREC->m_recordStart;
+                        rRecordIndex.m_blockCount         = pDREC->m_blockCount;
+                        rRecordIndex.m_crc32              = pDREC->m_crc32;
+                        rRecordIndex.m_pBlockManager      = NULL;
+                        //flags
+                        rRecordIndex.m_flags              = eRIF_None;
+                        //set internal index
+                        rRecordIndex.m_IB_blockNumber     = i;
+                        rRecordIndex.m_IB_recordOffset    = position;
+                        m_pRecordIndexMap->insert(RecordIndexMap::value_type(pDREC->m_key, rRecordIndex));
+                    }
                     
                     //create tmp freespace for calculating freespace list
                     m_pIndexDef->push_back(IndexDef(pDREC->m_key, pDREC->m_recordStart, pDREC->m_blockCount * BLOCK_SIZE));
@@ -83,17 +67,19 @@ struct FillIndex
             }
             
             //add block with free space
-            if(pICIDF->m_amountOfFreeSpace >= sizeof(DREC))
+            if(m_pRecordIndexMap != NULL)
             {
-                m_pFreeBlocksSet->insert(i);
+                if(pICIDF->m_amountOfFreeSpace >= sizeof(DREC))
+                {
+                    m_pFreeBlocksSet->insert(i);
+                }
             }
         }
     }
 };
 
-IndexBlock::IndexBlock(Storage &rStorage) : m_rStorage(rStorage),
-                                            m_blockCount(0),
-                                            m_pLRUCache(new LRUCache("IndexBlock", g_IndexBlockCacheSize / INDEX_BLOCK_SIZE))
+IndexBlock::IndexBlock() : m_blockCount(0),
+                           m_pLRUCache(new LRUCache("IndexBlock", g_IndexBlockCacheSize / INDEX_BLOCK_SIZE))
 {
 
 }
@@ -103,41 +89,20 @@ IndexBlock::~IndexBlock()
     delete m_pLRUCache;
 }
 
-bool IndexBlock::Init(const std::string &rIndexFilePath,
-					  int64 dataFileSize,
-                      int64 *indexFileSize)
+bool IndexBlock::Init(HANDLE hFile,
+                      RecordIndexMap *pRecordIndexMap,
+                      FreeSpaceBlockMap &rFreeSpace,
+                      int64 dataFileSize)
 {
-    int64 dataFileSizeTmp;
-    int64 freeSpaceLen;
-    uint64 counter;
-    size_t freeSpaceStart;
-    
     //for concurrent processing
     std::unique_ptr<Init_IndexDefVec> pIndexDef = std::unique_ptr<Init_IndexDefVec>(new Init_IndexDefVec());
     std::unique_ptr<Init_FreeBlocksSet> pFreeBlocksSet = std::unique_ptr<Init_FreeBlocksSet>(new Init_FreeBlocksSet());
     //prealloc
     pIndexDef->reserve(4*1024*1024);
     
-	//save dataFileSize for later use
-	dataFileSizeTmp = dataFileSize;
-    
-    //check file exists
-    CommonFunctions::CheckFileExists(rIndexFilePath.c_str(), true);
-    
-    //open index file
-    HANDLE hIndexFile = INVALID_HANDLE_VALUE;
-    IOHandleGuard rIOHandleGuard(hIndexFile);
-    hIndexFile = IO::fopen(rIndexFilePath.c_str(), IO::IO_READ_ONLY, IO::IO_DIRECT);
-    if(hIndexFile == INVALID_HANDLE_VALUE)
-    {
-        Log.Error(__FUNCTION__, "Cannot open index file: %s.", rIndexFilePath.c_str());
-        return false;
-    }
-    
 	//get index file size
-    IO::fseek(hIndexFile, 0, IO::IO_SEEK_END);
-    int64 fileSize = IO::ftell(hIndexFile);
-    *indexFileSize = fileSize;
+    IO::fseek(hFile, 0, IO::IO_SEEK_END);
+	int64 fileSize = IO::ftell(hFile);
     
     if(fileSize != 0)
     {
@@ -147,18 +112,20 @@ bool IndexBlock::Init(const std::string &rIndexFilePath,
             Log.Error(__FUNCTION__, "Cannot allocate memory for index block file.");
             return false;
         }
+        
+        //calc block count
 		m_blockCount = static_cast<uint32>(fileSize / INDEX_BLOCK_SIZE);
         
         //read
-        IO::fseek(hIndexFile, 0, IO::IO_SEEK_SET);
-        IO::fread(pData, fileSize, hIndexFile);
+        IO::fseek(hFile, 0, IO::IO_SEEK_SET);
+        IO::fread(pData, fileSize, hFile);
         
         //create struct - save pointers to data and containers
         FillIndex rFillIndex;
         rFillIndex.m_pData = (uint8*)pData;
         rFillIndex.m_pFreeBlocksSet = pFreeBlocksSet.get();
         rFillIndex.m_pIndexDef = pIndexDef.get();
-        rFillIndex.m_pRecordIndexMap = &m_rStorage.m_dataIndexes;
+        rFillIndex.m_pRecordIndexMap = pRecordIndexMap;
         
         //iterate and fill containers
         tbb::parallel_for(tbb::blocked_range<uint32>(0, m_blockCount), rFillIndex);
@@ -167,37 +134,69 @@ bool IndexBlock::Init(const std::string &rIndexFilePath,
         pIndexDef->shrink_to_fit();
         
         //add data to m_freeBlocks
-        for(Init_FreeBlocksSet::iterator itr = pFreeBlocksSet->begin();itr != pFreeBlocksSet->end();++itr)
+        if(pRecordIndexMap != NULL)
         {
-            m_freeBlocks.insert(*itr);
+            for(Init_FreeBlocksSet::iterator itr = pFreeBlocksSet->begin();itr != pFreeBlocksSet->end();++itr)
+            {
+                m_freeBlocks.insert(*itr);
+            }
         }
         
         //release memory
         scalable_aligned_free(pData);
 	}
     
-    //load free space from index
-    if(pIndexDef->size())
+    //save to temporary variable when index file is corrpted we will not loose old data from memory
+    FreeSpaceBlockMap rFreeSpaceBlockMap;
+    
+    //load free space from index def vector
+    bool status = LoadFreeSpaceFromIndexDef(rFreeSpaceBlockMap, dataFileSize, *pIndexDef);
+    if(!status)
+    {
+        Log.Error(__FUNCTION__, "IndexFile corrupted: cannot parse freespace blocks.");
+        return false;
+    }
+    
+    //assign to freespace map
+    rFreeSpace = std::move(rFreeSpaceBlockMap);
+    
+    return true;
+}
+
+bool IndexBlock::LoadFreeSpaceFromIndexDef(FreeSpaceBlockMap &rFreeSpaceBlockMap, int64 dataFileSize, Init_IndexDefVec &rIndexDef)
+{
+    int64 dataFileSizeTmp;
+    int64 freeSpaceLen;
+    uint64 counter;
+    int64 freeSpaceStart;
+    bool status = true;
+    
+	//save dataFileSize for later use
+	dataFileSizeTmp = dataFileSize;
+    
+    //load free space from index def vector
+    if(rIndexDef.size())
     {
         //sort
-        tbb::parallel_sort(pIndexDef->begin(), pIndexDef->end(), &SortFreeSpace);
+        tbb::parallel_sort(rIndexDef.begin(), rIndexDef.end(), &_S_SortIndexDef);
         
         //init variables
         counter = 0;
         freeSpaceStart = 0;
         
         //
-        for(Init_IndexDefVec::iterator itr = pIndexDef->begin();itr != pIndexDef->end();++itr)
+        for(Init_IndexDefVec::const_iterator itr = rIndexDef.begin();itr != rIndexDef.end();++itr)
         {
             //
             freeSpaceLen = itr->m_dataPosition - freeSpaceStart;
             if(freeSpaceLen > 0)
             {
-                m_rStorage.m_pDiskWriter->AddFreeSpace(freeSpaceStart, freeSpaceLen);
+                DiskWriter::AddFreeSpace(rFreeSpaceBlockMap, freeSpaceStart, freeSpaceLen);
             }
             else if(freeSpaceLen < 0)
             {
                 Log.Error(__FUNCTION__, "Data curruption - " I64FMTD " - X: " I64FMTD " freeSpaceLen is negative: " SI64FMTD, counter, itr->m_key, freeSpaceLen);
+                status = false;
             }
             
             freeSpaceStart += (itr->m_dataLen + freeSpaceLen);
@@ -209,10 +208,10 @@ bool IndexBlock::Init(const std::string &rIndexFilePath,
     //add last piece of freespace
     if(dataFileSizeTmp != 0)
     {
-        m_rStorage.m_pDiskWriter->AddFreeSpace(dataFileSize - dataFileSizeTmp, dataFileSizeTmp);
+        DiskWriter::AddFreeSpace(rFreeSpaceBlockMap, dataFileSize - dataFileSizeTmp, dataFileSizeTmp);
     }
     
-    return true;
+    return status;
 }
 
 void IndexBlock::WriteRecordIndexToDisk(HANDLE hFile, RecordIndexMap::accessor &rWriteAccesor)

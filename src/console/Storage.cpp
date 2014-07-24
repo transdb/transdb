@@ -29,7 +29,7 @@ Storage::Storage(const std::string &rFileName) : m_rDataPath(g_DataFilePath + rF
                                                  m_dataFileSize(0),
                                                  m_diskWriterCount(0),
                                                  m_pDiskWriter(new DiskWriter(*this)),
-                                                 m_pDataIndexDiskWriter(new IndexBlock(*this)),
+                                                 m_pDataIndexDiskWriter(new IndexBlock()),
                                                  m_memoryUsed(0),
                                                  m_sumDiskReadTime(0)
 {
@@ -38,12 +38,24 @@ Storage::Storage(const std::string &rFileName) : m_rDataPath(g_DataFilePath + rF
 
 bool Storage::Init()
 {
+    //check if index file exits if not create it
+    CommonFunctions::CheckFileExists(m_rIndexPath.c_str(), true);
     //check if data file exits if not create it
     CommonFunctions::CheckFileExists(m_rDataPath.c_str(), true);
     
+    //open index file
+    HANDLE hIndexFile = INVALID_HANDLE_VALUE;
+    IOHandleGuard rIndexIOHandleGuard(hIndexFile);
+    hIndexFile = IO::fopen(m_rIndexPath.c_str(), IO::IO_READ_ONLY, IO::IO_DIRECT);
+    if(hIndexFile == INVALID_HANDLE_VALUE)
+    {
+        Log.Error(__FUNCTION__, "Cannot open index file: %s.", m_rIndexPath.c_str());
+        return false;
+    }
+    
 	//open data file
     HANDLE rDataFileHandle = INVALID_HANDLE_VALUE;
-    IOHandleGuard rIOHandleGuard(rDataFileHandle);
+    IOHandleGuard rDataIOHandleGuard(rDataFileHandle);
     rDataFileHandle = IO::fopen(m_rDataPath.c_str(), IO::IO_RDWR, IO::IO_DIRECT);
     if(rDataFileHandle == INVALID_HANDLE_VALUE)
     {
@@ -55,6 +67,8 @@ bool Storage::Init()
     IO::fseek(rDataFileHandle, 0, IO::IO_SEEK_END);
 	m_dataFileSize = IO::ftell(rDataFileHandle);
     IO::fseek(rDataFileHandle, 0, IO::IO_SEEK_SET);
+    
+    //prealloc data file
 	if(m_dataFileSize == 0)
 	{
         //this function will update m_dataFileSize
@@ -62,14 +76,28 @@ bool Storage::Init()
 	}
 	Log.Notice(__FUNCTION__, "Data file: %s - loaded. Size: " SI64FMTD " bytes", m_rDataPath.c_str(), m_dataFileSize.load());
     
-	//load indexes and freespaces
-    int64 indexFileSize = 0;
-    if(m_pDataIndexDiskWriter->Init(m_rIndexPath, m_dataFileSize, &indexFileSize) == false)
+    //get index file size
+    IO::fseek(hIndexFile, 0, IO::IO_SEEK_END);
+	int64 indexFileSize = IO::ftell(hIndexFile);
+    IO::fseek(hIndexFile, 0, IO::IO_SEEK_SET);
+    
+    //check index file alignment
+    if((indexFileSize % INDEX_BLOCK_SIZE) != 0)
     {
-        //something failed -> Init log error
+        Log.Error(__FUNCTION__, "IndexFile corrupted: file alignment must be %u", INDEX_BLOCK_SIZE);
         return false;
     }
-    Log.Notice(__FUNCTION__, "Index file: %s - loaded. Size: " SI64FMTD " bytes", m_rIndexPath.c_str(), indexFileSize);
+    
+	//load indexes and freespaces
+    Log.Notice(__FUNCTION__, "Loading index file: %s. Size: " SI64FMTD " bytes...", m_rIndexPath.c_str(), indexFileSize);
+    //parse index file
+    bool status = m_pDataIndexDiskWriter->Init(hIndexFile, &m_dataIndexes, m_pDiskWriter->m_rFreeSpace, m_dataFileSize);
+    if(status == false)
+    {
+        //something failed -> IndexBlock::Init -> log error
+        return false;
+    }
+    Log.Notice(__FUNCTION__, "Loading index file: %s. Size: " SI64FMTD " bytes... done", m_rIndexPath.c_str(), indexFileSize);
     
 	//check all data
 	if(g_StartupCrc32Check)
@@ -695,6 +723,11 @@ bool Storage::run()
             //process freespace dump task -> Send dump over socket
             {
                 m_pDiskWriter->ProcessFreeSpaceDump();
+            }
+            
+            if(!(m_diskWriterCount % g_FreeSpaceDefrag))
+            {
+                m_pDiskWriter->DefragmentFreeSpace();
             }
 
             Wait(100);

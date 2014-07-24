@@ -22,13 +22,13 @@ public:
         uint8 *pData;
         uint32 token = 0;
         
-        Packet rPacket(C_MSG_GET_ALL_X, 1024);
-        rPacket << uint32(0);
-        rPacket << uint32(0);
-//        rPacket << uint64(12884921714);
-//        rPacket << uint64(1);
-        m_pSocket->SendPacket(rPacket);
-        return true;
+//        Packet rPacket(C_MSG_GET_ALL_X, 1024);
+//        rPacket << uint32(0);
+//        rPacket << uint32(0);
+////        rPacket << uint64(12884921714);
+////        rPacket << uint64(1);
+//        m_pSocket->SendPacket(rPacket);
+//        return true;
         
 //        while(m_threadRunning)
 //        {
@@ -45,15 +45,15 @@ public:
         uint64 random;
 
         printf("%lu\n", time(NULL));
-        for(uint64 i = 0;i < 1;++i)
+        for(uint64 i = 0;i < 10;++i)
         {
-            for(uint64 x = 0;x < 1000000;++x)
+            for(uint64 x = 0;x < 100;++x)
             {
     //            random = 1;
     //            random = rand() % 1000;
                 random = x;
                 
-                for(uint64 y = 1;y < 10;++y)
+                for(uint64 y = 1;y < 1000;++y)
                 {
                     datasize = rand()%1024;
                     pData = (uint8*)malloc(datasize);
