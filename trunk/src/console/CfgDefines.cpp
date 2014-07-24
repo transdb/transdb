@@ -37,6 +37,7 @@ int         g_WebSocketPort             = 8888;
 uint64      g_IndexBlockCacheSize       = 16*1024*1024;
 int         g_RecordSizeForCompression  = 200;
 int         g_DefragAfterRecordDelete   = 5;
+int         g_FreeSpaceDefrag           = 24*60*60;
 
 //socket ID gen
 std::atomic<uint64> g_SocketID;
@@ -115,6 +116,7 @@ void LoadConfig()
 	GET_CONFIG_VALUE(status, GetBool, "Storage", "StartupCrc32Check", &g_StartupCrc32Check);
 	GET_CONFIG_VALUE(status, GetString, "Storage", "DataFileName", &g_DataFileName);
 	GET_CONFIG_VALUE(status, GetInt, "Storage", "DefragAfterRecordDelete", &g_DefragAfterRecordDelete);
+    GET_CONFIG_VALUE(status, GetInt, "Storage", "FreeSpaceDefrag", &g_FreeSpaceDefrag);
     GET_CONFIG_VALUE(status, GetInt, "Memory", "MemoryLimit", &memmoryLimitMB);
     GET_CONFIG_VALUE(status, GetInt, "Memory", "LRUCacheMemReserve", &LRUCacheMemReserve);
     GET_CONFIG_VALUE(status, GetInt, "Memory", "IndexBlockCache", &indexBlockCacheSize);

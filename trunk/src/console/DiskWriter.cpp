@@ -294,7 +294,7 @@ void DiskWriter::Process()
         {
             for(Vector<FreeSpace>::iterator itr = rFreeSpaceToAdd.begin();itr != rFreeSpaceToAdd.end();++itr)
             {
-                AddFreeSpace(itr->m_pos, itr->m_lenght);
+                DiskWriter::AddFreeSpace(m_rFreeSpace, itr->m_pos, itr->m_lenght);
             }
         }
         
@@ -330,7 +330,7 @@ void DiskWriter::ReallocDataFile(HANDLE hDataFile, int64 minSize, bool oAddFreeS
 	//add free space
     if(oAddFreeSpace)
     {
-        AddFreeSpace(startFreeSpace, reallocSize);
+        DiskWriter::AddFreeSpace(m_rFreeSpace, startFreeSpace, reallocSize);
         DefragmentFreeSpace();
     }
     
@@ -384,7 +384,7 @@ void DiskWriter::ProcessIndexDeleteQueue()
         //add free space
         if(rRecordIndex.m_recordStart != -1)
         {
-            AddFreeSpace(rRecordIndex.m_recordStart, rRecordIndex.m_blockCount * BLOCK_SIZE);
+            DiskWriter::AddFreeSpace(m_rFreeSpace, rRecordIndex.m_recordStart, rRecordIndex.m_blockCount * BLOCK_SIZE);
         }
         
         //delete record index from disk
@@ -392,7 +392,7 @@ void DiskWriter::ProcessIndexDeleteQueue()
     }
 }
 
-void DiskWriter::AddFreeSpace(int64 pos, int64 lenght)
+void DiskWriter::AddFreeSpace(FreeSpaceBlockMap &rFreeSpace, int64 pos, int64 lenght)
 {
     if(pos < 0 || lenght <= 0)
     {
@@ -400,8 +400,8 @@ void DiskWriter::AddFreeSpace(int64 pos, int64 lenght)
         return;
     }
     
-    FreeSpaceBlockMap::iterator itr = m_rFreeSpace.find(lenght);
-    if(itr != m_rFreeSpace.end())
+    FreeSpaceBlockMap::iterator itr = rFreeSpace.find(lenght);
+    if(itr != rFreeSpace.end())
     {
         itr->second.push_back(pos);
     }
@@ -409,14 +409,14 @@ void DiskWriter::AddFreeSpace(int64 pos, int64 lenght)
     {
         FreeSpaceOffsets rFreeSpaceOffsets;
         rFreeSpaceOffsets.push_back(pos);
-        m_rFreeSpace[lenght] = std::move(rFreeSpaceOffsets);
+        rFreeSpace[lenght] = std::move(rFreeSpaceOffsets);
     }
 }
 
 struct PredGreater
 {
     explicit PredGreater(int64 x) : m_x(x) {}
-    INLINE bool operator()(const DiskWriter::FreeSpaceBlockMap::value_type & p) { return (m_x < p.first); }
+    INLINE bool operator()(const FreeSpaceBlockMap::value_type & p) { return (m_x < p.first); }
 private:
     int64 m_x;
 };
@@ -476,11 +476,22 @@ int64 DiskWriter::GetFreeSpacePos(int64 lenght)
 
 void DiskWriter::DefragmentFreeSpace()
 {
-    //TODO: DefragmentFreeSpace
+    //open index file for read only
+    HANDLE hIndexFile = INVALID_HANDLE_VALUE;
+    IOHandleGuard rIOHandleIndexGuard(hIndexFile);
+    hIndexFile = IO::fopen(m_rStorage.m_rIndexPath.c_str(), IO::IO_READ_ONLY, IO::IO_DIRECT);
+    if(hIndexFile == INVALID_HANDLE_VALUE)
+    {
+        Log.Error(__FUNCTION__, "Open indexfile: %s failed. Error number: %d", m_rStorage.m_rIndexPath.c_str(), IO::ferror());
+        return;
+    }
     
-    
-    
-    
+    //reload freespace from index file
+    bool status = m_rStorage.m_pDataIndexDiskWriter->Init(hIndexFile, NULL, m_rFreeSpace, m_rStorage.m_dataFileSize.load());
+    if(status == false)
+    {
+        Log.Error(__FUNCTION__, "DefragmentFreeSpace failed.");
+    }
 }
 
 static void _S_DiskWriter_GetItemsFromFreeSpaceDump(DiskWriter::FreeSpaceDumpTask *pFreeSpaceDump,
@@ -497,7 +508,7 @@ static void _S_DiskWriter_GetItemsFromFreeSpaceDump(DiskWriter::FreeSpaceDumpTas
 }
 
 static uint32 _S_DiskWriter_GetFreeSpaceDump(ByteBuffer &rBuff,
-                                             DiskWriter::FreeSpaceBlockMap &rFreeSpaceBlockMap,
+                                             FreeSpaceBlockMap &rFreeSpaceBlockMap,
                                              int64 dataFileSize,
                                              bool fullDump)
 {
@@ -505,7 +516,7 @@ static uint32 _S_DiskWriter_GetFreeSpaceDump(ByteBuffer &rBuff,
     if(fullDump == true)
     {
         size_t reserveSize = 0;
-        for(DiskWriter::FreeSpaceBlockMap::iterator itr = rFreeSpaceBlockMap.begin();itr != rFreeSpaceBlockMap.end();++itr)
+        for(FreeSpaceBlockMap::iterator itr = rFreeSpaceBlockMap.begin();itr != rFreeSpaceBlockMap.end();++itr)
         {
             reserveSize += sizeof(int64);
             reserveSize += itr->second.size() * sizeof(int64);
@@ -518,7 +529,7 @@ static uint32 _S_DiskWriter_GetFreeSpaceDump(ByteBuffer &rBuff,
     //freeSpace size
     rBuff << uint64(rFreeSpaceBlockMap.size());
     //
-    for(DiskWriter::FreeSpaceBlockMap::iterator itr = rFreeSpaceBlockMap.begin();itr != rFreeSpaceBlockMap.end();++itr)
+    for(FreeSpaceBlockMap::iterator itr = rFreeSpaceBlockMap.begin();itr != rFreeSpaceBlockMap.end();++itr)
     {
         rBuff << uint64(itr->first);
         rBuff << uint64(itr->second.size());

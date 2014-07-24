@@ -34,6 +34,7 @@ extern int g_MaxReadTasksInQueue;
 extern int g_WebSocketPort;
 extern uint64 g_IndexBlockCacheSize;
 extern int g_DefragAfterRecordDelete;
+extern int g_FreeSpaceDefrag;
 
 //socket ID gen
 extern std::atomic<uint64> g_SocketID;

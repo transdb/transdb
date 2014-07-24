@@ -11,6 +11,7 @@
 
 class Storage;
 class LRUCache;
+class DiskWriter;
 
 //disable alignment
 #pragma pack(push, 1)
@@ -31,14 +32,26 @@ typedef struct DiskRecordIndex
     uint16              m_blockCount;				//2
 } DREC;
 
+#pragma pack(pop)
+
 //FreeSpace
 struct FreeSpace
 {
-	FreeSpace() : m_pos(0), m_lenght(0)	{}
-	FreeSpace(int64 pos, int64 lenght) : m_pos(pos), m_lenght(lenght) {}
+	explicit FreeSpace() : m_pos(0), m_lenght(0)	{}
+	explicit FreeSpace(int64 pos, int64 lenght) : m_pos(pos), m_lenght(lenght) {}
     
 	int64 m_pos;
 	int64 m_lenght;
+};
+
+//for parsing index file
+struct IndexDef
+{
+	explicit IndexDef(uint64 key, int64 dataPosition, int64 dataLen) : m_key(key), m_dataPosition(dataPosition), m_dataLen(dataLen) {}
+    
+    uint64  m_key;
+    int64   m_dataPosition;
+    int64   m_dataLen;
 };
 
 //X - in memory
@@ -68,8 +81,6 @@ struct RecordIndex
 	uint8				m_flags;					//1
     uint8               m_padding[3];               //3 - free bytes
 };
-
-#pragma pack(pop)
 
 //record index flags
 typedef enum E_RECORD_INDEX_FLAGS
@@ -107,10 +118,23 @@ public:
 typedef tbb::concurrent_hash_map<uint64, RecordIndex, HashCompare<uint64> >         RecordIndexMap;
 //for getting all X keys
 typedef tbb::concurrent_vector<uint64>                                              XKeyVec;
+//for parsing index file
+typedef tbb::concurrent_unordered_set<uint32>                                       Init_FreeBlocksSet;
+typedef tbb::concurrent_vector<IndexDef>                                            Init_IndexDefVec;
+//freespace
+typedef Vector<int64>                                                               FreeSpaceOffsets;
+typedef std::map<int64, FreeSpaceOffsets>                                           FreeSpaceBlockMap;
+
+static INLINE bool _S_SortIndexDef(const IndexDef &rIndexDefStruct1,
+                                   const IndexDef &rIndexDefStruc2)
+{
+	return (rIndexDefStruct1.m_dataPosition < rIndexDefStruc2.m_dataPosition);
+}
 
 class IndexBlock
 {
     friend class Storage;
+    friend class DiskWriter;
     
     typedef std::set<uint32>                                                        FreeBlocksList;
     typedef std::map<uint32, uint8*>                                                IndexBlockCache;
@@ -132,15 +156,25 @@ public:
     
     /** check if DREC is empty
      */
-    static bool IsEmptyDREC(const DREC *pDREC);
+    static bool IsEmptyDREC(const DREC *pDREC);   
     
 private:
     //private ctor only created from Storage
-    explicit IndexBlock(Storage &pStorage);
-    //called from Storage
-    bool Init(const std::string &rIndexFilePath, int64 dataFileSize, int64 *indexFileSize);
+    explicit IndexBlock();
+    
+    /** Load data from index file
+     *  fill RecordIndexMap if provided
+     *  fill freespace map
+     *  Called from Storage.cpp or DisrWrite.cpp
+     */
+    bool Init(HANDLE hFile, RecordIndexMap *pRecordIndexMap, FreeSpaceBlockMap &rFreeSpace, int64 dataFileSize);
+    
 	//disable copy constructor and assign
 	DISALLOW_COPY_AND_ASSIGN(IndexBlock);
+    
+    /** Fill freespace map from indexfdef vector
+     */
+    bool LoadFreeSpaceFromIndexDef(FreeSpaceBlockMap &rFreeSpaceBlockMap, int64 dataFileSize, Init_IndexDefVec &rIndexDef);
     
     /** return block from cache if not in cache loads from disk
      */
@@ -151,7 +185,6 @@ private:
     DREC *GetEmptyDREC(const uint8 *pDiskBlock, int16 *newRecordOffset);
 
     //declarations
-    Storage                     &m_rStorage;
     uint32                      m_blockCount;
     FreeBlocksList              m_freeBlocks;
     

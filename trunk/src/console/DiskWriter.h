@@ -13,22 +13,20 @@ struct WriteInfo
 {
     explicit WriteInfo() : m_key(0), m_recordPosition(0)
     {
-        
     }
     
     explicit WriteInfo(uint64 key, int64 recordPosition) : m_key(key), m_recordPosition(recordPosition)
     {
-        
     }
     
-    INLINE WriteInfo &operator=(const WriteInfo &rWriteInfo)
+    WriteInfo &operator=(const WriteInfo &rWriteInfo)
     {
         m_key               = rWriteInfo.m_key;
         m_recordPosition    = rWriteInfo.m_recordPosition;
         return *this;
     }
          
-    INLINE bool operator==(const WriteInfo &rWriteInfo) const
+    bool operator==(const WriteInfo &rWriteInfo) const
     {
         return m_key == rWriteInfo.m_key;
     }
@@ -41,7 +39,6 @@ struct FreeSpaceTask
 {
     explicit FreeSpaceTask(uint32 token, uint32 flags, uint32 dumpFlags) : m_token(token), m_flags(flags), m_dumpFlags(dumpFlags)
     {
-        
     }
     
     uint32 m_token;
@@ -58,9 +55,6 @@ public:
     typedef HashMap<uint64, WriteInfo, ScalableHashMapNodeAllocator<uint64, WriteInfo> >    DirtyXQueue;
     typedef Vector<WriteInfo, uint64>                                                       DirtyXProcess;
     typedef HashMap<uint64, RecordIndex>                                                    RIDelQueue;
-    //freespace
-    typedef Vector<int64>                                                                   FreeSpaceOffsets;
-    typedef std::map<int64, FreeSpaceOffsets>                                               FreeSpaceBlockMap;
     //freespace dump
     typedef HashMap<uint64, FreeSpaceTask>                                                  FreeSpaceDumpTask;
     
@@ -115,7 +109,7 @@ private:
     bool WriteDataWithRelocateFlag(HANDLE hDataFile, RecordIndexMap::accessor &rWriteAccessor);
     
     //freespace functions
-	void AddFreeSpace(int64 pos, int64 lenght);
+	static void AddFreeSpace(FreeSpaceBlockMap &rFreeSpace, int64 pos, int64 lenght);
 	int64 GetFreeSpacePos(int64 size);
 	void DefragmentFreeSpace();
     
