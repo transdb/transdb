@@ -33,6 +33,7 @@ public:
     void GetStats(ByteBuffer &rBuff);
     void DefragmentData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x);
     void GetFreeSpaceDump(uint64 socketID, uint32 token, uint32 flags, uint32 dumpFlags);
+    void DefragmentFreeSpace(uint64 socketID, uint32 token, uint32 flags);
     
 	//thread
     bool run();

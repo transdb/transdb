@@ -37,6 +37,7 @@ public:
     void HandleWriteDataNum(ClientSocketTaskData&);
     void HandleReadLog(ClientSocketTaskData&);
     void HandleReadConfig(ClientSocketTaskData&);
+    void HandleDefragmentFreeSpace(ClientSocketTaskData&);
     
 private:
 	//disable copy constructor and assign

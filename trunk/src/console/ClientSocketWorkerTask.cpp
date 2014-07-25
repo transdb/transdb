@@ -11,35 +11,37 @@
 typedef void (ClientSocketWorkerTask::*ClientSocketWorkerTaskHandler)(ClientSocketTaskData&);
 static const ClientSocketWorkerTaskHandler m_ClientSocketWorkerTaskHandlers[OP_NUM] =
 {
-    NULL,                                           //C_NULL_OP
-	&ClientSocketWorkerTask::HandleWriteData,       //C_MSG_WRITE_DATA		= 1,
-	NULL,                                           //S_MSG_WRITE_DATA		= 2,
-	&ClientSocketWorkerTask::HandleReadData,        //C_MSG_READ_DATA		= 3,
-	NULL,                                           //S_MSG_READ_DATA		= 4,
-	&ClientSocketWorkerTask::HandleDeleteData,      //C_MSG_DELETE_DATA		= 5,
-	NULL,                                           //S_MSG_DELETE_DATA		= 6,
-    &ClientSocketWorkerTask::HandleGetAllX,         //C_MSG_GET_ALL_X       = 7,
-    NULL,                                           //S_MSG_GET_ALL_X       = 8,
-    NULL,                                           //C_MSG_PONG            = 9,
-    NULL,                                           //S_MSG_PONG            = 10,
-    &ClientSocketWorkerTask::HandleGetAllY,         //C_MSG_GET_ALL_Y       = 11,
-    NULL,                                           //S_MSG_GET_ALL_Y       = 12,
-    &ClientSocketWorkerTask::HandleStatus,          //C_MSG_STATUS          = 13,
-    NULL,                                           //S_MSG_STATUS          = 14,
-    NULL,                                           //C_MSG_GET_ACTIVITY_ID = 15,
-    NULL,                                           //S_MSG_GET_ACTIVITY_ID = 16,
-    &ClientSocketWorkerTask::HandleDeleteX,         //C_MSG_DELETE_X        = 17,
-    NULL,                                           //S_MSG_DELETE_X        = 18,
-    &ClientSocketWorkerTask::HandleDefragmentData,  //C_MSG_DEFRAMENT_DATA  = 19,
-    NULL,                                           //S_MSG_DEFRAMENT_DATA  = 20,
-    &ClientSocketWorkerTask::HandleGetFreeSpace,    //C_MSG_GET_FREESPACE   = 21,
-    NULL,                                           //S_MSG_GET_FREESPACE   = 22,
-    &ClientSocketWorkerTask::HandleWriteDataNum,    //C_MSG_WRITE_DATA_NUM  = 23,
-    NULL,                                           //S_MSG_WRITE_DATA_NUM  = 24,
-    &ClientSocketWorkerTask::HandleReadLog,         //C_MSG_READ_LOG        = 25,
-    NULL,                                           //S_MSG_READ_LOG        = 26,
-    &ClientSocketWorkerTask::HandleReadConfig,      //C_MSG_READ_LOG        = 27,
-    NULL,                                           //S_MSG_READ_LOG        = 28,
+    NULL,                                               //C_NULL_OP
+	&ClientSocketWorkerTask::HandleWriteData,           //C_MSG_WRITE_DATA              = 1,
+	NULL,                                               //S_MSG_WRITE_DATA              = 2,
+	&ClientSocketWorkerTask::HandleReadData,            //C_MSG_READ_DATA               = 3,
+	NULL,                                               //S_MSG_READ_DATA               = 4,
+	&ClientSocketWorkerTask::HandleDeleteData,          //C_MSG_DELETE_DATA             = 5,
+	NULL,                                               //S_MSG_DELETE_DATA             = 6,
+    &ClientSocketWorkerTask::HandleGetAllX,             //C_MSG_GET_ALL_X               = 7,
+    NULL,                                               //S_MSG_GET_ALL_X               = 8,
+    NULL,                                               //C_MSG_PONG                    = 9,
+    NULL,                                               //S_MSG_PONG                    = 10,
+    &ClientSocketWorkerTask::HandleGetAllY,             //C_MSG_GET_ALL_Y               = 11,
+    NULL,                                               //S_MSG_GET_ALL_Y               = 12,
+    &ClientSocketWorkerTask::HandleStatus,              //C_MSG_STATUS                  = 13,
+    NULL,                                               //S_MSG_STATUS                  = 14,
+    NULL,                                               //C_MSG_GET_ACTIVITY_ID         = 15,
+    NULL,                                               //S_MSG_GET_ACTIVITY_ID         = 16,
+    &ClientSocketWorkerTask::HandleDeleteX,             //C_MSG_DELETE_X                = 17,
+    NULL,                                               //S_MSG_DELETE_X                = 18,
+    &ClientSocketWorkerTask::HandleDefragmentData,      //C_MSG_DEFRAMENT_DATA          = 19,
+    NULL,                                               //S_MSG_DEFRAMENT_DATA          = 20,
+    &ClientSocketWorkerTask::HandleGetFreeSpace,        //C_MSG_GET_FREESPACE           = 21,
+    NULL,                                               //S_MSG_GET_FREESPACE           = 22,
+    &ClientSocketWorkerTask::HandleWriteDataNum,        //C_MSG_WRITE_DATA_NUM          = 23,
+    NULL,                                               //S_MSG_WRITE_DATA_NUM          = 24,
+    &ClientSocketWorkerTask::HandleReadLog,             //C_MSG_READ_LOG                = 25,
+    NULL,                                               //S_MSG_READ_LOG                = 26,
+    &ClientSocketWorkerTask::HandleReadConfig,          //C_MSG_READ_CONFIG             = 27,
+    NULL,                                               //S_MSG_READ_CONFIG             = 28,
+    &ClientSocketWorkerTask::HandleDefragmentFreeSpace, //C_MSG_DEFRAGMENT_FREESPACE    = 29,
+    NULL,                                               //S_MSG_DEFRAGMENT_FREESPACE    = 30,
 };
 
 ClientSocketWorkerTask::ClientSocketWorkerTask(ClientSocketWorker &rClientSocketWorker,
@@ -732,7 +734,19 @@ void ClientSocketWorkerTask::HandleReadConfig(ClientSocketTaskData &rClientSocke
     g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }
 
-
+void ClientSocketWorkerTask::HandleDefragmentFreeSpace(ClientSocketTaskData &rClientSocketTaskData)
+{
+    uint32 token;
+    uint32 flags;
+    
+    //read data from packet
+    rClientSocketTaskData >> token >> flags;
+    
+    //process
+    m_rStorage.DefragmentFreeSpace(rClientSocketTaskData.socketID(), token, flags);
+    
+    //Response will be send from DiskWriter
+}
 
 
 

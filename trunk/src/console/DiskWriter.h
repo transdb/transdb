@@ -35,15 +35,19 @@ struct WriteInfo
     int64   m_recordPosition;
 };
 
-struct FreeSpaceTask
+typedef enum E_DISKWRITETASK_TYPE
 {
-    explicit FreeSpaceTask(uint32 token, uint32 flags, uint32 dumpFlags) : m_token(token), m_flags(flags), m_dumpFlags(dumpFlags)
-    {
-    }
-    
-    uint32 m_token;
-    uint32 m_flags;
-    uint32 m_dumpFlags;
+    edtNULL                 = 0,
+    edtDumpFreeSpace        = 1,
+    edtDefragmentFreeSpace  = 2,
+    edtNUM                  
+} EDT;
+
+struct DiskWriterTask
+{
+    uint64      m_socketID;
+    EDT         m_eTaskType;
+    ByteBuffer  m_rData;
 };
 
 class DiskWriter
@@ -55,8 +59,8 @@ public:
     typedef HashMap<uint64, WriteInfo, ScalableHashMapNodeAllocator<uint64, WriteInfo> >    DirtyXQueue;
     typedef Vector<WriteInfo, uint64>                                                       DirtyXProcess;
     typedef HashMap<uint64, RecordIndex>                                                    RIDelQueue;
-    //freespace dump
-    typedef HashMap<uint64, FreeSpaceTask>                                                  FreeSpaceDumpTask;
+    //DiskWriterTask
+    typedef std::vector<DiskWriterTask>                                                     DiskWriteTasksVec;
     
     //destructor
     ~DiskWriter();
@@ -66,10 +70,14 @@ public:
     void Remove(uint64 x);
 	void Process();
     
-    //queue task for freespace dump
-    void QueueFreeSpaceDump(uint64 socketID, uint32 token, uint32 flags, uint32 dumpFlags);
-    //freespace dump
-    void ProcessFreeSpaceDump();
+    //queue task for diskwriter
+    void QueueTask(uint64 socketID, EDT eTaskType, ByteBuffer &rData);
+    //process tasks
+    void ProcessTasks();
+    
+    //handler for DiskWrite tasks
+    void HandleFreeSpaceDump(uint64 socketID, ByteBuffer &rData);
+    void HandleDefragmentFreeSpace(uint64 socketID, ByteBuffer &rData);
     
 	bool HasTasks()
 	{
@@ -118,9 +126,10 @@ private:
     
     //freespace map
     FreeSpaceBlockMap   m_rFreeSpace;
-    //freespace dump queue
-    FreeSpaceDumpTask   *m_pFreeSpaceDump;
-    std::mutex          m_rFreeSpaceDumpLock;
+    
+    //DiskWriter tasks
+    DiskWriteTasksVec   m_rDiskWriteTasks;
+    std::mutex          m_rDiskWriteTasksLock;
     
     //queue for changes in data file
     DirtyXQueue         *m_pQueue;
