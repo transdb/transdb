@@ -597,7 +597,23 @@ void Storage::DefragmentDataInternal(RecordIndexMap::accessor &rWriteAccessor)
 
 void Storage::GetFreeSpaceDump(uint64 socketID, uint32 token, uint32 flags, uint32 dumpFlags)
 {
-    m_pDiskWriter->QueueFreeSpaceDump(socketID, token, flags, dumpFlags);
+    //create data
+    ByteBuffer rData;
+    rData << token;
+    rData << flags;
+    rData << dumpFlags;
+    //queue
+    m_pDiskWriter->QueueTask(socketID, edtDumpFreeSpace, rData);
+}
+
+void Storage::DefragmentFreeSpace(uint64 socketID, uint32 token, uint32 flags)
+{
+    //create data
+    ByteBuffer rData;
+    rData << token;
+    rData << flags;
+    //queue
+    m_pDiskWriter->QueueTask(socketID, edtDefragmentFreeSpace, rData);
 }
 
 void Storage::CheckMemory(LRUCache &rLRUCache)
@@ -720,11 +736,12 @@ bool Storage::run()
                 m_pDiskWriter->Process();
             }
             
-            //process freespace dump task -> Send dump over socket
+            //process diskwrite tasks -> Send over socket
             {
-                m_pDiskWriter->ProcessFreeSpaceDump();
+                m_pDiskWriter->ProcessTasks();
             }
             
+            //defragment
             if(!(m_diskWriterCount % g_FreeSpaceDefrag))
             {
                 m_pDiskWriter->DefragmentFreeSpace();

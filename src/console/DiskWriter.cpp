@@ -8,8 +8,15 @@
 
 #include "StdAfx.h"
 
+typedef void (DiskWriter::*DiskWriterTaskHandler)(uint64, ByteBuffer&);
+static const DiskWriterTaskHandler m_DiskWriterTaskHandlers[edtNUM] =
+{
+    NULL,
+    &DiskWriter::HandleFreeSpaceDump,
+    &DiskWriter::HandleDefragmentFreeSpace,
+};
+
 DiskWriter::DiskWriter(Storage &rStorage) : m_rStorage(rStorage),
-                                            m_pFreeSpaceDump(new FreeSpaceDumpTask(32)),
                                             m_pQueue(new DirtyXQueue(4*1024)),
                                             m_pRIDelQueue(new RIDelQueue(4*1024)),
                                             m_sumDiskWriteTime(0),
@@ -25,8 +32,6 @@ DiskWriter::~DiskWriter()
     m_pQueue = NULL;
     delete m_pRIDelQueue;
     m_pRIDelQueue = NULL;
-    delete m_pFreeSpaceDump;
-    m_pFreeSpaceDump = NULL;
 }
 
 void DiskWriter::Queue(RecordIndexMap::accessor &rWriteAccesor)
@@ -59,10 +64,18 @@ void DiskWriter::QueueIndexDeletetion(RecordIndexMap::accessor &rWriteAccesor)
     m_pRIDelQueue->put(rWriteAccesor->first, rRecordIndex);
 }
 
-void DiskWriter::QueueFreeSpaceDump(uint64 socketID, uint32 token, uint32 flags, uint32 dumpFlags)
+void DiskWriter::QueueTask(uint64 socketID, EDT eTaskType, ByteBuffer &rData)
 {
-    std::lock_guard<std::mutex> rGuard(m_rFreeSpaceDumpLock);
-    m_pFreeSpaceDump->put(socketID, FreeSpaceTask(token, flags, dumpFlags));
+    //lock
+    std::lock_guard<std::mutex> rGuard(m_rDiskWriteTasksLock);
+    
+    //create task
+    DiskWriterTask rDiskWriterTask;
+    rDiskWriterTask.m_socketID = socketID;
+    rDiskWriterTask.m_eTaskType = eTaskType;
+    rDiskWriterTask.m_rData = std::move(rData);
+    //add to quue
+    m_rDiskWriteTasks.push_back(rDiskWriterTask);
 }
 
 INLINE static bool _S_SortWriteInfoForWrite(const WriteInfo &rWriteInfo1, const WriteInfo &rWriteInfo2)
@@ -494,16 +507,41 @@ void DiskWriter::DefragmentFreeSpace()
     }
 }
 
-static void _S_DiskWriter_GetItemsFromFreeSpaceDump(DiskWriter::FreeSpaceDumpTask *pFreeSpaceDump,
-                                                    std::mutex &rFreeSpaceDumpLock,
-                                                    Vector<std::pair<uint64, FreeSpaceTask> > &rKeyPair)
+static void _S_DiskWriter_GetItemsFromDiskWriteTasks(DiskWriter::DiskWriteTasksVec &rDiskWriteTasks,
+                                                     std::mutex &rDiskWriteTasksLock,
+                                                     DiskWriter::DiskWriteTasksVec &rDiskWriteTasksOut)
 {
-    std::lock_guard<std::mutex> rGuard(rFreeSpaceDumpLock);
-    if(pFreeSpaceDump->size())
+    std::lock_guard<std::mutex> rGuard(rDiskWriteTasksLock);
+    if(rDiskWriteTasks.size())
     {
-        rKeyPair.reserve(pFreeSpaceDump->size());
-        pFreeSpaceDump->getKeyValuePairs(rKeyPair);
-        pFreeSpaceDump->clear();
+        rDiskWriteTasksOut = std::move(rDiskWriteTasks);
+    }
+}
+
+void DiskWriter::ProcessTasks()
+{
+    //check if we have items to process
+    {
+        std::lock_guard<std::mutex> rGuard(m_rDiskWriteTasksLock);
+        if(m_rDiskWriteTasks.empty())
+            return;
+    }
+    
+    //move data to local vector, we dont want to hold lock when processing data
+    DiskWriteTasksVec rDiskWriteTasksProcess;
+    _S_DiskWriter_GetItemsFromDiskWriteTasks(m_rDiskWriteTasks, m_rDiskWriteTasksLock, rDiskWriteTasksProcess);
+    
+    //process
+    for(size_t i = 0;i < rDiskWriteTasksProcess.size();++i)
+    {
+        //get task
+        DiskWriterTask &rDiskWriterTask = rDiskWriteTasksProcess[i];
+        
+        //process handler
+        if(rDiskWriterTask.m_eTaskType < edtNUM && m_DiskWriterTaskHandlers[rDiskWriterTask.m_eTaskType] != NULL)
+        {
+            (void)(this->*m_DiskWriterTaskHandlers[rDiskWriterTask.m_eTaskType])(rDiskWriterTask.m_socketID, rDiskWriterTask.m_rData);
+        }
     }
 }
 
@@ -561,95 +599,91 @@ static uint32 _S_DiskWriter_GetFreeSpaceDump(ByteBuffer &rBuff,
     return ePF_NULL;
 }
 
-void DiskWriter::ProcessFreeSpaceDump()
+void DiskWriter::HandleFreeSpaceDump(uint64 socketID, ByteBuffer &rData)
 {
-    {
-        std::lock_guard<std::mutex> rGuard(m_rFreeSpaceDumpLock);
-        if(m_pFreeSpaceDump->size() == 0)
-            return;
-    }
-    
-    //copy to vector clean data from map
-    Vector<std::pair<uint64, FreeSpaceTask> > rKeyPair;
-    _S_DiskWriter_GetItemsFromFreeSpaceDump(m_pFreeSpaceDump, m_rFreeSpaceDumpLock, rKeyPair);
-    
-    //
+    uint32 token;
+    uint32 flags;
+    uint32 dumpFlags;
     ByteBuffer rDump;
-    ByteBuffer rFullDump;
-    uint32 dumpFlags = 0;
-    uint32 fullDumpFlags = 0;
     OUTPACKET_RESULT result;
     
-    //fill buffers
-    for(size_t i = 0;i < rKeyPair.size();++i)
+    //unpack data
+    rData >> token >> flags >> dumpFlags;
+    
+    //dump
+    if(dumpFlags == eSFSDF_FULL)
     {
-        const FreeSpaceTask &rFreeSpaceTask = rKeyPair[i].second;
-        if(rFreeSpaceTask.m_dumpFlags == eSFSDF_FULL && rFullDump.size() == 0)
-        {
-            fullDumpFlags = _S_DiskWriter_GetFreeSpaceDump(rFullDump, m_rFreeSpace, m_rStorage.m_dataFileSize, true);
-        }
-        else if(rDump.size() == 0)
-        {
-            dumpFlags = _S_DiskWriter_GetFreeSpaceDump(rDump, m_rFreeSpace, m_rStorage.m_dataFileSize, false);
-        }
+        flags = _S_DiskWriter_GetFreeSpaceDump(rDump, m_rFreeSpace, m_rStorage.m_dataFileSize, true);
+    }
+    else
+    {
+        flags = _S_DiskWriter_GetFreeSpaceDump(rDump, m_rFreeSpace, m_rStorage.m_dataFileSize, false);
     }
 
-    //distribute to clients
-    for(size_t i = 0;i < rKeyPair.size();++i)
+    //init stream send
+    Packet rResponse(S_MSG_GET_FREESPACE, 32);
+    rResponse << token;
+    rResponse << flags;
+    result = g_rClientSocketHolder.StartStreamSend(socketID, rResponse, rDump.size());
+    //socket disconnection or something go to next socket
+    if(result != OUTPACKET_RESULT_SUCCESS)
     {
-        const std::pair<uint64, FreeSpaceTask> &rPair = rKeyPair[i];
-        
-        //set variables
-        ByteBuffer &rBuff = rPair.second.m_dumpFlags == eSFSDF_FULL ? rFullDump : rDump;
-        uint32 flags = rPair.second.m_dumpFlags == eSFSDF_FULL ? fullDumpFlags : dumpFlags;
-        size_t dataSize = rPair.second.m_dumpFlags == eSFSDF_FULL ? rFullDump.size() : rDump.size();
-        
-        //init stream send
-        Packet rResponse(S_MSG_GET_FREESPACE, 32);
-        rResponse << rPair.second.m_token;
-        rResponse << flags;
-        result = g_rClientSocketHolder.StartStreamSend(rPair.first, rResponse, dataSize);
-        //socket disconnection or something go to next socket
-        if(result != OUTPACKET_RESULT_SUCCESS)
+        Log.Error(__FUNCTION__, "StartStreamSend - Socket ID: " I64FMTD " disconnected.", socketID);
+        return;
+    }
+
+    //send all chunks
+    uint8 arChunk[4096];
+    size_t remainingData;
+    size_t readDataSize;
+    while(rDump.rpos() < rDump.size())
+    {
+        remainingData = rDump.size() - rDump.rpos();
+        readDataSize = std::min(remainingData, sizeof(arChunk));
+        rDump.read((uint8*)&arChunk, readDataSize);
+        //send chunk
+    trySendAgain:
+        result = g_rClientSocketHolder.StreamSend(socketID, &arChunk, readDataSize);
+        if(result == OUTPACKET_RESULT_SUCCESS)
         {
-            Log.Error(__FUNCTION__, "StartStreamSend - Socket ID: " I64FMTD " disconnected.", rPair.first);
+            //send is ok continue with sending
             continue;
         }
-        
-        //send all chunks
-        uint8 arChunk[4096];
-        size_t remainingData;
-        size_t readDataSize;
-        while(rBuff.rpos() < rBuff.size())
+        else if(result == OUTPACKET_RESULT_NO_ROOM_IN_BUFFER)
         {
-            remainingData = rBuff.size() - rBuff.rpos();
-            readDataSize = std::min(remainingData, sizeof(arChunk));
-            rBuff.read((uint8*)&arChunk, readDataSize);
-            //send chunk
-        trySendAgain:
-            result = g_rClientSocketHolder.StreamSend(rPair.first, &arChunk, readDataSize);
-            if(result == OUTPACKET_RESULT_SUCCESS)
-            {
-                //send is ok continue with sending
-                continue;
-            }
-            else if(result == OUTPACKET_RESULT_NO_ROOM_IN_BUFFER)
-            {
-                //socket buffer is full wait for
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                goto trySendAgain;
-            }
-            else
-            {
-                //error interupt sending
-                Log.Error(__FUNCTION__, "StreamSend error: %u", (uint32)result);
-                break;
-            }
+            //socket buffer is full wait for
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            goto trySendAgain;
+        }
+        else
+        {
+            //error interupt sending
+            Log.Error(__FUNCTION__, "StreamSend error: %u", (uint32)result);
+            break;
         }
     }
 }
 
-
+void DiskWriter::HandleDefragmentFreeSpace(uint64 socketID, ByteBuffer &rData)
+{
+    uint32 token;
+    uint32 flags;
+    
+    //unpack data
+    rData >> token >> flags;
+    
+    //defragment
+    {
+        DefragmentFreeSpace();
+    }
+    
+    //send finished packet
+    uint8 buff[32];
+    StackPacket rResponse(S_MSG_DEFRAGMENT_FREESPACE, buff, sizeof(buff));
+    rResponse << token;
+    rResponse << flags;
+    g_rClientSocketHolder.SendPacket(socketID, rResponse);
+}
 
 
 
