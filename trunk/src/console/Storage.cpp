@@ -706,7 +706,7 @@ bool Storage::CheckBlockManager(const HANDLE &rDataFileHandle, const uint64 &x, 
         //calc avg read time
         endTime = GetTickCount64() - startTime;
         m_sumDiskReadTime += endTime;
-        g_AvgDiskReadTime = m_sumDiskReadTime.load() / g_NumOfReadsFromDisk.load();
+        g_AvgDiskReadTime = m_sumDiskReadTime / g_NumOfReadsFromDisk;
         return true;
     }
     else
@@ -726,6 +726,8 @@ bool Storage::run()
 #ifdef WIN32
         _set_se_translator(trans_func);
 #endif
+        //next freespace defrag time
+        time_t nextDefragRun = UNIXTIME + g_FreeSpaceDefrag;
         
         while(m_threadRunning)
         {                
@@ -742,9 +744,10 @@ bool Storage::run()
             }
             
             //defragment
-            if(!(m_diskWriterCount % g_FreeSpaceDefrag))
+            if(nextDefragRun < UNIXTIME)
             {
                 m_pDiskWriter->DefragmentFreeSpace();
+                nextDefragRun = UNIXTIME + g_FreeSpaceDefrag;
             }
 
             Wait(100);

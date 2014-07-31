@@ -314,7 +314,7 @@ void DiskWriter::Process()
         //calc avg write time
         endTime = GetTickCount64() - startTime;
         m_sumDiskWriteTime += endTime;
-        g_AvgDiskWriteTime = m_sumDiskWriteTime.load() / g_NumOfWritesToDisk.load();
+        g_AvgDiskWriteTime = m_sumDiskWriteTime / g_NumOfWritesToDisk;
         
     } /* end if */
 }

@@ -40,22 +40,22 @@ int         g_DefragAfterRecordDelete   = 5;
 int         g_FreeSpaceDefrag           = 24*60*60;
 
 //socket ID gen
-std::atomic<uint64> g_SocketID;
+std::atomic<uint64> g_SocketID(0);
 
 //start time
 time_t g_StartTime                  = 0;
 
 //for statistics
-std::atomic<uint64> g_NumOfReadsFromDisk;
-std::atomic<uint64> g_NumOfReadsFromCache;
-std::atomic<uint64> g_NumOfWritesToDisk;
-std::atomic<size_t> g_ReceivedBytes;
-std::atomic<size_t> g_SendedBytes;
-std::atomic<size_t> g_NumOfRecordCompressions;
-std::atomic<size_t> g_NumOfRecordDecompressions;
-std::atomic<size_t> g_NumOfRecordDeframentations;
-std::atomic<uint64> g_AvgDiskReadTime;
-std::atomic<uint64> g_AvgDiskWriteTime;
+std::atomic<uint64> g_NumOfReadsFromDisk(0);
+std::atomic<uint64> g_NumOfReadsFromCache(0);
+std::atomic<uint64> g_NumOfWritesToDisk(1);
+std::atomic<size_t> g_ReceivedBytes(0);
+std::atomic<size_t> g_SendedBytes(0);
+std::atomic<size_t> g_NumOfRecordCompressions(0);
+std::atomic<size_t> g_NumOfRecordDecompressions(0);
+std::atomic<size_t> g_NumOfRecordDeframentations(0);
+std::atomic<uint64> g_AvgDiskReadTime(0);
+std::atomic<uint64> g_AvgDiskWriteTime(0);
 
 //CRC
 CRC_32 *g_CRC32;
