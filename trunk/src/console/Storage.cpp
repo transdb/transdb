@@ -743,8 +743,8 @@ bool Storage::run()
                 m_pDiskWriter->ProcessTasks();
             }
             
-            //defragment
-            if(nextDefragRun < UNIXTIME)
+            //run frrspace defragment if enabled
+            if(g_FreeSpaceDefrag != -1 && nextDefragRun < UNIXTIME)
             {
                 m_pDiskWriter->DefragmentFreeSpace();
                 nextDefragRun = UNIXTIME + g_FreeSpaceDefrag;
