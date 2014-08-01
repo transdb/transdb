@@ -76,6 +76,10 @@ extern std::string g_PythonRunableMethod;
 extern std::string g_PythonShutdownMethod;
 extern std::string g_PythonScriptVersion;
 
+//malloc alignment for disk IO
+extern int g_DataFileMallocAlignment;
+extern int g_IndexFileMallocAlignment;
+
 //Allocator
 template <class K, class V>
 class ScalableHashMapNodeAllocator

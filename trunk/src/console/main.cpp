@@ -289,6 +289,59 @@ int main(int argc, const char * argv[])
     
     //load value from config
     LoadConfig();
+
+	//alignment for DMA - http://msdn.microsoft.com/en-us/library/windows/desktop/cc644950(v=vs.85).aspx
+	/** File access buffer addresses for read and write operations should be physical 
+	*	sector-aligned, which means aligned on addresses in memory that are integer multiples of the volume's physical sector size. 
+	*	Depending on the disk, this requirement may not be enforced.
+	*/
+#ifdef WIN32
+	char cDataRootPath[4] = { 0 };
+	char cIndexRootPath[4] = { 0 };
+	DWORD lpSectorsPerCluster;
+	DWORD lpBytesPerSector;
+	DWORD lpNumberOfFreeClusters;
+	DWORD lpTotalNumberOfClusters;
+	BOOL oGetDiskFreeSpaceStatus;
+
+	if (g_DataFilePath.length() < 3)
+	{
+		Log.Error(__FUNCTION__, "Wrong datafile path: %s", g_DataFilePath.c_str());
+		return EXIT_FAILURE;
+	}
+	if (g_IndexFilePath.length() < 3)
+	{
+		Log.Error(__FUNCTION__, "Wrong indexfile path: %s", g_IndexFilePath.c_str());
+		return EXIT_FAILURE;
+	}
+
+	//get root disk (C:\, D:\, etc.)
+	g_DataFilePath.copy(cDataRootPath, 3);
+	g_IndexFilePath.copy(cIndexRootPath, 3);
+
+	//get bytespersector for datafile
+	oGetDiskFreeSpaceStatus = GetDiskFreeSpace(cDataRootPath, &lpSectorsPerCluster, &lpBytesPerSector, &lpNumberOfFreeClusters, &lpTotalNumberOfClusters);
+	if (oGetDiskFreeSpaceStatus == FALSE)
+	{
+		Log.Error(__FUNCTION__, "GetDiskFreeSpace failed for disk drive: %s", cDataRootPath);
+		return EXIT_FAILURE;
+	}
+	//save datafile malloc alignment
+	g_DataFileMallocAlignment = lpBytesPerSector;
+
+	//get bytespersector for indexfile
+	oGetDiskFreeSpaceStatus = GetDiskFreeSpace(cIndexRootPath, &lpSectorsPerCluster, &lpBytesPerSector, &lpNumberOfFreeClusters, &lpTotalNumberOfClusters);
+	if (oGetDiskFreeSpaceStatus == FALSE)
+	{
+		Log.Error(__FUNCTION__, "GetDiskFreeSpace failed for disk drive: %s", cIndexRootPath);
+		return EXIT_FAILURE;
+	}
+	//save indexfile malloc alignment
+	g_IndexFileMallocAlignment = lpBytesPerSector;
+#endif
+	//log
+	Log.Notice(__FUNCTION__, "DataFileMallocAlignment = %d", g_DataFileMallocAlignment);
+	Log.Notice(__FUNCTION__, "IndexFileMallocAlignment = %d", g_IndexFileMallocAlignment);
     
     //init intel tbb memory allocator soft limit
     intptr_t softHeapLimit = static_cast<intptr_t>((static_cast<float>(g_MemoryLimit) * 1.10f));
