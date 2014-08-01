@@ -68,7 +68,7 @@ const char *g_pCompiledVersion = "RELEASE";
 #endif
 
 //python
-bool g_PythonEnable                 = true;
+bool g_PythonEnable						 = true;
 std::string g_PythonHome                 = "";
 std::string g_PythonScriptsFolderPath    = "/Users/miroslavkudrnac/SVN/TransStorageServer/trunk/Python/";
 std::string g_PythonModuleName           = "main";
@@ -76,6 +76,10 @@ std::string g_PythonClassName            = "TestClass";
 std::string g_PythonRunableMethod        = "run";
 std::string g_PythonShutdownMethod       = "OnShutdown";
 std::string g_PythonScriptVersion        = "0";
+
+//malloc alignment for disk IO
+int g_DataFileMallocAlignment			 = 512;
+int g_IndexFileMallocAlignment			 = 512;
 
 //load config
 void LoadConfig()

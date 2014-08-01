@@ -106,7 +106,7 @@ bool IndexBlock::Init(HANDLE hFile,
     
     if(fileSize != 0)
     {
-        void *pData = scalable_aligned_malloc(fileSize, 512);
+        void *pData = scalable_aligned_malloc(fileSize, g_IndexFileMallocAlignment);
         if(pData == NULL)
         {
             Log.Error(__FUNCTION__, "Cannot allocate memory for index block file.");
@@ -252,7 +252,7 @@ void IndexBlock::WriteRecordIndexToDisk(HANDLE hFile, RecordIndexMap::accessor &
         if(m_freeBlocks.empty())
         {
             //create new block
-            pDiskBlock = (uint8*)scalable_aligned_malloc(INDEX_BLOCK_SIZE, 512);
+            pDiskBlock = (uint8*)scalable_aligned_malloc(INDEX_BLOCK_SIZE, g_IndexFileMallocAlignment);
             memset(pDiskBlock, 0, INDEX_BLOCK_SIZE);
             
             //add to cache
@@ -421,7 +421,7 @@ uint8 *IndexBlock::GetCachedDiskBlock(HANDLE hFile, int64 blockDiskPosition, uin
     }
     
     //allocate new block
-    pDiskBlock = (uint8*)scalable_aligned_malloc(INDEX_BLOCK_SIZE, 512);
+	pDiskBlock = (uint8*)scalable_aligned_malloc(INDEX_BLOCK_SIZE, g_IndexFileMallocAlignment);
     
     //read from disk
     IO::fseek(hFile, blockDiskPosition, IO::IO_SEEK_SET);
