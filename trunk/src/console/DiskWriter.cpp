@@ -502,8 +502,8 @@ void DiskWriter::DefragmentFreeSpace()
     }
     
     //reload freespace from index file
-    bool status = m_rStorage.m_pDataIndexDiskWriter->Init(hIndexFile, NULL, m_rFreeSpace, m_rStorage.m_dataFileSize);
-    if(status == false)
+    E_IIS status = m_rStorage.m_pDataIndexDiskWriter->Init(hIndexFile, NULL, m_rFreeSpace, m_rStorage.m_dataFileSize);
+    if(status != eIIS_OK)
     {
         Log.Error(__FUNCTION__, "DefragmentFreeSpace failed.");
     }

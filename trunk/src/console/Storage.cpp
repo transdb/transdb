@@ -90,11 +90,22 @@ bool Storage::Init()
 	//load indexes and freespaces
     Log.Notice(__FUNCTION__, "Loading index file: %s. Size: " SI64FMTD " bytes...", m_rIndexPath.c_str(), indexFileSize);
     //parse index file
-    bool status = m_pDataIndexDiskWriter->Init(hIndexFile, &m_dataIndexes, m_pDiskWriter->m_rFreeSpace, m_dataFileSize);
-    if(status == false)
+    E_IIS status = m_pDataIndexDiskWriter->Init(hIndexFile, &m_dataIndexes, m_pDiskWriter->m_rFreeSpace, m_dataFileSize);
+    if(status != eIIS_OK)
     {
-        //something failed -> IndexBlock::Init -> log error
-        return false;
+        /** if freespace corrupted and canot be loaded from indexfile
+         *  resize datafile -> this will add freespace to end of file
+         *  other freespaces in the datafile are wasted
+         */
+        if(status == eIIS_FreeSpaceCorrupted && g_ForceStartup == eFSA_ContinueIfFreeSpaceCorrupted)
+        {
+            m_pDiskWriter->ReallocDataFile(rDataFileHandle, g_ReallocSize);
+        }
+        else
+        {
+            //something failed -> IndexBlock::Init -> log error
+            return false;
+        }
     }
     Log.Notice(__FUNCTION__, "Loading index file: %s. Size: " SI64FMTD " bytes... done", m_rIndexPath.c_str(), indexFileSize);
     
