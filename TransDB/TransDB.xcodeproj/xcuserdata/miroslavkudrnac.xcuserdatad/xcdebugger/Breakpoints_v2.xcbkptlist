@@ -19,5 +19,67 @@
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../src/console/DiskWriter.cpp"
+            timestampString = "428835439.027279"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "612"
+            endingLineNumber = "612"
+            landmarkName = "DumpFreeSpaceThread(uint64 socketID, int64 dataFileSize, ByteBuffer &amp;rData, const FreeSpaceBlockMap &amp;rFreeSpace)"
+            landmarkType = "5">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DumpFreeSpaceThread::DumpFreeSpaceThread(unsigned long long, long long, ByteBuffer&amp;, std::__1::map&lt;long long, Vector&lt;long long, unsigned long&gt;, std::__1::less&lt;long long&gt;, std::__1::allocator&lt;std::__1::pair&lt;long long const, Vector&lt;long long, unsigned long&gt; &gt; &gt; &gt; const&amp;)"
+                  moduleName = "TransDB"
+                  urlString = "file:///Users/miroslavkudrnac/SVN/TransStorageServer/trunk/src/console/DiskWriter.cpp"
+                  timestampString = "428835536.935841"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "613"
+                  endingLineNumber = "613"
+                  offsetFromSymbolStart = "32">
+               </Location>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DumpFreeSpaceThread::DumpFreeSpaceThread(unsigned long long, long long, ByteBuffer&amp;, std::__1::map&lt;long long, Vector&lt;long long, unsigned long&gt;, std::__1::less&lt;long long&gt;, std::__1::allocator&lt;std::__1::pair&lt;long long const, Vector&lt;long long, unsigned long&gt; &gt; &gt; &gt; const&amp;)"
+                  moduleName = "TransDB"
+                  urlString = "file:///Users/miroslavkudrnac/SVN/TransStorageServer/trunk/src/console/DiskWriter.cpp"
+                  timestampString = "428835536.93624"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "613"
+                  endingLineNumber = "613"
+                  offsetFromSymbolStart = "1573">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../src/console/DiskWriter.cpp"
+            timestampString = "428835595.163887"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "627"
+            endingLineNumber = "627"
+            landmarkName = "run()"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
    </Breakpoints>
 </Bucket>

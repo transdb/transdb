@@ -27,7 +27,6 @@ Storage *Storage::create(const std::string &rFileName)
 Storage::Storage(const std::string &rFileName) : m_rDataPath(g_DataFilePath + rFileName + ".dat"),
                                                  m_rIndexPath(g_IndexFilePath + rFileName + ".idx"),
                                                  m_dataFileSize(0),
-                                                 m_diskWriterCount(0),
                                                  m_pDiskWriter(new DiskWriter(*this)),
                                                  m_pDataIndexDiskWriter(new IndexBlock()),
                                                  m_memoryUsed(0),
@@ -726,21 +725,18 @@ bool Storage::run()
 #ifdef WIN32
         _set_se_translator(trans_func);
 #endif
+        //next disk flush time
+        time_t nextDiskFlush = UNIXTIME + g_DiskFlushCoef;
         //next freespace defrag time
         time_t nextDefragRun = UNIXTIME + g_FreeSpaceDefrag;
         
         while(m_threadRunning)
         {                
             //flush data to disk
-            if(!(++m_diskWriterCount % g_DiskFlushCoef))
+            if(g_DiskFlushCoef != -1 && nextDiskFlush < UNIXTIME)
             {
-                //process disk operations
                 m_pDiskWriter->Process();
-            }
-            
-            //process diskwrite tasks -> Send over socket
-            {
-                m_pDiskWriter->ProcessTasks();
+                nextDiskFlush = UNIXTIME + g_DiskFlushCoef;
             }
             
             //run frrspace defragment if enabled
@@ -749,8 +745,13 @@ bool Storage::run()
                 m_pDiskWriter->DefragmentFreeSpace();
                 nextDefragRun = UNIXTIME + g_FreeSpaceDefrag;
             }
+            
+            //process diskwrite tasks -> Send over socket
+            {
+                m_pDiskWriter->ProcessTasks();
+            }
 
-            Wait(100);
+            Wait(1000);
         }
     }
     catch(std::runtime_error &rEx)
