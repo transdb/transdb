@@ -67,7 +67,6 @@ private:
     std::atomic<int64>          m_dataFileSize;
 
     //disk writer
-    uint32                      m_diskWriterCount;
     DiskWriter					*m_pDiskWriter;
     
     //index writter - used only by DiskWriter and Storage when loading

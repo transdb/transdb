@@ -550,6 +550,8 @@ static uint32 _S_DiskWriter_GetFreeSpaceDump(ByteBuffer &rBuff,
                                              int64 dataFileSize,
                                              bool fullDump)
 {
+    //TODO: make copy
+    
     //prealloc buffer
     if(fullDump == true)
     {
@@ -599,69 +601,110 @@ static uint32 _S_DiskWriter_GetFreeSpaceDump(ByteBuffer &rBuff,
     return ePF_NULL;
 }
 
-void DiskWriter::HandleFreeSpaceDump(uint64 socketID, ByteBuffer &rData)
+class DumpFreeSpaceThread : public ThreadContext
 {
-    uint32 token;
-    uint32 flags;
-    uint32 dumpFlags;
-    ByteBuffer rDump;
-    OUTPACKET_RESULT result;
+public:
+    explicit DumpFreeSpaceThread(uint64 socketID,
+                                 int64 dataFileSize,
+                                 ByteBuffer &rData,
+                                 const FreeSpaceBlockMap &rFreeSpace) : m_socketID(socketID), m_dataFileSize(dataFileSize), m_rData(rData), m_rFreeSpace(rFreeSpace)
+    {
+        
+    }
     
-    //unpack data
-    rData >> token >> flags >> dumpFlags;
-    
-    //dump
-    if(dumpFlags == eSFSDF_FULL)
+    //ThreadContext
+    bool run()
     {
-        flags = _S_DiskWriter_GetFreeSpaceDump(rDump, m_rFreeSpace, m_rStorage.m_dataFileSize, true);
-    }
-    else
-    {
-        flags = _S_DiskWriter_GetFreeSpaceDump(rDump, m_rFreeSpace, m_rStorage.m_dataFileSize, false);
-    }
-
-    //init stream send
-    Packet rResponse(S_MSG_GET_FREESPACE, 32);
-    rResponse << token;
-    rResponse << flags;
-    result = g_rClientSocketHolder.StartStreamSend(socketID, rResponse, rDump.size());
-    //socket disconnection or something go to next socket
-    if(result != OUTPACKET_RESULT_SUCCESS)
-    {
-        Log.Error(__FUNCTION__, "StartStreamSend - Socket ID: " I64FMTD " disconnected.", socketID);
-        return;
-    }
-
-    //send all chunks
-    uint8 arChunk[4096];
-    size_t remainingData;
-    size_t readDataSize;
-    while(rDump.rpos() < rDump.size())
-    {
-        remainingData = rDump.size() - rDump.rpos();
-        readDataSize = std::min(remainingData, sizeof(arChunk));
-        rDump.read((uint8*)&arChunk, readDataSize);
-        //send chunk
-    trySendAgain:
-        result = g_rClientSocketHolder.StreamSend(socketID, &arChunk, readDataSize);
-        if(result == OUTPACKET_RESULT_SUCCESS)
+        CommonFunctions::SetThreadName("DumpFreeSpaceThread thread - socketID: " I64FMTD, m_socketID);
+        
+        uint32 token;
+        uint32 flags;
+        uint32 dumpFlags;
+        ByteBuffer rDump;
+        OUTPACKET_RESULT result;
+        
+        //unpack data
+        m_rData >> token >> flags >> dumpFlags;
+        
+        //dump
+        if(dumpFlags == eSFSDF_FULL)
         {
-            //send is ok continue with sending
-            continue;
-        }
-        else if(result == OUTPACKET_RESULT_NO_ROOM_IN_BUFFER)
-        {
-            //socket buffer is full wait for
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            goto trySendAgain;
+            flags = _S_DiskWriter_GetFreeSpaceDump(rDump, m_rFreeSpace, m_dataFileSize, true);
         }
         else
         {
-            //error interupt sending
-            Log.Error(__FUNCTION__, "StreamSend error: %u", (uint32)result);
-            break;
+            flags = _S_DiskWriter_GetFreeSpaceDump(rDump, m_rFreeSpace, m_dataFileSize, false);
         }
+        
+        //init stream send
+        Packet rResponse(S_MSG_GET_FREESPACE, 32);
+        rResponse << token;
+        rResponse << flags;
+        result = g_rClientSocketHolder.StartStreamSend(m_socketID, rResponse, rDump.size());
+        //socket disconnection or something go to next socket
+        if(result != OUTPACKET_RESULT_SUCCESS)
+        {
+            Log.Error(__FUNCTION__, "StartStreamSend - Socket ID: " I64FMTD " disconnected.", m_socketID);
+            return true;
+        }
+        
+        //send all chunks
+        size_t chunkSize = g_SocketWriteBufferSize / 2;
+        Vector<uint8> rChunk;
+        rChunk.resize(chunkSize);
+        
+        size_t remainingData;
+        size_t readDataSize;
+        uint32 sendCounter = 0;
+        while(rDump.rpos() < rDump.size())
+        {
+            remainingData = rDump.size() - rDump.rpos();
+            readDataSize = std::min(remainingData, rChunk.size());
+            rDump.read(rChunk.data(), readDataSize);
+            //send chunk
+        trySendAgain:
+            result = g_rClientSocketHolder.StreamSend(m_socketID, (const void*)rChunk.data(), readDataSize);
+            if(result == OUTPACKET_RESULT_SUCCESS)
+            {
+                //send is ok continue with sending
+                continue;
+            }
+            else if(result == OUTPACKET_RESULT_NO_ROOM_IN_BUFFER)
+            {
+                if(sendCounter > 100)
+                {
+                    Log.Error(__FUNCTION__, "StreamSend no room in send buffer.");
+                    break;
+                }
+                
+                //socket buffer is full wait
+                Wait(100);
+                ++sendCounter;
+                goto trySendAgain;
+            }
+            else
+            {
+                //error interupt sending
+                Log.Error(__FUNCTION__, "StreamSend error: %u", (uint32)result);
+                break;
+            }
+        }
+        
+        return true;
     }
+    
+private:
+    uint64              m_socketID;
+    int64               m_dataFileSize;
+    ByteBuffer          m_rData;
+    FreeSpaceBlockMap   m_rFreeSpace;
+};
+
+void DiskWriter::HandleFreeSpaceDump(uint64 socketID, ByteBuffer &rData)
+{
+    //copy freespace map and run in separate thread
+    DumpFreeSpaceThread *pDumpFreeSpaceThread = new DumpFreeSpaceThread(socketID, m_rStorage.m_dataFileSize, rData, m_rFreeSpace);
+    ThreadPool.ExecuteTask(pDumpFreeSpaceThread);
 }
 
 void DiskWriter::HandleDefragmentFreeSpace(uint64 socketID, ByteBuffer &rData)
