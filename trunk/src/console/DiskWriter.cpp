@@ -229,18 +229,21 @@ void DiskWriter::Process()
                 }
                 else
                 {
-                    //queue adding freespace
-                    if(rWriteAccessor->second.m_recordStart != -1)
-                    {
-                        rFreeSpaceToAdd.push_back(FreeSpace(rWriteAccessor->second.m_recordStart,
-                                                            rWriteAccessor->second.m_blockCount * BLOCK_SIZE));
-                    }
-                    //this funtion will set new m_recordStart
+                    //save recordstart to add freespace if write to disk is successfull
+                    int64 recordStartTmp = rWriteAccessor->second.m_recordStart;
+                    
+                    //this funtion will set new rWriteAccessor->second.m_recordStart
                     //this function will fail if there is no disk space
                     bool status = WriteDataWithRelocateFlag(hDataFile, rWriteAccessor);
                     if(status == false)
                     {
                         continue;
+                    }
+                    
+                    //queue adding freespace
+                    if(recordStartTmp != -1)
+                    {
+                        rFreeSpaceToAdd.push_back(FreeSpace(recordStartTmp, rWriteAccessor->second.m_blockCount * BLOCK_SIZE));
                     }
                 }
                 
@@ -344,7 +347,6 @@ void DiskWriter::ReallocDataFile(HANDLE hDataFile, int64 minSize, bool oAddFreeS
     if(oAddFreeSpace)
     {
         DiskWriter::AddFreeSpace(m_rFreeSpace, startFreeSpace, reallocSize);
-        DefragmentFreeSpace();
     }
     
     //update dataFileSize
@@ -428,10 +430,10 @@ void DiskWriter::AddFreeSpace(FreeSpaceBlockMap &rFreeSpace, int64 pos, int64 le
 
 struct PredGreater
 {
-    explicit PredGreater(int64 x) : m_x(x) {}
-    INLINE bool operator()(const FreeSpaceBlockMap::value_type & p) { return (m_x < p.first); }
+    explicit PredGreater(int64 lenght) : m_lenght(lenght) {}
+    INLINE bool operator()(const FreeSpaceBlockMap::value_type & p) { return (m_lenght < p.first); }
 private:
-    int64 m_x;
+    int64 m_lenght;
 };
 
 int64 DiskWriter::GetFreeSpacePos(int64 lenght)
@@ -500,7 +502,7 @@ void DiskWriter::DefragmentFreeSpace()
     }
     
     //reload freespace from index file
-    bool status = m_rStorage.m_pDataIndexDiskWriter->Init(hIndexFile, NULL, m_rFreeSpace, m_rStorage.m_dataFileSize.load());
+    bool status = m_rStorage.m_pDataIndexDiskWriter->Init(hIndexFile, NULL, m_rFreeSpace, m_rStorage.m_dataFileSize);
     if(status == false)
     {
         Log.Error(__FUNCTION__, "DefragmentFreeSpace failed.");
