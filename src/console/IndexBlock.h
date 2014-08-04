@@ -91,6 +91,14 @@ typedef enum E_RECORD_INDEX_FLAGS
 	eRIF_InDiskWriteQueue	= 4
 } E_RIF;
 
+//init status
+typedef enum E_INDEXBLOCK_INIT_STATUS
+{
+    eIIS_OK                 = 0,
+    eIIS_NoMemory           = 1,
+    eIIS_FreeSpaceCorrupted = 2
+} E_IIS;
+
 //block size
 static const uint16 INDEX_BLOCK_SIZE    = 4096;        //4kB
 //CIDF offset in block
@@ -124,12 +132,6 @@ typedef tbb::concurrent_vector<IndexDef>                                        
 //freespace
 typedef Vector<int64>                                                               FreeSpaceOffsets;
 typedef std::map<int64, FreeSpaceOffsets>                                           FreeSpaceBlockMap;
-
-static INLINE bool _S_SortIndexDef(const IndexDef &rIndexDefStruct1,
-                                   const IndexDef &rIndexDefStruc2)
-{
-	return (rIndexDefStruct1.m_dataPosition < rIndexDefStruc2.m_dataPosition);
-}
 
 class IndexBlock
 {
@@ -167,7 +169,7 @@ private:
      *  fill freespace map
      *  Called from Storage.cpp or DisrWrite.cpp
      */
-    bool Init(HANDLE hFile, RecordIndexMap *pRecordIndexMap, FreeSpaceBlockMap &rFreeSpace, int64 dataFileSize);
+    E_IIS Init(HANDLE hFile, RecordIndexMap *pRecordIndexMap, FreeSpaceBlockMap &rFreeSpace, int64 dataFileSize);
     
 	//disable copy constructor and assign
 	DISALLOW_COPY_AND_ASSIGN(IndexBlock);

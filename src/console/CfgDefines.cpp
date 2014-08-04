@@ -81,6 +81,9 @@ std::string g_PythonScriptVersion        = "0";
 int g_DataFileMallocAlignment			 = 512;
 int g_IndexFileMallocAlignment			 = 512;
 
+//force startrup
+E_FSA g_ForceStartup                     = eFSA_Abort;
+
 //load config
 void LoadConfig()
 {

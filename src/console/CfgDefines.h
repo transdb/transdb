@@ -80,6 +80,19 @@ extern std::string g_PythonScriptVersion;
 extern int g_DataFileMallocAlignment;
 extern int g_IndexFileMallocAlignment;
 
+//force startrup
+/** 0 - abort server startup when error
+    1 - force startup when freespace error
+*/
+
+typedef enum E_FORCE_STARTUP_ACTION
+{
+    eFSA_Abort                          = 0,
+    eFSA_ContinueIfFreeSpaceCorrupted   = 1
+} E_FSA;
+
+extern E_FSA g_ForceStartup;
+
 //Allocator
 template <class K, class V>
 class ScalableHashMapNodeAllocator

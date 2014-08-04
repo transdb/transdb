@@ -8,6 +8,11 @@
 
 #include "StdAfx.h"
 
+static INLINE bool _S_SortIndexDef(const IndexDef &rIndexDefStruct1, const IndexDef &rIndexDefStruc2)
+{
+	return (rIndexDefStruct1.m_dataPosition < rIndexDefStruc2.m_dataPosition);
+}
+
 struct FillIndex
 {
     uint8                   *m_pData;
@@ -89,10 +94,10 @@ IndexBlock::~IndexBlock()
     delete m_pLRUCache;
 }
 
-bool IndexBlock::Init(HANDLE hFile,
-                      RecordIndexMap *pRecordIndexMap,
-                      FreeSpaceBlockMap &rFreeSpace,
-                      int64 dataFileSize)
+E_IIS IndexBlock::Init(HANDLE hFile,
+                       RecordIndexMap *pRecordIndexMap,
+                       FreeSpaceBlockMap &rFreeSpace,
+                       int64 dataFileSize)
 {
     //for concurrent processing
     std::unique_ptr<Init_IndexDefVec> pIndexDef = std::unique_ptr<Init_IndexDefVec>(new Init_IndexDefVec());
@@ -110,7 +115,7 @@ bool IndexBlock::Init(HANDLE hFile,
         if(pData == NULL)
         {
             Log.Error(__FUNCTION__, "Cannot allocate memory for index block file.");
-            return false;
+            return eIIS_NoMemory;
         }
         
         //calc block count
@@ -154,13 +159,13 @@ bool IndexBlock::Init(HANDLE hFile,
     if(!status)
     {
         Log.Error(__FUNCTION__, "IndexFile corrupted: cannot parse freespace blocks.");
-        return false;
+        return eIIS_FreeSpaceCorrupted;
     }
     
     //assign to freespace map
     rFreeSpace = std::move(rFreeSpaceBlockMap);
     
-    return true;
+    return eIIS_OK;
 }
 
 bool IndexBlock::LoadFreeSpaceFromIndexDef(FreeSpaceBlockMap &rFreeSpaceBlockMap, int64 dataFileSize, Init_IndexDefVec &rIndexDef)

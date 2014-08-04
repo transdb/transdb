@@ -148,6 +148,10 @@ int main(int argc, const char * argv[])
         {
             sLogPath = argv[i+1];
         }
+        else if(strcmp(argv[i], "-f") == 0)
+        {
+            g_ForceStartup = (E_FSA)atoi(argv[i+1]);
+        }
 #ifndef WIN32
         else if(strcmp(argv[i], "-d") == 0)
         {
