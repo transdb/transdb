@@ -97,7 +97,7 @@ bool Storage::Init()
          *  resize datafile -> this will add freespace to end of file
          *  other freespaces in the datafile are wasted
          */
-        if(status == eIIS_FreeSpaceCorrupted && g_ForceStartup == eFSA_ContinueIfFreeSpaceCorrupted)
+        if((status == eIIS_FreeSpaceCorrupted) && (g_ForceStartup & eFSA_ContinueIfFreeSpaceCorrupted))
         {
             m_pDiskWriter->ReallocDataFile(rDataFileHandle, g_ReallocSize);
         }
@@ -479,7 +479,7 @@ struct FillXKeys
     }
 };
 
-void Storage::GetAllX(ByteBuffer &rX)
+void Storage::GetAllX(XKeyVec &rXKeyVec, uint32 sortFlags)
 {
     //open index file for rw
     HANDLE hIndexFile = INVALID_HANDLE_VALUE;
@@ -509,7 +509,6 @@ void Storage::GetAllX(ByteBuffer &rX)
     IO::fread(pData, fileSize, hIndexFile);
     
     //prealloc vector
-    XKeyVec rXKeyVec;
     rXKeyVec.reserve(m_dataIndexes.size());
     
     //create struct
@@ -522,17 +521,16 @@ void Storage::GetAllX(ByteBuffer &rX)
  
     //defragment
     rXKeyVec.shrink_to_fit();
+ 
+    //TODO: implement sort ASC/DESC/LIMIT
+    //sort - by key ASC
+    if(sortFlags != 0)
+    {
+        tbb::parallel_sort(rXKeyVec.begin(), rXKeyVec.end());
+    }
     
     //free
     scalable_aligned_free(pData);
-    
-    //reserve buffer size
-    rX.reserve(rXKeyVec.size() * sizeof(uint64));
-    //add data to buffer
-    for(XKeyVec::iterator itr = rXKeyVec.begin();itr != rXKeyVec.end();++itr)
-    {
-        rX << uint64(*itr);
-    }
 }
 
 void Storage::GetAllY(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, ByteBuffer &rY)

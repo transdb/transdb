@@ -250,83 +250,76 @@ void ClientSocketWorkerTask::HandleGetAllX(ClientSocketTaskData &rClientSocketTa
 {
     uint32 token;
     uint32 flags;
+    uint32 sortFlags;
     static const size_t packetSize = sizeof(token)+sizeof(flags);
-    
     OUTPACKET_RESULT result;
+    size_t XKeysSize;
     
-    //buffer for read data
-    ByteBuffer rX;
-    
-	//for compresion
-	int compressionStatus = Z_ERRNO;
-	ByteBuffer rBuffOut;
+    //vector
+    XKeyVec rXKeyVec;
     
     //read data from packet
-    rClientSocketTaskData >> token >> flags;
+    rClientSocketTaskData >> token >> flags >> sortFlags;
     
     //load all keys
-    m_rStorage.GetAllX(rX);
+    m_rStorage.GetAllX(rXKeyVec, sortFlags);
     
-	//try to compress
-	if(rX.size() > (size_t)g_DataSizeForCompression)
-	{
-		compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rX.contents(), rX.size(), rBuffOut);
-		if(compressionStatus == Z_OK)
-		{
-			Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rX.size(), rBuffOut.size());
-			flags = ePF_COMPRESSED;
-            //add compressed data
-            rX.clear();
-            rX.append(rBuffOut);
-            rBuffOut.clear();
-		}
-        else
-        {
-            Log.Error(__FUNCTION__, "Data compression failed.");
-        }
-	}
+    //calc size
+    XKeysSize = rXKeyVec.size() * sizeof(XKeyVec::value_type);
     
     //init stream send
     Packet rResponse(S_MSG_GET_ALL_X, packetSize);
     rResponse << token;
     rResponse << flags;
-    result = g_rClientSocketHolder.StartStreamSend(rClientSocketTaskData.socketID(), rResponse, rX.size());
-    if(result == OUTPACKET_RESULT_SOCKET_ERROR)
+    result = g_rClientSocketHolder.StartStreamSend(rClientSocketTaskData.socketID(), rResponse, XKeysSize);
+    //socket disconnection or something go to next socket
+    if(result != OUTPACKET_RESULT_SUCCESS)
     {
-        Log.Error(__FUNCTION__, "StartStreamSend failed.");
-        return;
+        Log.Error(__FUNCTION__, "StartStreamSend - Socket ID: " I64FMTD " disconnected.", rClientSocketTaskData.socketID());
+        return ;
     }
     
     //send all chunks
-    uint8 arChunk[4096];
-    size_t remainingData;
-    size_t readDataSize;
-    
-    while(rX.rpos() < rX.size())
+    size_t chunkSize = g_SocketWriteBufferSize / 2;
+    ByteBuffer rChunk(chunkSize);
+    uint32 sendCounter = 0;
+    //
+    for(size_t i = 0;i < rXKeyVec.size();++i)
     {
-        remainingData = rX.size() - rX.rpos();
-        readDataSize = std::min(remainingData, sizeof(arChunk));
-        rX.read((uint8*)&arChunk, readDataSize);
-        //
-        for(;;)
+        //add data to chunk
+        rChunk << rXKeyVec[i];
+        
+        //if chunk full or we are on end, perform send
+        if(rChunk.size() >= chunkSize || (i == (rXKeyVec.size() - 1)))
         {
-            result = g_rClientSocketHolder.StreamSend(rClientSocketTaskData.socketID(), &arChunk, readDataSize);
+            //send chunk
+        trySendAgain:
+            result = g_rClientSocketHolder.StreamSend(rClientSocketTaskData.socketID(), rChunk.contents(), rChunk.size());
             if(result == OUTPACKET_RESULT_SUCCESS)
             {
+                //clear chunk
+                rChunk.resize(0);
                 //send is ok continue with sending
-                break;
+                continue;
             }
             else if(result == OUTPACKET_RESULT_NO_ROOM_IN_BUFFER)
             {
-                //socket buffer is full wait for
+                if(sendCounter > 100)
+                {
+                    Log.Error(__FUNCTION__, "StreamSend no room in send buffer.");
+                    break;
+                }
+                
+                //socket buffer is full wait
                 Wait(100);
-                continue;
+                ++sendCounter;
+                goto trySendAgain;
             }
             else
             {
                 //error interupt sending
                 Log.Error(__FUNCTION__, "StreamSend error: %u", (uint32)result);
-                return;
+                break;
             }
         }
     }

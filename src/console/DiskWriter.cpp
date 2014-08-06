@@ -552,8 +552,6 @@ static uint32 _S_DiskWriter_GetFreeSpaceDump(ByteBuffer &rBuff,
                                              int64 dataFileSize,
                                              bool fullDump)
 {
-    //TODO: make copy
-    
     //prealloc buffer
     if(fullDump == true)
     {

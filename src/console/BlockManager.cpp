@@ -192,7 +192,7 @@ uint32 BlockManager::WriteRecord(uint64 recordkey, const uint8 *pRecord, uint16 
         }
         else if(status == eBLS_NO_SPACE_FOR_NEW_DATA && (i == (m_blockCount - 1)))
         {
-            //relloc block + 1
+            //realloc blocks + 1
             ReallocBlocks();
             //set status
             retStatus |= eBMS_ReallocatedBlocks;
