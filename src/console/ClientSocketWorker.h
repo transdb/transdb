@@ -34,7 +34,7 @@ public:
 		return *this;
 	}
     
-    INLINE const uint8 *contents() const            { return &m_rPacketData[0]; }
+    INLINE const uint8 *contents() const            { return m_rPacketData.data(); }
     INLINE const size_t rpos() const                { return m_rpos; }
     INLINE const size_t size() const                { return m_rPacketData.size(); }
     INLINE const uint16 opcode() const              { return m_opcode; }
@@ -53,12 +53,18 @@ private:
 	}
     
 	template <typename T>
-    T read(const size_t &pos)
+    T read(size_t pos)
 	{
 		if(pos + sizeof(T) > size())
+        {
 			return (T)0;
+        }
 		else
-			return *((T*)&m_rPacketData[pos]);
+        {
+            T value;
+			memcpy(&value, &m_rPacketData[pos], sizeof(T));
+			return value;
+        }
 	}
     
     //declarations
