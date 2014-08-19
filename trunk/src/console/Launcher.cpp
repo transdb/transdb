@@ -91,10 +91,8 @@ void Launcher::run()
         //update sockets
         g_rClientSocketHolder.Update();
         
-#ifdef WIN32
 		//update socket collector
 		sSocketGarbageCollector.Update();
-#endif
 
 		//wait
         std::this_thread::sleep_for(std::chrono::milliseconds(waitTime));
