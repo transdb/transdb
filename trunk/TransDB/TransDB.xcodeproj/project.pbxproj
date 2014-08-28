@@ -48,6 +48,7 @@
 		8D7251B415E6211600E9E1EB /* Block.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D7251B315E6211600E9E1EB /* Block.cpp */; };
 		8D86F237194F47F700E783BF /* avl.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D86F235194F47F700E783BF /* avl.c */; };
 		8D86F238194F47F700E783BF /* avl.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D86F236194F47F700E783BF /* avl.h */; };
+		8D8D64D719AF792100CC95E6 /* Table.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D8D64D619AF792100CC95E6 /* Table.cpp */; };
 		8D8F15601635741600A72AD7 /* MemoryAllocator.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D8F155B1635741600A72AD7 /* MemoryAllocator.h */; };
 		8D922B9E15F49DD900F8AAF7 /* ClientSocketHolder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D922B9D15F49DD900F8AAF7 /* ClientSocketHolder.cpp */; };
 		8D997D21166CB34200A5F84B /* StatGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D997D1F166CB34200A5F84B /* StatGenerator.cpp */; };
@@ -194,6 +195,8 @@
 		8D7251B315E6211600E9E1EB /* Block.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Block.cpp; sourceTree = "<group>"; usesTabs = 0; };
 		8D86F235194F47F700E783BF /* avl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = avl.c; sourceTree = "<group>"; };
 		8D86F236194F47F700E783BF /* avl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = avl.h; sourceTree = "<group>"; };
+		8D8D64D519AF791700CC95E6 /* Table.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Table.h; sourceTree = "<group>"; };
+		8D8D64D619AF792100CC95E6 /* Table.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Table.cpp; sourceTree = "<group>"; };
 		8D8F155B1635741600A72AD7 /* MemoryAllocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MemoryAllocator.h; sourceTree = "<group>"; };
 		8D922B9C15F49DD300F8AAF7 /* ClientSocketHolder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ClientSocketHolder.h; sourceTree = "<group>"; };
 		8D922B9D15F49DD900F8AAF7 /* ClientSocketHolder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ClientSocketHolder.cpp; sourceTree = "<group>"; };
@@ -446,6 +449,15 @@
 			name = Block;
 			sourceTree = "<group>";
 		};
+		8D8D64D419AF78BF00CC95E6 /* SQL */ = {
+			isa = PBXGroup;
+			children = (
+				8D8D64D619AF792100CC95E6 /* Table.cpp */,
+				8D8D64D519AF791700CC95E6 /* Table.h */,
+			);
+			name = SQL;
+			sourceTree = "<group>";
+		};
 		8D8F155A1635741600A72AD7 /* Memory */ = {
 			isa = PBXGroup;
 			children = (
@@ -634,6 +646,7 @@
 		8DFE281E15E22CC8007F75A3 /* console */ = {
 			isa = PBXGroup;
 			children = (
+				8D8D64D419AF78BF00CC95E6 /* SQL */,
 				8D26B58818858FFD007CDA1F /* Python */,
 				8D997D1D166CB30600A5F84B /* Stats */,
 				8D0BAFF115FE122200E490F9 /* FileWatcher */,
@@ -794,6 +807,7 @@
 				8D922B9E15F49DD900F8AAF7 /* ClientSocketHolder.cpp in Sources */,
 				8DC9C51115F4F62B001058CC /* IndexBlock.cpp in Sources */,
 				8DED012B15F8E0F0006BDBB3 /* LRUCache.cpp in Sources */,
+				8D8D64D719AF792100CC95E6 /* Table.cpp in Sources */,
 				8D04CC5315FDEBEE00400092 /* ServiceWin32.cpp in Sources */,
 				8D0BAFF415FE123900E490F9 /* ConfigWatcher.cpp in Sources */,
 				8D691523165101D7002D4A28 /* ClientSocketWorker.cpp in Sources */,

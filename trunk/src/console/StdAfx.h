@@ -69,6 +69,9 @@
 #include "Storage.h"
 #include "DiskWriter.h"
 
+//SQL
+#include "Table.h"
+
 //python interface
 #include "PythonInterface.h"
 

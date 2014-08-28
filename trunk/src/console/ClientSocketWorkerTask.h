@@ -38,6 +38,7 @@ public:
     void HandleReadLog(ClientSocketTaskData&);
     void HandleReadConfig(ClientSocketTaskData&);
     void HandleDefragmentFreeSpace(ClientSocketTaskData&);
+    void HandleSqlQuery(ClientSocketTaskData&);
     
 private:
 	//disable copy constructor and assign

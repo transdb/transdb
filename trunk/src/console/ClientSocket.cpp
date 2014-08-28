@@ -38,10 +38,12 @@ static const ClientSocketHandler m_ClientSocketHandlers[OP_NUM] =
     NULL,                                       //S_MSG_WRITE_DATA_NUM          = 24,
     &ClientSocket::QueueReadPacket,             //C_MSG_READ_LOG                = 25,
     NULL,                                       //S_MSG_READ_LOG                = 26,
-    &ClientSocket::QueueReadPacket,             //C_MSG_READ_CONFIG             = 26,
-    NULL,                                       //S_MSG_READ_CONFIG             = 27,
-    &ClientSocket::QueueReadPacket,             //C_MSG_DEFRAGMENT_FREESPACE    = 28,
-    NULL,                                       //S_MSG_DEFRAGMENT_FREESPACE    = 29,
+    &ClientSocket::QueueReadPacket,             //C_MSG_READ_CONFIG             = 27,
+    NULL,                                       //S_MSG_READ_CONFIG             = 28,
+    &ClientSocket::QueueReadPacket,             //C_MSG_DEFRAGMENT_FREESPACE    = 29,
+    NULL,                                       //S_MSG_DEFRAGMENT_FREESPACE    = 30,
+    &ClientSocket::QueueReadPacket,             //C_MSG_SQL_QUERY               = 31,
+    NULL,                                       //S_MSG_SQL_QUERY               = 32,
 };
 
 static const char *g_OpcodeNames[OP_NUM] =
@@ -92,6 +94,9 @@ static const char *g_OpcodeNames[OP_NUM] =
     
     "C_MSG_DEFRAGMENT_FREESPACE",
     "S_MSG_DEFRAGMENT_FREESPACE",
+    
+    "C_MSG_SQL_QUERY",
+    "S_MSG_SQL_QUERY",
 };
 
 ClientSocket::ClientSocket(SOCKET fd) : Socket(fd, g_SocketReadBufferSize, g_SocketWriteBufferSize)
