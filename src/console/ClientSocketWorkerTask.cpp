@@ -42,6 +42,8 @@ static const ClientSocketWorkerTaskHandler m_ClientSocketWorkerTaskHandlers[OP_N
     NULL,                                               //S_MSG_READ_CONFIG             = 28,
     &ClientSocketWorkerTask::HandleDefragmentFreeSpace, //C_MSG_DEFRAGMENT_FREESPACE    = 29,
     NULL,                                               //S_MSG_DEFRAGMENT_FREESPACE    = 30,
+    &ClientSocketWorkerTask::HandleSqlQuery,            //C_MSG_SQL_QUERY               = 31,
+    NULL,                                               //S_MSG_SQL_QUERY               = 32,
 };
 
 ClientSocketWorkerTask::ClientSocketWorkerTask(ClientSocketWorker &rClientSocketWorker,
@@ -741,7 +743,17 @@ void ClientSocketWorkerTask::HandleDefragmentFreeSpace(ClientSocketTaskData &rCl
     //Response will be send from DiskWriter
 }
 
-
+void ClientSocketWorkerTask::HandleSqlQuery(ClientSocketTaskData &rClientSocketTaskData)
+{
+    uint32 token;
+    uint32 flags;
+    
+    //read data from packet
+    rClientSocketTaskData >> token >> flags;
+    
+    
+    
+}
 
 
 
