@@ -48,8 +48,10 @@
 		8D7251B415E6211600E9E1EB /* Block.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D7251B315E6211600E9E1EB /* Block.cpp */; };
 		8D86F237194F47F700E783BF /* avl.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D86F235194F47F700E783BF /* avl.c */; };
 		8D86F238194F47F700E783BF /* avl.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D86F236194F47F700E783BF /* avl.h */; };
-		8D8D64D719AF792100CC95E6 /* Table.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D8D64D619AF792100CC95E6 /* Table.cpp */; };
 		8D8F15601635741600A72AD7 /* MemoryAllocator.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D8F155B1635741600A72AD7 /* MemoryAllocator.h */; };
+		8D8F1B3A19B4C6AE0055E0E7 /* Table.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D8F1B3419B4C6AE0055E0E7 /* Table.cpp */; };
+		8D8F1B3B19B4C6AE0055E0E7 /* Tokenizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D8F1B3619B4C6AE0055E0E7 /* Tokenizer.cpp */; };
+		8D8F1B3C19B4C6AE0055E0E7 /* Trace.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D8F1B3819B4C6AE0055E0E7 /* Trace.cpp */; };
 		8D922B9E15F49DD900F8AAF7 /* ClientSocketHolder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D922B9D15F49DD900F8AAF7 /* ClientSocketHolder.cpp */; };
 		8D997D21166CB34200A5F84B /* StatGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D997D1F166CB34200A5F84B /* StatGenerator.cpp */; };
 		8D99BEB315EE5C2200BCE873 /* Config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE275215E22BA8007F75A3 /* Config.cpp */; };
@@ -195,9 +197,16 @@
 		8D7251B315E6211600E9E1EB /* Block.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Block.cpp; sourceTree = "<group>"; usesTabs = 0; };
 		8D86F235194F47F700E783BF /* avl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = avl.c; sourceTree = "<group>"; };
 		8D86F236194F47F700E783BF /* avl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = avl.h; sourceTree = "<group>"; };
-		8D8D64D519AF791700CC95E6 /* Table.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Table.h; sourceTree = "<group>"; };
-		8D8D64D619AF792100CC95E6 /* Table.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Table.cpp; sourceTree = "<group>"; };
 		8D8F155B1635741600A72AD7 /* MemoryAllocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MemoryAllocator.h; sourceTree = "<group>"; };
+		8D8F1B3219B4C6AE0055E0E7 /* mysqld_ername.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mysqld_ername.h; path = SQL/mysqld_ername.h; sourceTree = "<group>"; };
+		8D8F1B3319B4C6AE0055E0E7 /* mysqld_error.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mysqld_error.h; path = SQL/mysqld_error.h; sourceTree = "<group>"; };
+		8D8F1B3419B4C6AE0055E0E7 /* Table.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Table.cpp; path = SQL/Table.cpp; sourceTree = "<group>"; };
+		8D8F1B3519B4C6AE0055E0E7 /* Table.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Table.h; path = SQL/Table.h; sourceTree = "<group>"; };
+		8D8F1B3619B4C6AE0055E0E7 /* Tokenizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Tokenizer.cpp; path = SQL/Tokenizer.cpp; sourceTree = "<group>"; };
+		8D8F1B3719B4C6AE0055E0E7 /* Tokenizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Tokenizer.h; path = SQL/Tokenizer.h; sourceTree = "<group>"; };
+		8D8F1B3819B4C6AE0055E0E7 /* Trace.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Trace.cpp; path = SQL/Trace.cpp; sourceTree = "<group>"; };
+		8D8F1B3919B4C6AE0055E0E7 /* Trace.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Trace.h; path = SQL/Trace.h; sourceTree = "<group>"; };
+		8D8F1B3D19B4C6F80055E0E7 /* sql_state.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = sql_state.h; path = SQL/sql_state.h; sourceTree = "<group>"; };
 		8D922B9C15F49DD300F8AAF7 /* ClientSocketHolder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ClientSocketHolder.h; sourceTree = "<group>"; };
 		8D922B9D15F49DD900F8AAF7 /* ClientSocketHolder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ClientSocketHolder.cpp; sourceTree = "<group>"; };
 		8D997D1F166CB34200A5F84B /* StatGenerator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StatGenerator.cpp; sourceTree = "<group>"; };
@@ -452,8 +461,15 @@
 		8D8D64D419AF78BF00CC95E6 /* SQL */ = {
 			isa = PBXGroup;
 			children = (
-				8D8D64D619AF792100CC95E6 /* Table.cpp */,
-				8D8D64D519AF791700CC95E6 /* Table.h */,
+				8D8F1B3D19B4C6F80055E0E7 /* sql_state.h */,
+				8D8F1B3219B4C6AE0055E0E7 /* mysqld_ername.h */,
+				8D8F1B3319B4C6AE0055E0E7 /* mysqld_error.h */,
+				8D8F1B3419B4C6AE0055E0E7 /* Table.cpp */,
+				8D8F1B3519B4C6AE0055E0E7 /* Table.h */,
+				8D8F1B3619B4C6AE0055E0E7 /* Tokenizer.cpp */,
+				8D8F1B3719B4C6AE0055E0E7 /* Tokenizer.h */,
+				8D8F1B3819B4C6AE0055E0E7 /* Trace.cpp */,
+				8D8F1B3919B4C6AE0055E0E7 /* Trace.h */,
 			);
 			name = SQL;
 			sourceTree = "<group>";
@@ -805,14 +821,16 @@
 				8D0CA2F015E7943200506B8F /* BlockManager.cpp in Sources */,
 				8D2711FC15F0DFBC005F94B6 /* DiskWriter.cpp in Sources */,
 				8D922B9E15F49DD900F8AAF7 /* ClientSocketHolder.cpp in Sources */,
+				8D8F1B3B19B4C6AE0055E0E7 /* Tokenizer.cpp in Sources */,
 				8DC9C51115F4F62B001058CC /* IndexBlock.cpp in Sources */,
 				8DED012B15F8E0F0006BDBB3 /* LRUCache.cpp in Sources */,
-				8D8D64D719AF792100CC95E6 /* Table.cpp in Sources */,
+				8D8F1B3A19B4C6AE0055E0E7 /* Table.cpp in Sources */,
 				8D04CC5315FDEBEE00400092 /* ServiceWin32.cpp in Sources */,
 				8D0BAFF415FE123900E490F9 /* ConfigWatcher.cpp in Sources */,
 				8D691523165101D7002D4A28 /* ClientSocketWorker.cpp in Sources */,
 				8D69152716510D56002D4A28 /* ClientSocketWorkerTask.cpp in Sources */,
 				8D997D21166CB34200A5F84B /* StatGenerator.cpp in Sources */,
+				8D8F1B3C19B4C6AE0055E0E7 /* Trace.cpp in Sources */,
 				8DAC6D4F188D39C7001851BB /* CfgDefines.cpp in Sources */,
 				8D26B58B18859037007CDA1F /* PythonInterface.cpp in Sources */,
 			);

@@ -70,7 +70,10 @@
 #include "DiskWriter.h"
 
 //SQL
-#include "Table.h"
+#include "SQL/mysqld_error.h"
+#include "SQL/Trace.h"
+#include "SQL/Tokenizer.h"
+#include "SQL/Table.h"
 
 //python interface
 #include "PythonInterface.h"
