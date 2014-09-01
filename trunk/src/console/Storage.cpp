@@ -760,22 +760,6 @@ bool Storage::run()
                 m_pDiskWriter->ProcessTasks();
             }
             
-            
-            Column rColumn[8];
-            rColumn[0].m_dataType = esdtInt32;
-            rColumn[0].m_flags = escfNone;
-            strcpy(rColumn[0].m_name, "COL0");
-
-            rColumn[1].m_dataType = esdtInt64;
-            rColumn[1].m_flags = escfNone;
-            strcpy(rColumn[1].m_name, "COL1");
-            
-            rColumn[2].m_dataType = esdtVarchar;
-            rColumn[2].m_flags = escfNone;
-            strcpy(rColumn[2].m_name, "COL2");
-            
-            
-
             Wait(1000);
         }
     }
