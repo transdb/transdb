@@ -99,13 +99,11 @@ static const char *g_OpcodeNames[OP_NUM] =
     "S_MSG_SQL_QUERY",
 };
 
-ClientSocket::ClientSocket(SOCKET fd) : Socket(fd, g_SocketReadBufferSize, g_SocketWriteBufferSize)
+ClientSocket::ClientSocket(SOCKET fd) : Socket(fd, g_SocketReadBufferSize, g_SocketWriteBufferSize), m_lastPong(UNIXTIME), m_lastPing(UNIXTIME)
 {
     m_socketID      = (g_SocketID++);
     m_size          = 0;
     m_opcode        = 0;
-    m_lastPong      = UNIXTIME;
-    m_lastPing      = UNIXTIME;
     m_latency       = 0;
     m_nagleEnabled  = false;
 }

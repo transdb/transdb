@@ -13,7 +13,8 @@ typedef enum E_SQL_DATA_TYPE
 {
     esdtInt32       = 1,            //4 bytes
     esdtInt64       = 2,            //8 bytes
-    esdtVarchar     = 3             //len coded string max 254 bytes - 1byte for len
+    esdtVarchar     = 3,            //len coded string max 254 bytes - 1byte for len
+    esdtBlob        = 4             //2bytes coded len - max depends on BLOCK_SIZE
 } E_SDT;
 
 typedef enum E_SQL_COLUMN_FLAGS

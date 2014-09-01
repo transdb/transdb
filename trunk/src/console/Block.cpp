@@ -208,7 +208,6 @@ void Block::GetRecord(uint8 *pBlock, uint64 recordKey, ByteBuffer &rData)
     uint16 RDFPosition;
     uint16 recordPosition;
     ByteBuffer rOut;
-    int status;
     uint8 *pRecordLocal;
     uint16 recordSizeLocal;
     
@@ -223,7 +222,7 @@ void Block::GetRecord(uint8 *pBlock, uint64 recordKey, ByteBuffer &rData)
     //check if gzipped
     if(CommonFunctions::isGziped(pRecordLocal))
     {
-        status = CommonFunctions::decompressGzip(pRecordLocal, recordSizeLocal, rOut);
+        int status = CommonFunctions::decompressGzip(pRecordLocal, recordSizeLocal, rOut);
         if(status == Z_OK)
         {
             pRecordLocal = (uint8*)rOut.contents();
@@ -240,18 +239,13 @@ void Block::GetRecords(uint8 *pBlock, ByteBuffer &rData)
 {
     //get CIDF
     CIDF *pCIDF = Block::GetCIDF(pBlock);
-    RDF *pRDF;
     
     //interate RDS
     uint16 recordSize = 0;
     uint16 position = CIDFOffset - sizeof(RDF);
     uint16 endOfRDFArea = pCIDF->m_location + pCIDF->m_amoutOfFreeSpace;
     
-    ByteBuffer rOut;
-    int status;
-    uint8 *pRecordLocal;
-    uint16 recordSizeLocal;
-    
+    ByteBuffer rOut;    
     for(;;)
     {
         //end of RDF area
@@ -259,17 +253,17 @@ void Block::GetRecords(uint8 *pBlock, ByteBuffer &rData)
             break;
         
         //get RDF
-        pRDF = (RDF*)(pBlock + position);
+        RDF *pRDF = (RDF*)(pBlock + position);
         position -= sizeof(RDF);
         
         //save variables
-        pRecordLocal = (uint8*)(pBlock + recordSize);
-        recordSizeLocal = pRDF->m_recordLength;
+        uint8 *pRecordLocal = (uint8*)(pBlock + recordSize);
+        uint16 recordSizeLocal = pRDF->m_recordLength;
         
         //unzip + rewrite variables
         if(CommonFunctions::isGziped(pRecordLocal))
         {
-            status = CommonFunctions::decompressGzip(pRecordLocal, recordSizeLocal, rOut);
+            int status = CommonFunctions::decompressGzip(pRecordLocal, recordSizeLocal, rOut);
             if(status == Z_OK)
             {
                 pRecordLocal = (uint8*)rOut.contents();
