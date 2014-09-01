@@ -750,7 +750,10 @@ void ClientSocketWorkerTask::HandleSqlQuery(ClientSocketTaskData &rClientSocketT
     
     //read data from packet
     rClientSocketTaskData >> token >> flags;
-    
+
+//    //get data size
+//    dataSize = rClientSocketTaskData.size() - rClientSocketTaskData.rpos();
+//    pData = (uint8*)(rClientSocketTaskData.contents() + rClientSocketTaskData.rpos());
     
     
 }
