@@ -42,8 +42,8 @@ static const ClientSocketHandler m_ClientSocketHandlers[OP_NUM] =
     NULL,                                       //S_MSG_READ_CONFIG             = 28,
     &ClientSocket::QueueReadPacket,             //C_MSG_DEFRAGMENT_FREESPACE    = 29,
     NULL,                                       //S_MSG_DEFRAGMENT_FREESPACE    = 30,
-    &ClientSocket::QueueReadPacket,             //C_MSG_SQL_QUERY               = 31,
-    NULL,                                       //S_MSG_SQL_QUERY               = 32,
+    &ClientSocket::QueueReadPacket,             //C_MSG_EXEC_PYTHON_SCRIPT      = 31,
+    NULL,                                       //S_MSG_EXEC_PYTHON_SCRIPT      = 32,
 };
 
 static const char *g_OpcodeNames[OP_NUM] =
@@ -95,8 +95,8 @@ static const char *g_OpcodeNames[OP_NUM] =
     "C_MSG_DEFRAGMENT_FREESPACE",
     "S_MSG_DEFRAGMENT_FREESPACE",
     
-    "C_MSG_SQL_QUERY",
-    "S_MSG_SQL_QUERY",
+    "C_MSG_EXEC_PYTHON_SCRIPT",
+    "S_MSG_EXEC_PYTHON_SCRIPT",
 };
 
 ClientSocket::ClientSocket(SOCKET fd) : Socket(fd, g_SocketReadBufferSize, g_SocketWriteBufferSize), m_lastPong(UNIXTIME), m_lastPing(UNIXTIME)

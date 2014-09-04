@@ -6,6 +6,7 @@ import threading
 import urlparse
 import base64
 import zlib
+import sys
 from string import Template
 
 import transDB
@@ -17,7 +18,13 @@ HTML = "text/html"
 CSS = "text/css"
 g_authKey = base64.b64encode("transdb:A1b2C3d4")
 
-urls = (("/", "index"), ("/fragment", "fragment"), ("/config", "config"), ("/log", "log"), ("/style.css", "css"), ("/editor", "editor"))
+urls = (("/", "index"),
+        ("/fragment", "fragment"),
+        ("/config", "config"),
+        ("/log", "log"),
+        ("/style.css", "css"),
+        ("/editor", "editor"),
+        ("/pythonScript", "pythonScript"))
 
 def render(template, args):
     """ Render template with provided arguments. """
@@ -156,6 +163,36 @@ class TransDBHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         except (KeyError, RuntimeError, IOError, ValueError) as e :
             return(str(e), 500, HTML)
         
+        return (buff, None, HTML)
+
+    def pythonScript(self, body=None):
+        """ Execute SQL """
+        try:
+            #fill with script skeleton
+            with open(sys.path[0] + "/scriptSkeleton.py", "r") as src :
+                pythonScript = src.read()
+            
+            scriptResult = "No result"
+            if not body == None and 'pythonScript' in body:
+                pythonScript = body['pythonScript']
+                scriptResult = transDB.executePythonScript(pythonScript)
+
+            pythonForm = '<form role="form" action="pythonScript" method="POST">  \
+                        <div class="form-group">    \
+                            <label for="value">Python script</label> \
+                            <textarea class="form-control" name="pythonScript" rows="15" placeholder="Enter Python Script">' + pythonScript + '</textarea>     \
+                        </div>  \
+                        <div class="form-group">    \
+                            <label for="result">Script result</label> \
+                            <pre name="result">' + scriptResult + '</pre> \
+                        </div>  \
+                        <button type="submit" class="btn btn-default">Submit</button>          \
+                       </form>'
+    
+            buff = render("pythonScript", {'title':"TransDB Python Script", 'pythonForm':pythonForm})
+        except (KeyError, RuntimeError, IOError, ValueError) as e :
+            return(str(e), 500, HTML)
+
         return (buff, None, HTML)
 
     def do_AUTHHEAD(self):

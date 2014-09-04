@@ -20,24 +20,26 @@ LOG = True
 g_token = 0
 
 # Server OPCODES
-C_MSG_WRITE_DATA        = 1
-S_MSG_WRITE_DATA        = 2
-C_MSG_READ_DATA         = 3
-S_MSG_READ_DATA         = 4
-C_MSG_DELETE_DATA       = 5
-S_MSG_DELETE_DATA       = 6
-C_MSG_PONG              = 9
-S_MSG_PING              = 10
-C_MSG_STATUS            = 13
-S_MSG_STATUS            = 14
-C_MSG_GET_FREESPACE     = 21
-S_MSG_GET_FREESPACE     = 22
-C_MSG_WRITE_DATA_NUM    = 23
-S_MSG_WRITE_DATA_NUM    = 24
-C_MSG_READ_LOG          = 25
-S_MSG_READ_LOG          = 26
-C_MSG_READ_CONFIG       = 27
-S_MSG_READ_CONFIG       = 28
+C_MSG_WRITE_DATA            = 1
+S_MSG_WRITE_DATA            = 2
+C_MSG_READ_DATA             = 3
+S_MSG_READ_DATA             = 4
+C_MSG_DELETE_DATA           = 5
+S_MSG_DELETE_DATA           = 6
+C_MSG_PONG                  = 9
+S_MSG_PING                  = 10
+C_MSG_STATUS                = 13
+S_MSG_STATUS                = 14
+C_MSG_GET_FREESPACE         = 21
+S_MSG_GET_FREESPACE         = 22
+C_MSG_WRITE_DATA_NUM        = 23
+S_MSG_WRITE_DATA_NUM        = 24
+C_MSG_READ_LOG              = 25
+S_MSG_READ_LOG              = 26
+C_MSG_READ_CONFIG           = 27
+S_MSG_READ_CONFIG           = 28
+C_MSG_EXEC_PYTHON_SCRIPT    = 31
+S_MSG_EXEC_PYTHON_SCRIPT    = 32
 
 SELECT_WAIT_TIME = 10
 recvQueue = multiprocessing.Queue()
@@ -191,6 +193,18 @@ def readConfig():
         token = getToken()
         packet = packets.TransDBPacket(C_MSG_READ_CONFIG)
         packet.data = struct.pack('<I', token)
+        sendQueue.put(packet)
+        data = getData(token)
+        return data
+    except Exception as e:
+        cfunctions.Log_Error("transDB.readLog: " + str(e))
+
+def executePythonScript(script):
+    """ Read config """
+    try:
+        token = getToken()
+        packet = packets.TransDBPacket(C_MSG_EXEC_PYTHON_SCRIPT)
+        packet.data = struct.pack('<II', token, 0) + script
         sendQueue.put(packet)
         data = getData(token)
         return data

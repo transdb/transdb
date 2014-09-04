@@ -8,6 +8,8 @@
 
 #include "StdAfx.h"
 
+PythonInterface *g_pPythonInterface = NULL;
+
 static PyObject *Log_Notice(PyObject *self, PyObject *args)
 {
     char *pMessage;
@@ -52,7 +54,7 @@ static PyObject *Log_Debug(PyObject *self, PyObject *args)
     char *pMessage;
     
     if(!PyArg_ParseTuple(args, "s", &pMessage))
-    return NULL;
+        return NULL;
     
     Log.Debug("Python", pMessage);
     
@@ -60,7 +62,22 @@ static PyObject *Log_Debug(PyObject *self, PyObject *args)
     return Py_None;
 }
 
-PythonInterface::PythonInterface() : m_pInstance(NULL), m_lastVersion(g_PythonScriptVersion), m_pythonScriptRunning(false)
+//create module cfunctions with custom functions
+static PyMethodDef cfunctions_methods[] =
+{
+    {"Log_Notice", (PyCFunction)Log_Notice, METH_VARARGS, NULL},
+    {"Log_Warning", (PyCFunction)Log_Warning, METH_VARARGS, NULL},
+    {"Log_Error", (PyCFunction)Log_Error, METH_VARARGS, NULL},
+    {"Log_Debug", (PyCFunction)Log_Debug, METH_VARARGS, NULL},
+    { NULL, NULL, 0, NULL }
+};
+
+static PyMethodDef ctransdb_methods[] =
+{
+    { NULL, NULL, 0, NULL }
+};
+
+PythonInterface::PythonInterface() : m_pInstance(NULL), m_pScriptSkeletonModule(NULL), m_lastVersion(g_PythonScriptVersion), m_pythonScriptRunning(false)
 {
     g_pConfigWatcher->addListener(this);
 }
@@ -99,15 +116,8 @@ bool PythonInterface::run()
         PyRun_SimpleString(cBuff);
         
         //create module cfunctions with custom functions
-        PyMethodDef methods[] =
-        {
-            {"Log_Notice", (PyCFunction)Log_Notice, METH_VARARGS, NULL},
-            {"Log_Warning", (PyCFunction)Log_Warning, METH_VARARGS, NULL},
-            {"Log_Error", (PyCFunction)Log_Error, METH_VARARGS, NULL},
-            {"Log_Debug", (PyCFunction)Log_Debug, METH_VARARGS, NULL},
-            { NULL, NULL, 0, NULL }
-        };
-        Py_InitModule("cfunctions", methods);
+        Py_InitModule("cfunctions", cfunctions_methods);
+        Py_InitModule("ctransdb", ctransdb_methods);
         
         // Initialize thread support
         PyEval_InitThreads();
@@ -129,10 +139,20 @@ bool PythonInterface::run()
         pModule = PyImport_Import(pName);
         PyErr_Print();
         
+        //import skeleton module
+        PyObject *pTmp = PyString_FromString("execScriptSkeleton");
+        m_pScriptSkeletonModule = PyImport_Import(pTmp);
+        Py_DECREF(pTmp);
+        PyErr_Print();
+        
         //reload
         if(reloadModule)
         {
+            //reload module
             pModule = PyImport_ReloadModule(pModule);
+            PyErr_Print();
+            //reload skeleton module
+            m_pScriptSkeletonModule = PyImport_ReloadModule(m_pScriptSkeletonModule);
             PyErr_Print();
         }
         
@@ -200,6 +220,11 @@ bool PythonInterface::run()
                 Py_DECREF(pModule);
                 pModule = NULL;
             }
+            if(m_pScriptSkeletonModule)
+            {
+                Py_DECREF(m_pScriptSkeletonModule);
+                m_pScriptSkeletonModule = NULL;
+            }
         }
         
         // Clean up
@@ -262,7 +287,7 @@ void PythonInterface::reloadScript()
 
 void PythonInterface::onConfigReload()
 {
-    if(m_pythonScriptRunning.load())
+    if(m_pythonScriptRunning)
     {
         //call onShutdown to python
         PyGILState_STATE state = PyGILState_Ensure();
@@ -273,7 +298,7 @@ void PythonInterface::onConfigReload()
 
 void PythonInterface::OnShutdown()
 {
-    if(m_pythonScriptRunning.load())
+    if(m_pythonScriptRunning)
     {
         //call shutdown to python
         PyGILState_STATE state = PyGILState_Ensure();
@@ -284,4 +309,67 @@ void PythonInterface::OnShutdown()
     //
     ThreadContext::OnShutdown();
 }
+
+std::string PythonInterface::executePythonScript(const uint8 *pScriptData, size_t scriptDataSize)
+{
+    std::string sResult;
+    //check if python is running
+    if(m_pythonScriptRunning)
+    {
+        //ensure Python GIL state for this thread
+        PyGILState_STATE gstate = PyGILState_Ensure();
+
+        //function to execute
+        PyObject *pFunction = PyObject_GetAttrString(m_pScriptSkeletonModule, "executePythonScript");
+        //make script arguments - socket ID and python script string
+        PyObject *pPythonScript = PyString_FromStringAndSize((const char*)pScriptData, scriptDataSize);
+        PyObject *pArgs = PyTuple_Pack(1, pPythonScript);
+        //execute
+        PyObject *pResult = PyObject_CallObject(pFunction, pArgs);
+
+        //create copy of result and return
+        sResult = std::string(PyString_AsString(pResult));
+        
+        //cleanup
+        Py_DECREF(pFunction);
+        Py_DECREF(pPythonScript);
+        Py_DECREF(pArgs);
+        Py_DECREF(pResult);
+
+        PyGILState_Release(gstate);
+    }
+    else
+    {
+        sResult = "Python is not running enable python interface in config.";
+    }
+    return std::move(sResult);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
