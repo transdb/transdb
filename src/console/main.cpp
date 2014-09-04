@@ -392,7 +392,8 @@ int main(int argc, const char * argv[])
     if(g_PythonEnable)
     {
         Log.Notice(__FUNCTION__, "Starting python interface...");
-        ThreadPool.ExecuteTask(new PythonInterface());
+        g_pPythonInterface = new PythonInterface();
+        ThreadPool.ExecuteTask(g_pPythonInterface);
         Log.Notice(__FUNCTION__, "Starting python interface... done");
     }
     

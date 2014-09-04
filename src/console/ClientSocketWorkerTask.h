@@ -38,7 +38,7 @@ public:
     void HandleReadLog(ClientSocketTaskData&);
     void HandleReadConfig(ClientSocketTaskData&);
     void HandleDefragmentFreeSpace(ClientSocketTaskData&);
-    void HandleSqlQuery(ClientSocketTaskData&);
+    void HandleExecutePythonScript(ClientSocketTaskData&);
     
 private:
 	//disable copy constructor and assign
