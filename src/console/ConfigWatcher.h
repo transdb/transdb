@@ -20,7 +20,7 @@ class ConfigWatcher : public ThreadContext
     typedef std::set<IConfigListener*> ListenerSet;
     
 public:
-	explicit ConfigWatcher(const std::string &sConfigPath);
+	explicit ConfigWatcher();
     
     //
     void addListener(IConfigListener *pIConfigListener);
@@ -30,21 +30,12 @@ public:
     //ThreadContext
 	bool run();
 
-    //
-    INLINE const char *GetConfigPath() const
-    {
-        return m_configPath.c_str();
-    }
-    
 private:
 	//disable copy constructor and assign
 	DISALLOW_COPY_AND_ASSIGN(ConfigWatcher);
     
-    const std::string   m_configPath;
     ListenerSet         m_rListeners;
     std::mutex          m_rListenersLock;
 };
-
-extern ConfigWatcher *g_pConfigWatcher;
 
 #endif /* defined(__TransDB__ConfigWatcher__) */

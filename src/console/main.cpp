@@ -369,11 +369,7 @@ int main(int argc, const char * argv[])
     g_pClientSocketWorker = ClientSocketWorker::create();
     if(g_pClientSocketWorker == NULL)
         return EXIT_FAILURE;
-
-	//create config file watcher
-    g_pConfigWatcher = new ConfigWatcher(sConfigPath.c_str());
-	ThreadPool.ExecuteTask(g_pConfigWatcher);
-
+    
     //open listen socket
     ListenSocket<ClientSocket> *pClientSocket = new ListenSocket<ClientSocket>(g_ListenHost.c_str(), g_ListenPort);
     bool clientSocketCreated = pClientSocket->IsOpen();
@@ -387,15 +383,6 @@ int main(int argc, const char * argv[])
 		return EXIT_FAILURE;
     }
     Log.Notice(__FUNCTION__, "Listen socket open, accepting new connections.");
-    
-    //start python interface thread
-    if(g_PythonEnable)
-    {
-        Log.Notice(__FUNCTION__, "Starting python interface...");
-        g_pPythonInterface = new PythonInterface();
-        ThreadPool.ExecuteTask(g_pPythonInterface);
-        Log.Notice(__FUNCTION__, "Starting python interface... done");
-    }
     
     //from now server is running
     Log.Notice(__FUNCTION__, "Server startup complete.");

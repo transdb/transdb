@@ -12,13 +12,18 @@
 class LRUCache;
 class ClientSocketTaskData;
 class ClientSocketWorker;
+class PythonInterface;
 
 class ClientSocketWorkerTask : public ThreadContext
 {    
     friend class Storage;
     
 public:
-    explicit ClientSocketWorkerTask(ClientSocketWorker &rClientSocketWorker, Storage &rStorage, bool readerTask);
+    explicit ClientSocketWorkerTask(ClientSocketWorker &rClientSocketWorker,
+                                    Storage &rStorage,
+                                    PythonInterface &rPythonInterface,
+                                    ConfigWatcher &rConfigWatcher,
+                                    bool readerTask);
     ~ClientSocketWorkerTask();
     
     //thread
@@ -47,6 +52,8 @@ private:
     //declarations
     ClientSocketWorker          &m_rClientSocketWorker;
     Storage                     &m_rStorage;
+    PythonInterface             &m_rPythonInterface;
+    ConfigWatcher               &m_rConfigWatcher;
     LRUCache                    *m_pLRUCache;
     HANDLE                      m_rDataFileHandle;
     bool                        m_readerThread;

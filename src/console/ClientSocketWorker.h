@@ -106,10 +106,16 @@ private:
     bool InitStorage();
 	//starts worker threads
 	bool InitWorkerThreads();
+    //starts config watcher worker thread
+    bool InitConfigWatcher();
+    //starts python interface if enebled
+    bool InitPythonInterface();
 	//disable copy constructor and assign
 	DISALLOW_COPY_AND_ASSIGN(ClientSocketWorker);
     
     Storage             *m_pStorage;
+    PythonInterface     *m_pPythonInterface;
+    ConfigWatcher       *m_pConfigWatcher;
 	TaskDataQueue       m_rTaskDataQueue;
     TaskDataQueue       m_rReadTaskDataQueue;
     std::atomic<bool>   m_exception;

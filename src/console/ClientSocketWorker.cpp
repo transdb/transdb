@@ -19,6 +19,21 @@ ClientSocketWorker *ClientSocketWorker::create()
         delete pClientSocketWorker;
         return NULL;
     }
+    
+	//create config file watcher
+    if(pClientSocketWorker->InitConfigWatcher() == false)
+    {
+        delete pClientSocketWorker;
+        return NULL;
+    }
+    
+    //init python interface
+    if(pClientSocketWorker->InitPythonInterface() == false)
+    {
+        delete pClientSocketWorker;
+        return NULL;
+    }
+    
     //init worker threads
 	if(pClientSocketWorker->InitWorkerThreads() == false)
     {
@@ -28,7 +43,7 @@ ClientSocketWorker *ClientSocketWorker::create()
     return pClientSocketWorker;
 }
 
-ClientSocketWorker::ClientSocketWorker() : m_pStorage(NULL), m_exception(false), m_pFixedPool(NULL), m_pFixedPoolMem(NULL)
+ClientSocketWorker::ClientSocketWorker() : m_pStorage(NULL), m_pPythonInterface(NULL), m_pConfigWatcher(NULL), m_exception(false), m_pFixedPool(NULL), m_pFixedPoolMem(NULL)
 {
     
 }
@@ -55,6 +70,29 @@ bool ClientSocketWorker::InitStorage()
     }
     ThreadPool.ExecuteTask(m_pStorage);
     Log.Notice(__FUNCTION__, "Loading storage... done");
+    return true;
+}
+
+//starts config watcher worker thread
+bool ClientSocketWorker::InitConfigWatcher()
+{
+    Log.Notice(__FUNCTION__, "Starting config watcher...");
+    m_pConfigWatcher = new ConfigWatcher();
+    ThreadPool.ExecuteTask(m_pConfigWatcher);
+    Log.Notice(__FUNCTION__, "Starting config watcher... done");
+    return true;
+}
+
+//starts python interface if enebled
+bool ClientSocketWorker::InitPythonInterface()
+{
+    m_pPythonInterface = new PythonInterface(*m_pConfigWatcher);
+    if(g_PythonEnable)
+    {
+        Log.Notice(__FUNCTION__, "Starting python interface...");
+        ThreadPool.ExecuteTask(m_pPythonInterface);
+        Log.Notice(__FUNCTION__, "Starting python interface... done");
+    }
     return true;
 }
 
@@ -86,7 +124,7 @@ bool ClientSocketWorker::InitWorkerThreads()
     Log.Notice(__FUNCTION__, "Spawning writer threads...");
 	for(int i = 0;i < g_MaxParallelTasks;++i)
 	{
-		ThreadPool.ExecuteTask(new ClientSocketWorkerTask(*this, *m_pStorage, false));
+		ThreadPool.ExecuteTask(new ClientSocketWorkerTask(*this, *m_pStorage, *m_pPythonInterface, *m_pConfigWatcher, false));
 	}
     Log.Notice(__FUNCTION__, "Spawning writer threads... done");
     
@@ -94,7 +132,7 @@ bool ClientSocketWorker::InitWorkerThreads()
     Log.Notice(__FUNCTION__, "Spawning reader threads...");
     for(int i = 0;i < g_MaxParallelReadTasks;++i)
     {
-        ThreadPool.ExecuteTask(new ClientSocketWorkerTask(*this, *m_pStorage, true));
+        ThreadPool.ExecuteTask(new ClientSocketWorkerTask(*this, *m_pStorage, *m_pPythonInterface, *m_pConfigWatcher, true));
     }
     Log.Notice(__FUNCTION__, "Spawning reader threads... done");
     return true;

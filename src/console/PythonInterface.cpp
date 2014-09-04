@@ -8,8 +8,6 @@
 
 #include "StdAfx.h"
 
-PythonInterface *g_pPythonInterface = NULL;
-
 static PyObject *Log_Notice(PyObject *self, PyObject *args)
 {
     char *pMessage;
@@ -77,9 +75,9 @@ static PyMethodDef ctransdb_methods[] =
     { NULL, NULL, 0, NULL }
 };
 
-PythonInterface::PythonInterface() : m_pInstance(NULL), m_pScriptSkeletonModule(NULL), m_lastVersion(g_PythonScriptVersion), m_pythonScriptRunning(false)
+PythonInterface::PythonInterface(ConfigWatcher &rConfigWatcher) : m_pInstance(NULL), m_pScriptSkeletonModule(NULL), m_lastVersion(g_PythonScriptVersion), m_pythonScriptRunning(false)
 {
-    g_pConfigWatcher->addListener(this);
+    rConfigWatcher.addListener(this);
 }
 
 bool PythonInterface::run()

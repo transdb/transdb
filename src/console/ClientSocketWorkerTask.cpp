@@ -48,8 +48,12 @@ static const ClientSocketWorkerTaskHandler m_ClientSocketWorkerTaskHandlers[OP_N
 
 ClientSocketWorkerTask::ClientSocketWorkerTask(ClientSocketWorker &rClientSocketWorker,
                                                Storage &rStorage,
+                                               PythonInterface &rPythonInterface,
+                                               ConfigWatcher &rConfigWatcher,
                                                bool readerTask) : m_rClientSocketWorker(rClientSocketWorker),
                                                                   m_rStorage(rStorage),
+                                                                  m_rPythonInterface(rPythonInterface),
+                                                                  m_rConfigWatcher(rConfigWatcher),
                                                                   m_pLRUCache(new LRUCache("ClientSocketWorkerTask", g_LRUCacheMemReserve / sizeof(CRec))),
                                                                   m_rDataFileHandle(INVALID_HANDLE_VALUE),
                                                                   m_readerThread(readerTask)
@@ -689,8 +693,8 @@ void ClientSocketWorkerTask::HandleReadConfig(ClientSocketTaskData &rClientSocke
     rClientSocketTaskData >> token >> flags;
     
     //get config data
-    const char *pConfigPath = g_pConfigWatcher->GetConfigPath();
-    HANDLE hFile = IO::fopen(pConfigPath, IO::IO_READ_ONLY, IO::IO_NORMAL);
+    std::string sConfigPath = g_rConfig.MainConfig.GetConfigFilePath();
+    HANDLE hFile = IO::fopen(sConfigPath.c_str(), IO::IO_READ_ONLY, IO::IO_NORMAL);
     if(hFile != INVALID_HANDLE_VALUE)
     {
         IO::fseek(hFile, 0, IO::IO_SEEK_END);
@@ -758,7 +762,7 @@ void ClientSocketWorkerTask::HandleExecutePythonScript(ClientSocketTaskData &rCl
     pData = (uint8*)(rClientSocketTaskData.contents() + rClientSocketTaskData.rpos());
     
     //execute
-    std::string sResult = g_pPythonInterface->executePythonScript(pData, dataSize);
+    std::string sResult = m_rPythonInterface.executePythonScript(pData, dataSize);
     
     //send back
     Packet rResponse(S_MSG_EXEC_PYTHON_SCRIPT, 8 + sResult.size());

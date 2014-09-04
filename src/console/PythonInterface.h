@@ -12,7 +12,7 @@
 class PythonInterface : public ThreadContext, public IConfigListener
 {
 public:
-    explicit PythonInterface();
+    explicit PythonInterface(ConfigWatcher &rConfigWatcher);
     
     void reloadScript();
     void callOnShutdownPythonMethod();
@@ -34,7 +34,5 @@ private:
     std::string         m_lastVersion;
     std::atomic<bool>   m_pythonScriptRunning;
 };
-
-extern PythonInterface *g_pPythonInterface;
 
 #endif
