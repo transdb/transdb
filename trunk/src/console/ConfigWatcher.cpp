@@ -8,9 +8,7 @@
 
 #include "StdAfx.h"
 
-ConfigWatcher *g_pConfigWatcher = NULL;
-
-ConfigWatcher::ConfigWatcher(const std::string &sConfigPath) : m_configPath(sConfigPath)
+ConfigWatcher::ConfigWatcher()
 {
 
 }
@@ -22,19 +20,20 @@ bool ConfigWatcher::run()
     //
     time_t lastFileModification;
     time_t lastFileModificationNew;
+    std::string sConfigPath = g_rConfig.MainConfig.GetConfigFilePath();
     
     //
-    lastFileModification = CommonFunctions::GetLastFileModificationTime(m_configPath.c_str());
+    lastFileModification = CommonFunctions::GetLastFileModificationTime(sConfigPath.c_str());
     
 	while(m_threadRunning)
 	{
-        lastFileModificationNew = CommonFunctions::GetLastFileModificationTime(m_configPath.c_str());
+        lastFileModificationNew = CommonFunctions::GetLastFileModificationTime(sConfigPath.c_str());
         if(lastFileModificationNew != lastFileModification)
         {
             //save last access time
             lastFileModification = lastFileModificationNew;
             //reload
-            if(g_rConfig.MainConfig.SetSource(m_configPath.c_str()))
+            if(g_rConfig.MainConfig.SetSource(sConfigPath.c_str()))
             {
                 //reload config
                 LoadConfig();
@@ -43,7 +42,7 @@ bool ConfigWatcher::run()
             }
             else
             {
-                Log.Error(__FUNCTION__, "Config: %s not found.", m_configPath.c_str());
+                Log.Error(__FUNCTION__, "Config: %s not found.", sConfigPath.c_str());
             }
         }
 
