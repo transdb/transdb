@@ -520,7 +520,7 @@ std::string PythonInterface::executePythonScript(Storage *pStorage,
         //make script arguments - socket ID and python script string
         PyObject *pPyStoragePtr = PyCObject_FromVoidPtr(pStorage, NULL);
         PyObject *pPypLRUCachePtr = PyCObject_FromVoidPtr(pLRUCache, NULL);
-        //
+        //save file handle to tmp varibale and pass to script
         uint8 rHandle[sizeof(HANDLE)];
         memcpy(&rHandle, &hDataFileHandle, sizeof(HANDLE));
         PyObject *pPyDataFileHandlePtr = PyCObject_FromVoidPtr(&rHandle, NULL);

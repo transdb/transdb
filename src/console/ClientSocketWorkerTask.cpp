@@ -147,6 +147,7 @@ void ClientSocketWorkerTask::HandleWriteData(ClientSocketTaskData &rClientSocket
     uint16 recordSize;
     uint32 writeStatus;
     
+    //TODO: check overflow
     //read data from packet
     rClientSocketTaskData >> token >> flags >> userID >> timeStamp;
     recordSize = (uint16)(rClientSocketTaskData.size() - rClientSocketTaskData.rpos());
@@ -432,6 +433,7 @@ void ClientSocketWorkerTask::HandleDeleteX(ClientSocketTaskData &rClientSocketTa
 	int decompressionStatus = Z_ERRNO;
 	ByteBuffer rBuffOut;
     
+    //TODO: check overflow
     //read data from packet
     rClientSocketTaskData >> token >> flags;
     usersSize = rClientSocketTaskData.size() - rClientSocketTaskData.rpos();
@@ -496,6 +498,7 @@ void ClientSocketWorkerTask::HandleDefragmentData(ClientSocketTaskData &rClientS
 	int compressionStatus = Z_ERRNO;
 	ByteBuffer rBuffOut;
     
+    //TODO: check overflow
     //read data from packet
     rClientSocketTaskData >> token >> flags;
     usersSize = rClientSocketTaskData.size() - rClientSocketTaskData.rpos();
@@ -579,6 +582,7 @@ void ClientSocketWorkerTask::HandleWriteDataNum(ClientSocketTaskData &rClientSoc
     //read data from packet
     rClientSocketTaskData >> token >> flags >> userID;
     
+    //TODO: check overflow
     //get data size
     dataSize = rClientSocketTaskData.size() - rClientSocketTaskData.rpos();
     pData = (uint8*)(rClientSocketTaskData.contents() + rClientSocketTaskData.rpos());
@@ -754,9 +758,19 @@ void ClientSocketWorkerTask::HandleExecutePythonScript(ClientSocketTaskData &rCl
     size_t dataSize;
     uint8 *pData;
     
+    //for send
+    const uint8 *pSendData;
+    size_t sendDataSize;
+    OUTPACKET_RESULT result;
+    
+	//for compresion
+	int compressionStatus = Z_ERRNO;
+	ByteBuffer rBuffOut;
+    
     //read data from packet
     rClientSocketTaskData >> token >> flags;
 
+    //TODO: check overflow
     //get data size
     dataSize = rClientSocketTaskData.size() - rClientSocketTaskData.rpos();
     pData = (uint8*)(rClientSocketTaskData.contents() + rClientSocketTaskData.rpos());
@@ -764,12 +778,90 @@ void ClientSocketWorkerTask::HandleExecutePythonScript(ClientSocketTaskData &rCl
     //execute
     std::string sResult = m_rPythonInterface.executePythonScript(&m_rStorage, m_pLRUCache, m_rDataFileHandle, pData, dataSize);
     
-    //send back
-    Packet rResponse(S_MSG_EXEC_PYTHON_SCRIPT, 8 + sResult.size());
+    //compress data
+    if(sResult.size() > (uint32)g_DataSizeForCompression)
+    {
+        compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, (const uint8*)sResult.data(), sResult.size(), rBuffOut);
+        if(compressionStatus == Z_OK)
+        {
+            Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", sResult.size(), rBuffOut.size());
+            flags = ePF_COMPRESSED;
+            sResult.clear();
+        }
+        else
+        {
+            Log.Error(__FUNCTION__, "Data compression failed.");
+        }
+    }
+    
+    //set tmp variables we dont want create tmp copy of result
+    if(compressionStatus == Z_OK)
+    {
+        pSendData = rBuffOut.contents();
+        sendDataSize = rBuffOut.size();
+    }
+    else
+    {
+        pSendData = (const uint8*)sResult.data();
+        sendDataSize = sResult.size();
+    }
+    
+    //init stream send
+    Packet rResponse(S_MSG_EXEC_PYTHON_SCRIPT, 32);
     rResponse << token;
     rResponse << flags;
-    rResponse << sResult;
-    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
+    result = g_rClientSocketHolder.StartStreamSend(rClientSocketTaskData.socketID(), rResponse, sendDataSize);
+    //socket disconnection or something go to next socket
+    if(result != OUTPACKET_RESULT_SUCCESS)
+    {
+        Log.Error(__FUNCTION__, "StartStreamSend - Socket ID: " I64FMTD " disconnected.", rClientSocketTaskData.socketID());
+        return ;
+    }
+    
+    //send all chunks
+    size_t chunkSize = g_SocketWriteBufferSize / 2;
+    Vector<uint8> rChunk;
+    rChunk.resize(chunkSize);
+    size_t rpos = 0;
+
+    size_t remainingData;
+    size_t readDataSize;
+    uint32 sendCounter = 0;
+    while(rpos < sendDataSize)
+    {
+        remainingData = sendDataSize - rpos;
+        readDataSize = std::min(remainingData, rChunk.size());
+        memcpy(rChunk.data(), pSendData + rpos, readDataSize);
+        rpos += readDataSize;
+        
+        //send chunk
+    trySendAgain:
+        result = g_rClientSocketHolder.StreamSend(rClientSocketTaskData.socketID(), (const void*)rChunk.data(), readDataSize);
+        if(result == OUTPACKET_RESULT_SUCCESS)
+        {
+            //send is ok continue with sending
+            continue;
+        }
+        else if(result == OUTPACKET_RESULT_NO_ROOM_IN_BUFFER)
+        {
+            if(sendCounter > 100)
+            {
+                Log.Error(__FUNCTION__, "StreamSend no room in send buffer.");
+                break;
+            }
+            
+            //socket buffer is full wait
+            Wait(100);
+            ++sendCounter;
+            goto trySendAgain;
+        }
+        else
+        {
+            //error interupt sending
+            Log.Error(__FUNCTION__, "StreamSend error: %u", (uint32)result);
+            break;
+        }
+    }
 }
 
 

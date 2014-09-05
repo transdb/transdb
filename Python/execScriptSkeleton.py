@@ -1,5 +1,12 @@
 import compiler
 import ctransdb
+import cfunctions
+import time
+import zlib
+import struct
+import pickle
+import zlib
+import cStringIO
 
 def executePythonScript(storage, LRUCache, fileHandle, script):
     """ Check and execute python script """
@@ -11,8 +18,15 @@ def executePythonScript(storage, LRUCache, fileHandle, script):
         compiler.parse(script)
         #compile script
         objectCode = compiler.compile(script, "execScript", "exec")
-        #execute script
-        scriptResult = eval(objectCode, None, {'g_transDB':g_transDB})
+        
+        #prepare globas and execute script
+        dict = globals()
+        dict['g_transDB'] = g_transDB
+        scriptResult = eval(objectCode, dict, None)
+        
+        #remove from globals -> avoid memory leak
+        del dict['g_transDB']
+        
         return str(scriptResult)
     except Exception as e:
         return str(e)
