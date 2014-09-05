@@ -762,7 +762,7 @@ void ClientSocketWorkerTask::HandleExecutePythonScript(ClientSocketTaskData &rCl
     pData = (uint8*)(rClientSocketTaskData.contents() + rClientSocketTaskData.rpos());
     
     //execute
-    std::string sResult = m_rPythonInterface.executePythonScript(pData, dataSize);
+    std::string sResult = m_rPythonInterface.executePythonScript(&m_rStorage, m_pLRUCache, m_rDataFileHandle, pData, dataSize);
     
     //send back
     Packet rResponse(S_MSG_EXEC_PYTHON_SCRIPT, 8 + sResult.size());
