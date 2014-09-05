@@ -1,5 +1,6 @@
-import cfunctions
 import ctransdb
 
 """ Start writing script here """
-return "Test"
+data = g_transDB.ReadData(100000, 3)
+return data
+

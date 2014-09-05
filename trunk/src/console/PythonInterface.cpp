@@ -70,6 +70,192 @@ static PyMethodDef cfunctions_methods[] =
     { NULL, NULL, 0, NULL }
 };
 
+//transdb interface
+typedef struct
+{
+    PyObject_HEAD
+    Storage     *m_pStorage;
+    LRUCache    *m_pLRUCache;
+    HANDLE      m_rDataFileHandle;
+} TransDB;
+
+static void TransDB_dealloc(TransDB* self)
+{
+    self->ob_type->tp_free((PyObject*)self);
+}
+
+static PyObject *TransDB_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    TransDB *self;
+    
+    self = (TransDB *)type->tp_alloc(type, 0);
+    if (self != NULL)
+    {
+        self->m_pStorage = NULL;
+        self->m_pLRUCache = NULL;
+        self->m_rDataFileHandle = INVALID_HANDLE_VALUE;
+    }
+    
+    return (PyObject *)self;
+}
+
+static int TransDB_init(TransDB *self, PyObject *args, PyObject *kwds)
+{
+    PyObject *pStorage;
+    PyObject *pLRUCache;
+    PyObject *pFileHandle;
+ 
+    static const char *kwlist[] = {"storage", "LRUCache", "fileHandle", NULL};
+    
+    if(!PyArg_ParseTupleAndKeywords(args, kwds, "OOO", (char**)kwlist, &pStorage, &pLRUCache, &pFileHandle))
+    {
+        return -1;
+    }
+    
+    //init variables
+    self->m_pStorage = (Storage*)PyCObject_AsVoidPtr(pStorage);
+    self->m_pLRUCache = (LRUCache*)PyCObject_AsVoidPtr(pLRUCache);
+    void *pHandle = PyCObject_AsVoidPtr(pFileHandle);
+    memcpy(&self->m_rDataFileHandle, pHandle, sizeof(HANDLE));
+    
+    return 0;
+}
+
+
+static PyObject *TransDB_ReadData(TransDB *self, PyObject *args, PyObject *kwds)
+{
+    uint64 x;
+    uint64 y;
+    
+    static const char *kwlist[] = {"x", "y", NULL};
+    if(!PyArg_ParseTupleAndKeywords(args, kwds, "LL", (char**)kwlist, &x, &y))
+    {
+        return NULL;
+    }
+    
+    //read data
+    ByteBuffer rData;
+    if(y != 0)
+        self->m_pStorage->ReadData(self->m_rDataFileHandle, *self->m_pLRUCache, x, y, rData);
+    else
+        self->m_pStorage->ReadData(self->m_rDataFileHandle, *self->m_pLRUCache, x, rData);
+    
+    //return PyByteArray
+    PyObject *pPyData = PyByteArray_FromStringAndSize((const char*)rData.contents(), rData.size());
+    return pPyData;
+}
+
+static PyObject *TransDB_WriteData(TransDB *self, PyObject *args, PyObject *kwds)
+{
+    uint64 x;
+    uint64 y;
+    char *pData;
+    int recordSize;
+    
+    static const char *kwlist[] = {"x", "y", "data", NULL};
+    if(!PyArg_ParseTupleAndKeywords(args, kwds, "LLs#", (char**)kwlist, &x, &y, &pData, &recordSize))
+    {
+        return NULL;
+    }
+    
+    //write
+    uint32 status = self->m_pStorage->WriteData(self->m_rDataFileHandle, *self->m_pLRUCache, x, y, (const uint8*)pData, recordSize);
+    return PyInt_FromLong(status);
+}
+
+static PyObject *TransDB_DeleteData(TransDB *self, PyObject *args, PyObject *kwds)
+{
+    uint64 x;
+    uint64 y;
+    
+    static const char *kwlist[] = {"x", "y", NULL};
+    if(!PyArg_ParseTupleAndKeywords(args, kwds, "LL", (char**)kwlist, &x, &y))
+    {
+        return NULL;
+    }
+    
+    //delete
+    if(y != 0)
+        self->m_pStorage->DeleteData(self->m_rDataFileHandle, *self->m_pLRUCache, x, y);
+    else
+        self->m_pStorage->DeleteData(*self->m_pLRUCache, x);
+    
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject *TransDB_GetAllY(TransDB *self, PyObject *args, PyObject *kwds)
+{
+    uint64 x;
+    
+    static const char *kwlist[] = {"x", NULL};
+    if(!PyArg_ParseTupleAndKeywords(args, kwds, "L", (char**)kwlist, &x))
+    {
+        return NULL;
+    }
+    
+    //read all Y
+    ByteBuffer rY;
+    self->m_pStorage->GetAllY(self->m_rDataFileHandle, *self->m_pLRUCache, x, rY);
+    
+    //return PyByteArray
+    PyObject *pPyData = PyByteArray_FromStringAndSize((const char*)rY.contents(), rY.size());
+    return pPyData;
+}
+
+static PyMethodDef TransDB_methods[] =
+{
+    {"ReadData", (PyCFunction)TransDB_ReadData, METH_KEYWORDS, "Read data from transDB"},
+    {"WriteData", (PyCFunction)TransDB_WriteData, METH_KEYWORDS, "Write data to transDB"},
+    {"DeleteData", (PyCFunction)TransDB_DeleteData, METH_KEYWORDS, "Delete data from transDB"},
+    {"GetAllY", (PyCFunction)TransDB_GetAllY, METH_KEYWORDS, "Get all Y keys in X"},
+    {NULL}  /* Sentinel */
+};
+
+static PyTypeObject TransDBType =
+{
+    PyObject_HEAD_INIT(NULL)
+    0,                         /*ob_size*/
+    "ctransdb.TransDB",        /*tp_name*/
+    sizeof(TransDB),           /*tp_basicsize*/
+    0,                         /*tp_itemsize*/
+    (destructor)TransDB_dealloc, /*tp_dealloc*/
+    0,                         /*tp_print*/
+    0,                         /*tp_getattr*/
+    0,                         /*tp_setattr*/
+    0,                         /*tp_compare*/
+    0,                         /*tp_repr*/
+    0,                         /*tp_as_number*/
+    0,                         /*tp_as_sequence*/
+    0,                         /*tp_as_mapping*/
+    0,                         /*tp_hash */
+    0,                         /*tp_call*/
+    0,                         /*tp_str*/
+    0,                         /*tp_getattro*/
+    0,                         /*tp_setattro*/
+    0,                         /*tp_as_buffer*/
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /*tp_flags*/
+    "TransDB objects",         /* tp_doc */
+    0,		               /* tp_traverse */
+    0,		               /* tp_clear */
+    0,		               /* tp_richcompare */
+    0,		               /* tp_weaklistoffset */
+    0,		               /* tp_iter */
+    0,		               /* tp_iternext */
+    TransDB_methods,           /* tp_methods */
+    0,                         /* tp_members */
+    0,                         /* tp_getset */
+    0,                         /* tp_base */
+    0,                         /* tp_dict */
+    0,                         /* tp_descr_get */
+    0,                         /* tp_descr_set */
+    0,                         /* tp_dictoffset */
+    (initproc)TransDB_init,    /* tp_init */
+    0,                         /* tp_alloc */
+    TransDB_new,               /* tp_new */
+};
+
+
 static PyMethodDef ctransdb_methods[] =
 {
     { NULL, NULL, 0, NULL }
@@ -115,7 +301,15 @@ bool PythonInterface::run()
         
         //create module cfunctions with custom functions
         Py_InitModule("cfunctions", cfunctions_methods);
-        Py_InitModule("ctransdb", ctransdb_methods);
+        //ctransdb
+        int status = PyType_Ready(&TransDBType);
+        if(status != 0)
+        {
+            PyErr_Print();
+        }
+        PyObject *m = Py_InitModule3("ctransdb", ctransdb_methods, "Module constains interface for work with transDB");
+        Py_INCREF(&TransDBType);
+        PyModule_AddObject(m, "TransDB", (PyObject*)&TransDBType);
         
         // Initialize thread support
         PyEval_InitThreads();
@@ -308,7 +502,11 @@ void PythonInterface::OnShutdown()
     ThreadContext::OnShutdown();
 }
 
-std::string PythonInterface::executePythonScript(const uint8 *pScriptData, size_t scriptDataSize)
+std::string PythonInterface::executePythonScript(Storage *pStorage,
+                                                 LRUCache *pLRUCache,
+                                                 HANDLE hDataFileHandle,
+                                                 const uint8 *pScriptData,
+                                                 size_t scriptDataSize)
 {
     std::string sResult;
     //check if python is running
@@ -320,8 +518,15 @@ std::string PythonInterface::executePythonScript(const uint8 *pScriptData, size_
         //function to execute
         PyObject *pFunction = PyObject_GetAttrString(m_pScriptSkeletonModule, "executePythonScript");
         //make script arguments - socket ID and python script string
+        PyObject *pPyStoragePtr = PyCObject_FromVoidPtr(pStorage, NULL);
+        PyObject *pPypLRUCachePtr = PyCObject_FromVoidPtr(pLRUCache, NULL);
+        //
+        uint8 rHandle[sizeof(HANDLE)];
+        memcpy(&rHandle, &hDataFileHandle, sizeof(HANDLE));
+        PyObject *pPyDataFileHandlePtr = PyCObject_FromVoidPtr(&rHandle, NULL);
+        
         PyObject *pPythonScript = PyString_FromStringAndSize((const char*)pScriptData, scriptDataSize);
-        PyObject *pArgs = PyTuple_Pack(1, pPythonScript);
+        PyObject *pArgs = PyTuple_Pack(4, pPyStoragePtr, pPypLRUCachePtr, pPyDataFileHandlePtr, pPythonScript);
         //execute
         PyObject *pResult = PyObject_CallObject(pFunction, pArgs);
 
@@ -330,6 +535,9 @@ std::string PythonInterface::executePythonScript(const uint8 *pScriptData, size_
         
         //cleanup
         Py_DECREF(pFunction);
+        Py_DECREF(pPyStoragePtr);
+        Py_DECREF(pPypLRUCachePtr);
+        Py_DECREF(pPyDataFileHandlePtr);
         Py_DECREF(pPythonScript);
         Py_DECREF(pArgs);
         Py_DECREF(pResult);
