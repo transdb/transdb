@@ -283,7 +283,7 @@ void ClientSocketWorkerTask::HandleGetAllX(ClientSocketTaskData &rClientSocketTa
     if(result != OUTPACKET_RESULT_SUCCESS)
     {
         Log.Error(__FUNCTION__, "StartStreamSend - Socket ID: " I64FMTD " disconnected.", rClientSocketTaskData.socketID());
-        return ;
+        return;
     }
     
     //send all chunks
@@ -815,7 +815,7 @@ void ClientSocketWorkerTask::HandleExecutePythonScript(ClientSocketTaskData &rCl
     if(result != OUTPACKET_RESULT_SUCCESS)
     {
         Log.Error(__FUNCTION__, "StartStreamSend - Socket ID: " I64FMTD " disconnected.", rClientSocketTaskData.socketID());
-        return ;
+        return;
     }
     
     //send all chunks
