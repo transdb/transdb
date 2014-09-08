@@ -415,9 +415,8 @@ void ClientSocketWorkerTask::HandleDeleteX(ClientSocketTaskData &rClientSocketTa
 {
     uint32 token;
     uint32 flags;
-    uint8 *pUserIDs;
-    size_t usersSize;
-    ByteBuffer rUsers;
+    uint8 *pXs;
+    size_t XSize;
 
 	//for decompresion
 	ByteBuffer rBuffOut;
@@ -425,23 +424,19 @@ void ClientSocketWorkerTask::HandleDeleteX(ClientSocketTaskData &rClientSocketTa
     //TODO: check overflow
     //read data from packet
     rClientSocketTaskData >> token >> flags;
-    usersSize = rClientSocketTaskData.size() - rClientSocketTaskData.rpos();
-    pUserIDs = (uint8*)(rClientSocketTaskData.contents() + rClientSocketTaskData.rpos());
-    
-    Log.Debug(__FUNCTION__, "token = %u", token);
-    Log.Debug(__FUNCTION__, "flags = %u", flags);
-    Log.Debug(__FUNCTION__, "usersSize = " I64FMTD, usersSize);
+    XSize = rClientSocketTaskData.size() - rClientSocketTaskData.rpos();
+    pXs = (uint8*)(rClientSocketTaskData.contents() + rClientSocketTaskData.rpos());
     
     //decompress
     if(flags & ePF_COMPRESSED)
     {
-        int decompressionStatus = CommonFunctions::decompressGzip(pUserIDs, usersSize, rBuffOut);
+        int decompressionStatus = CommonFunctions::decompressGzip(pXs, XSize, rBuffOut);
         if(decompressionStatus == Z_OK)
         {
-            Log.Debug(__FUNCTION__, "Data decompressed. Original size: %u, new size: %u", usersSize, rBuffOut.size());
+            Log.Debug(__FUNCTION__, "Data decompressed. Original size: %u, new size: %u", XSize, rBuffOut.size());
             flags = ePF_NULL;
-            usersSize = rBuffOut.size();
-            pUserIDs = (uint8*)rBuffOut.contents();
+            XSize = rBuffOut.size();
+            pXs = (uint8*)rBuffOut.contents();
         }
         else
         {
@@ -453,17 +448,15 @@ void ClientSocketWorkerTask::HandleDeleteX(ClientSocketTaskData &rClientSocketTa
     //only if decompression is ok
     if(flags == ePF_NULL)
     {
-        //fill buffer
-        rUsers.append(pUserIDs, usersSize);
-        
-        //iterate and delete all users        
-        while(rUsers.rpos() < rUsers.size())
+        //iterate and delete all users
+        size_t rpos = 0;
+        while(rpos < XSize)
         {
-            uint64 userID;
-            rUsers >> userID;
-            Log.Debug(__FUNCTION__, "Deleting userID: " I64FMTD, userID);
-            m_rStorage.DeleteData(*m_pLRUCache, userID);
-            Log.Debug(__FUNCTION__, "Deleted userID: " I64FMTD, userID);
+            uint64 X = *(uint64*)&pXs[rpos];
+            rpos += sizeof(X);
+            
+            //delete whole data undex X key
+            m_rStorage.DeleteData(*m_pLRUCache, X);
         }
     }
     
@@ -479,9 +472,8 @@ void ClientSocketWorkerTask::HandleDefragmentData(ClientSocketTaskData &rClientS
 {
     uint32 token;
     uint32 flags;
-    uint8 *pUserIDs;
-    size_t usersSize;
-    ByteBuffer rUsers;
+    uint8 *pXs;
+    size_t XSize;
     
 	//for compresion
 	ByteBuffer rBuffOut;
@@ -489,23 +481,19 @@ void ClientSocketWorkerTask::HandleDefragmentData(ClientSocketTaskData &rClientS
     //TODO: check overflow
     //read data from packet
     rClientSocketTaskData >> token >> flags;
-    usersSize = rClientSocketTaskData.size() - rClientSocketTaskData.rpos();
-    pUserIDs = (uint8*)(rClientSocketTaskData.contents() + rClientSocketTaskData.rpos());
-    
-    Log.Debug(__FUNCTION__, "token = %u", token);
-    Log.Debug(__FUNCTION__, "flags = %u", flags);
-    Log.Debug(__FUNCTION__, "usersSize = " I64FMTD, usersSize);
+    XSize = rClientSocketTaskData.size() - rClientSocketTaskData.rpos();
+    pXs = (uint8*)(rClientSocketTaskData.contents() + rClientSocketTaskData.rpos());
     
     //decompress
     if(flags & ePF_COMPRESSED)
     {
-        int decompressionStatus = CommonFunctions::decompressGzip(pUserIDs, usersSize, rBuffOut);
+        int decompressionStatus = CommonFunctions::decompressGzip(pXs, XSize, rBuffOut);
         if(decompressionStatus == Z_OK)
         {
-            Log.Debug(__FUNCTION__, "Data decompressed. Original size: %u, new size: %u", usersSize, rBuffOut.size());
+            Log.Debug(__FUNCTION__, "Data decompressed. Original size: %u, new size: %u", XSize, rBuffOut.size());
             flags = ePF_NULL;
-            usersSize = rBuffOut.size();
-            pUserIDs = (uint8*)rBuffOut.contents();
+            XSize = rBuffOut.size();
+            pXs = (uint8*)rBuffOut.contents();
         }
         else
         {
@@ -517,17 +505,15 @@ void ClientSocketWorkerTask::HandleDefragmentData(ClientSocketTaskData &rClientS
     //only if decompression is ok
     if(flags == ePF_NULL)
     {
-        //fill buffer
-        rUsers.append(pUserIDs, usersSize);
-        
         //iterate and delete all users
-        while(rUsers.rpos() < rUsers.size())
+        size_t rpos = 0;
+        while(rpos < XSize)
         {
-            uint64 userID;
-            rUsers >> userID;
-            Log.Debug(__FUNCTION__, "Defragmenting userID: " I64FMTD, userID);
-            m_rStorage.DefragmentData(m_rDataFileHandle, *m_pLRUCache, userID);
-            Log.Debug(__FUNCTION__, "Defragmented userID: " I64FMTD, userID);
+            uint64 X = *(uint64*)&pXs[rpos];
+            rpos += sizeof(X);
+            
+            //defragment data under X key
+            m_rStorage.DefragmentData(m_rDataFileHandle, *m_pLRUCache, X);
         }
     }
     
@@ -558,7 +544,7 @@ void ClientSocketWorkerTask::HandleWriteDataNum(ClientSocketTaskData &rClientSoc
 {
     uint32 token;
     uint32 flags;
-    uint64 userID;
+    uint64 X;
     size_t dataSize;
     uint8 *pData;
     ByteBuffer rData;
@@ -568,7 +554,7 @@ void ClientSocketWorkerTask::HandleWriteDataNum(ClientSocketTaskData &rClientSoc
 	ByteBuffer rBuffOut;
     
     //read data from packet
-    rClientSocketTaskData >> token >> flags >> userID;
+    rClientSocketTaskData >> token >> flags >> X;
     
     //TODO: check overflow
     //get data size
@@ -589,32 +575,30 @@ void ClientSocketWorkerTask::HandleWriteDataNum(ClientSocketTaskData &rClientSoc
         else
         {
             flags = ePF_DECOMPRESS_FAILED;
-            Log.Error(__FUNCTION__, "Decompression failed. X: " I64FMTD, userID);
+            Log.Error(__FUNCTION__, "Decompression failed. X: " I64FMTD, X);
         }
     }
     
     //only if decompression is ok
     if(flags == ePF_NULL)
     {
-        uint64 key;
-        uint16 recordSize;
-        ByteBuffer rRecord;
-        
-        //fill buffer
-        rData.append(pData, dataSize);
-        
         //iterate and write
         //key|recordSize|record|....Nx
-        while(rData.rpos() < rData.size())
+        size_t rpos = 0;
+        while(rpos < dataSize)
         {
-            //get info
-            rData >> key;
-            rData >> recordSize;
-            rRecord.resize(recordSize);
-            rData.read((uint8*)rRecord.contents(), rRecord.size());
-            
-            //write
-            writeStatus |= m_rStorage.WriteData(m_rDataFileHandle, *m_pLRUCache, userID, key, rRecord.contents(), recordSize);
+            //get key
+            uint64 recordKey = *(uint64*)&pData[rpos];
+            rpos += sizeof(recordKey);
+            //get record size
+            uint16 recordSize = *(uint16*)&pData[rpos];
+            rpos += sizeof(recordSize);
+
+            //now rpos is pointing to begin of data
+            //so read pass ptr and record size directly to storage
+            writeStatus |= m_rStorage.WriteData(m_rDataFileHandle, *m_pLRUCache, X, recordKey, &pData[rpos], recordSize);
+            //uodate rpos
+            rpos += recordSize;
         }
     }
     
@@ -623,7 +607,7 @@ void ClientSocketWorkerTask::HandleWriteDataNum(ClientSocketTaskData &rClientSoc
     StackPacket rResponse(S_MSG_WRITE_DATA_NUM, buff, sizeof(buff));
     rResponse << token;
     rResponse << flags;
-    rResponse << userID;
+    rResponse << X;
     rResponse << writeStatus;
     g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
 }

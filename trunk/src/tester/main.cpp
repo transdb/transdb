@@ -22,10 +22,13 @@ public:
         uint8 *pData;
         uint32 token = 0;
         
-        Packet rPacket(C_MSG_GET_ALL_X, 1024);
+        Packet rPacket(C_MSG_WRITE_DATA_NUM, 1024);
         rPacket << uint32(0);
         rPacket << uint32(0);
-        rPacket << uint32(1);
+        rPacket << uint64(999999);
+        rPacket << uint64(1);
+        rPacket << uint16(8);
+        rPacket << uint64(789654123);
 //        rPacket << uint64(12884921714);
 //        rPacket << uint64(1);
         m_pSocket->SendPacket(rPacket);
