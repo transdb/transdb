@@ -294,12 +294,11 @@ bool PythonInterface::run()
         Py_InitModule("cfunctions", cfunctions_methods);
         //ctransdb
         int status = PyType_Ready(&TransDBType);
-        if(status != 0)
+        if(status < 0)
         {
             PyErr_Print();
         }
         PyObject *m = Py_InitModule3("ctransdb", ctransdb_methods, "Module constains interface for work with transDB");
-        Py_INCREF(&TransDBType);
         PyModule_AddObject(m, "TransDB", (PyObject*)&TransDBType);
         
         // Initialize thread support
