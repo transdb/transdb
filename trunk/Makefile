@@ -49,5 +49,5 @@ $(EXED): $(OBJCCD) $(OBJCXXD)
 
 .PHONY: clean
 clean:
-	find . -type f -name *.od -o -name *.o | xargs rm  
+	find . -type f -name *.od -o -name *.o -o -name *.co | xargs rm  
 	rm -f ${EXE} ${EXED}
