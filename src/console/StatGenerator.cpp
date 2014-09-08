@@ -110,10 +110,9 @@ INLINE static void AddItemToJSONArray(std::stringstream &ss,
                                       bool oAddDescription,
                                       bool oAddComma = true)
 {
-    const char *pDescription;
     if(oAddDescription)
     {
-        pDescription = GetDecription(pKey);
+        const char *pDescription = GetDecription(pKey);
         ss << "{\"key\":\"" << pKey << "\",\"value\":\""<< value << "\",\"desc\":\""<< pDescription << "\"}";
     }
     else

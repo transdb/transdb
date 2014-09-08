@@ -108,7 +108,7 @@ private:
 	bool InitWorkerThreads();
     //starts config watcher worker thread
     bool InitConfigWatcher();
-    //starts python interface if enebled
+    //starts python interface if enabled
     bool InitPythonInterface();
 	//disable copy constructor and assign
 	DISALLOW_COPY_AND_ASSIGN(ClientSocketWorker);

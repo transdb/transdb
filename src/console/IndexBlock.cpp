@@ -22,17 +22,12 @@ struct FillIndex
     
     void operator()(const tbb::blocked_range<uint32>& range) const
     {
-        uint8 *pBlock;
-        ICIDF *pICIDF;
-        uint16 position;
-        DREC *pDREC;
-        
         //build index map
         for(uint32 i = range.begin();i != range.end();++i)
         {
-            position = 0;
-            pBlock = (m_pData + (INDEX_BLOCK_SIZE * i));
-            pICIDF = IndexBlock::GetICIDF(pBlock);
+            uint16 position = 0;
+            uint8 *pBlock = (m_pData + (INDEX_BLOCK_SIZE * i));
+            ICIDF *pICIDF = IndexBlock::GetICIDF(pBlock);
             
             //read record
             for(;;)
@@ -41,7 +36,7 @@ struct FillIndex
                     break;
                 
                 //get record
-                pDREC = (DREC*)(pBlock + position);
+                DREC *pDREC = (DREC*)(pBlock + position);
                 
                 //has data
                 if(!IndexBlock::IsEmptyDREC(pDREC))
@@ -170,14 +165,10 @@ E_IIS IndexBlock::Init(HANDLE hFile,
 
 bool IndexBlock::LoadFreeSpaceFromIndexDef(FreeSpaceBlockMap &rFreeSpaceBlockMap, int64 dataFileSize, Init_IndexDefVec &rIndexDef)
 {
-    int64 dataFileSizeTmp;
-    int64 freeSpaceLen;
-    uint64 counter;
-    int64 freeSpaceStart;
     bool status = true;
     
 	//save dataFileSize for later use
-	dataFileSizeTmp = dataFileSize;
+	int64 dataFileSizeTmp = dataFileSize;
     
     //load free space from index def vector
     if(rIndexDef.size())
@@ -186,14 +177,14 @@ bool IndexBlock::LoadFreeSpaceFromIndexDef(FreeSpaceBlockMap &rFreeSpaceBlockMap
         tbb::parallel_sort(rIndexDef.begin(), rIndexDef.end(), &_S_SortIndexDef);
         
         //init variables
-        counter = 0;
-        freeSpaceStart = 0;
+        uint64 counter = 0;
+        int64 freeSpaceStart = 0;
         
         //
         for(Init_IndexDefVec::const_iterator itr = rIndexDef.begin();itr != rIndexDef.end();++itr)
         {
             //
-            freeSpaceLen = itr->m_dataPosition - freeSpaceStart;
+            int64 freeSpaceLen = itr->m_dataPosition - freeSpaceStart;
             if(freeSpaceLen > 0)
             {
                 DiskWriter::AddFreeSpace(rFreeSpaceBlockMap, freeSpaceStart, freeSpaceLen);
@@ -441,7 +432,6 @@ uint8 *IndexBlock::GetCachedDiskBlock(HANDLE hFile, int64 blockDiskPosition, uin
 
 DREC *IndexBlock::GetEmptyDREC(const uint8 *pDiskBlock, int16 *newRecordOffset)
 {
-    DREC *pDREC;
     int16 position = 0;
     
     for(;;)
@@ -450,7 +440,7 @@ DREC *IndexBlock::GetEmptyDREC(const uint8 *pDiskBlock, int16 *newRecordOffset)
             break;
         
         //get DREC
-        pDREC = (DREC*)(pDiskBlock + position);
+        DREC *pDREC = (DREC*)(pDiskBlock + position);
         
         //check if is empty
         if(IsEmptyDREC(pDREC))

@@ -136,8 +136,10 @@ int main(int argc, const char * argv[])
 	//parse command args
 	std::string sConfigPath;
     std::string sLogPath;
+#ifndef WIN32
     std::string sPidFilePath;
     bool startAsDaemon = false;
+#endif
     for(int i = 0;i < argc;++i)
     {                
         if(strcmp(argv[i], "-c") == 0)

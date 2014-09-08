@@ -17,26 +17,19 @@ BlockManager::BlockManager() : m_pBlocks(NULL), m_blockCount(0)
 BlockManager::BlockManager(uint8 *pBlocks, uint16 blockCount) : m_pBlocks(pBlocks), m_blockCount(blockCount)
 {
     //build index map
-    uint8 *pBlock;
-    uint16 position;
-    uint16 endOfRDFArea;
-    CIDF *pCIDF;
-    RDF *pRDF;
-    
-    //build index map
     for(uint16 i = 0;i < m_blockCount;++i)
     {
-        pBlock = GetBlock(i);
-        pCIDF = Block::GetCIDF(pBlock);
-        position = CIDFOffset - sizeof(RDF);
-        endOfRDFArea = pCIDF->m_location + pCIDF->m_amoutOfFreeSpace;
+        uint8 *pBlock = GetBlock(i);
+        CIDF *pCIDF = Block::GetCIDF(pBlock);
+        uint16 position = CIDFOffset - sizeof(RDF);
+        uint16 endOfRDFArea = pCIDF->m_location + pCIDF->m_amoutOfFreeSpace;
         for(;;)
         {
             //end of RDF area
             if(position < endOfRDFArea)
                 break;
             
-            pRDF = (RDF*)(pBlock + position);
+            RDF *pRDF = (RDF*)(pBlock + position);
             m_rBlockIndex.insert(BlocksIndex::value_type(pRDF->m_key, i));
             position -= sizeof(RDF);
         }
@@ -89,53 +82,42 @@ uint32 BlockManager::WriteRecord(uint64 recordkey, const uint8 *pRecord, uint16 
     if(recordSize > MAX_RECORD_SIZE)
         return eBMS_FailRecordTooBig;
     
-    E_BLS status;
-    uint8 *pBlock;
-    uint16 RDFPosition;
-    uint16 recordPosition;
-    BlocksIndex::iterator itr;
-    uint64 recordKeyTmp;
-    
-    int removedRecords = 0;
+    //variables
     uint32 retStatus = eBMS_Ok;
-    
-    uint16 recordSizeLocal;
     ByteBuffer rOut;
-    int cStatus;
     
-    //PHASE 0 --> compression
-    //save variables
-    recordSizeLocal = recordSize;
-    
+    //PHASE 0 --> compression   
     //try to compress
-    if(recordSizeLocal > g_RecordSizeForCompression)
+    if(recordSize > g_RecordSizeForCompression)
     {
-        cStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, pRecord, recordSizeLocal, rOut);
+        int cStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, pRecord, recordSize, rOut);
         if(cStatus == Z_OK)
         {
-            if(rOut.size() < recordSizeLocal)
+            if(rOut.size() < recordSize)
             {
                 pRecord = rOut.contents();
-                recordSizeLocal = (uint16)rOut.size();
+                recordSize = (uint16)rOut.size();
                 ++g_NumOfRecordCompressions;
             }
             else
             {
-                Log.Warning(__FUNCTION__, "Compression generated bigger size. Source size: %u, new size: " I64FMTD, recordSizeLocal, rOut.size());
+                Log.Warning(__FUNCTION__, "Compression generated bigger size. Source size: %u, new size: " I64FMTD, recordSize, rOut.size());
             }
         }
     }
     
     //PHASE 1 --> try to update
     //try to update record first
-    itr = m_rBlockIndex.find(recordkey);
+    BlocksIndex::iterator itr = m_rBlockIndex.find(recordkey);
     if(itr != m_rBlockIndex.end())
     {
         //get block
-        pBlock = GetBlock(itr->second);
+        uint8 *pBlock = GetBlock(itr->second);
         //update
-        status = Block::UpdateRecord(pBlock, recordkey, pRecord, recordSizeLocal, NULL, &RDFPosition, &recordPosition);
-        if(status == eBLS_OK)
+        uint16 RDFPosition;
+        uint16 recordPosition;
+        E_BLS updateStatus = Block::UpdateRecord(pBlock, recordkey, pRecord, recordSize, NULL, &RDFPosition, &recordPosition);
+        if(updateStatus == eBLS_OK)
         {
             return retStatus;
         }
@@ -149,6 +131,7 @@ uint32 BlockManager::WriteRecord(uint64 recordkey, const uint8 *pRecord, uint16 
     BlocksIndex::size_type recordLimit = static_cast<BlocksIndex::size_type>(g_RecordLimit);
     if(g_EnableRecordLimit && m_rBlockIndex.size() >= recordLimit)
     {
+        int removedRecords = 0;
         //limit can be lowed so delete all records
         while(m_rBlockIndex.size() >= recordLimit)
         {
@@ -157,7 +140,7 @@ uint32 BlockManager::WriteRecord(uint64 recordkey, const uint8 *pRecord, uint16 
             
             //DO NOT ADD OLDER DATA
             //check if new data are not the older one
-            recordKeyTmp = itr->first;
+            uint64 recordKeyTmp = itr->first;
             if(recordkey < recordKeyTmp)
             {
                 retStatus |= (eBMS_RecordCountLimit | eBMS_OldRecord);
@@ -187,14 +170,14 @@ uint32 BlockManager::WriteRecord(uint64 recordkey, const uint8 *pRecord, uint16 
     {
         --blockNum;
         //get block and try to write
-        pBlock = GetBlock(blockNum);
-        status = Block::WriteRecord(pBlock, recordkey, pRecord, recordSizeLocal);
-        if(status == eBLS_OK)
+        uint8 *pBlock = GetBlock(blockNum);
+        E_BLS writeStatus = Block::WriteRecord(pBlock, recordkey, pRecord, recordSize);
+        if(writeStatus == eBLS_OK)
         {
             m_rBlockIndex.insert(BlocksIndex::value_type(recordkey, blockNum));
             break;
         }
-        else if(status == eBLS_NO_SPACE_FOR_NEW_DATA && blockNum == 0)
+        else if(writeStatus == eBLS_NO_SPACE_FOR_NEW_DATA && blockNum == 0)
         {
             //realloc blocks + 1 -> modify m_blockCount
             ReallocBlocks();
@@ -210,13 +193,10 @@ uint32 BlockManager::WriteRecord(uint64 recordkey, const uint8 *pRecord, uint16 
 
 void BlockManager::ReadRecord(uint64 recordkey, ByteBuffer &rData)
 {
-    uint8 *pBlock;
-    BlocksIndex::iterator itr;
-    
-    itr = m_rBlockIndex.find(recordkey);
+    BlocksIndex::iterator itr = m_rBlockIndex.find(recordkey);
     if(itr != m_rBlockIndex.end())
     {
-        pBlock = GetBlock(itr->second);
+        uint8 *pBlock = GetBlock(itr->second);
         Block::GetRecord(pBlock, recordkey, rData);
     }
 }
@@ -227,10 +207,9 @@ void BlockManager::ReadRecords(ByteBuffer &rData)
     //key|recordSize|record|....Nx
     rData.reserve(BLOCK_SIZE * m_blockCount);
     
-    uint8 *pBlock;
     for(uint16 i = 0;i < m_blockCount;++i)
     {
-        pBlock = GetBlock(i);
+        uint8 *pBlock = GetBlock(i);
         Block::GetRecords(pBlock, rData);
     }
 }
@@ -277,13 +256,10 @@ void BlockManager::GetAllRecordKeys(ByteBuffer &rY)
 
 void BlockManager::ClearDirtyFlags()
 {
-    uint8 *pBlock;
-    CIDF *pCIDF;
-    
     for(uint16 i = 0;i < m_blockCount;++i)
     {
-        pBlock = GetBlock(i);
-        pCIDF = Block::GetCIDF(pBlock);
+        uint8 *pBlock = GetBlock(i);
+        CIDF *pCIDF = Block::GetCIDF(pBlock);
         pCIDF->m_flags &= ~eBLF_Dirty;
     }
 }
@@ -291,15 +267,10 @@ void BlockManager::ClearDirtyFlags()
 void BlockManager::DefragmentData()
 {
     //TODO: sort for best fit
-    
-    uint64 recordkey;
-    uint16 recordSize;
-    size_t numOfrecords;
-    uint8 arData[BLOCK_SIZE];
     ByteBuffer rData;
     
     //save record count
-    numOfrecords = numOfRecords();
+    size_t numOfrecords = numOfRecords();
     if(numOfrecords == 0)
     {
         Log.Warning(__FUNCTION__, "numOfrecords == 0");
@@ -319,6 +290,9 @@ void BlockManager::DefragmentData()
     {
         while(rData.rpos() < rData.size())
         {
+            uint64 recordkey;
+            uint16 recordSize;
+            uint8 arData[BLOCK_SIZE];
             //get record
             rData >> recordkey;
             rData >> recordSize;
@@ -335,20 +309,17 @@ void BlockManager::DefragmentData()
 
 uint32 BlockManager::GetBlocksCrc32() const
 {
-    uint32 crc32;
-    uint8 *pBlock;
-    size_t crc32ArraySize = sizeof(uint32) * m_blockCount;
-    uint32 *pCrc32Array = (uint32*)alloca(crc32ArraySize);
-    
-    for(uint16 i = 0;i < m_blockCount;++i)
-    {
-        pBlock = GetBlock(i);
-        pCrc32Array[i] = g_CRC32->ComputeCRC32(pBlock, BLOCK_SIZE);
-    }
-    
-    //
-    crc32 = g_CRC32->ComputeCRC32((BYTE*)pCrc32Array, crc32ArraySize);
-    return crc32;
+	size_t crc32ArraySize = sizeof(uint32) * m_blockCount;
+	uint32 *pCrc32Array = (uint32*)alloca(crc32ArraySize);
+
+	for (uint16 i = 0; i < m_blockCount; ++i)
+	{
+		uint8 *pBlock = GetBlock(i);
+		pCrc32Array[i] = g_CRC32->ComputeCRC32(pBlock, BLOCK_SIZE);
+	}
+
+	uint32 crc32 = g_CRC32->ComputeCRC32((BYTE*)pCrc32Array, crc32ArraySize);
+	return crc32;
 }
 
 

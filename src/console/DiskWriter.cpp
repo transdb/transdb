@@ -103,20 +103,16 @@ static bool _S_DiskWriter_ProcessQueue(DiskWriter::DirtyXQueue *pQueue,
 
 void DiskWriter::WriteDataWithoutRelocateFlag(HANDLE hDataFile, RecordIndexMap::accessor &rWriteAccessor)
 {
-    uint8 *pBlock;
-    CIDF *pCIDF;
-    int64 blockOffset;
-    
     for(uint16 i = 0;i < rWriteAccessor->second.m_pBlockManager->numOfBlocks();++i)
     {
-        pBlock = rWriteAccessor->second.m_pBlockManager->GetBlock(i);
-        pCIDF = Block::GetCIDF(pBlock);
+        uint8 *pBlock = rWriteAccessor->second.m_pBlockManager->GetBlock(i);
+        CIDF *pCIDF = Block::GetCIDF(pBlock);
         if(pCIDF->m_flags & eBLF_Dirty)
         {
             //clear dirty flag
             pCIDF->m_flags &= ~eBLF_Dirty;
             //calc offset + write to disk
-            blockOffset = rWriteAccessor->second.m_recordStart + (i * BLOCK_SIZE);
+            int64 blockOffset = rWriteAccessor->second.m_recordStart + (i * BLOCK_SIZE);
             IO::fseek(hDataFile, blockOffset, IO::IO_SEEK_SET);
             IO::fwrite(pBlock, BLOCK_SIZE, hDataFile);
         }
@@ -161,13 +157,7 @@ bool DiskWriter::WriteDataWithRelocateFlag(HANDLE hDataFile, RecordIndexMap::acc
 }
 
 void DiskWriter::Process()
-{
-    uint64 startTime;
-    uint64 endTime;
-    uint32 crc32;
-    DirtyXProcess rAllItemsToProcess;
-    DirtyXProcess rItemsToProcess;
-    
+{    
     //process index delete queue (delete from disk)
     {
         ProcessIndexDeleteQueue();
@@ -202,6 +192,9 @@ void DiskWriter::Process()
     }
     
 	//start writing to disk
+	DirtyXProcess rAllItemsToProcess;
+	DirtyXProcess rItemsToProcess;
+
     //get all items from queue to process
     if(_S_DiskWriter_ProcessQueue(m_pQueue, m_rQueueLock, rAllItemsToProcess))
     {
@@ -210,7 +203,7 @@ void DiskWriter::Process()
         Vector<FreeSpace> rFreeSpaceToAdd(1024);
         
         //stats
-        startTime = GetTickCount64();
+        uint64 startTime = GetTickCount64();
         m_lastNumOfItemsInProcess = rAllItemsToProcess.size();
         m_itemsToProcessSize = rAllItemsToProcess.size();
         
@@ -254,7 +247,7 @@ void DiskWriter::Process()
                 rWriteAccessor->second.m_blockCount = rWriteAccessor->second.m_pBlockManager->numOfBlocks();
                 
                 //update crc32
-                crc32 = rWriteAccessor->second.m_pBlockManager->GetBlocksCrc32();
+                uint32 crc32 = rWriteAccessor->second.m_pBlockManager->GetBlocksCrc32();
                 if(rWriteAccessor->second.m_crc32 != crc32)
                 {
                     rWriteAccessor->second.m_crc32 = crc32;
@@ -315,7 +308,7 @@ void DiskWriter::Process()
         }
         
         //calc avg write time
-        endTime = GetTickCount64() - startTime;
+        uint64 endTime = GetTickCount64() - startTime;
         m_sumDiskWriteTime += endTime;
         g_AvgDiskWriteTime = m_sumDiskWriteTime / g_NumOfWritesToDisk;
         
@@ -439,8 +432,6 @@ private:
 int64 DiskWriter::GetFreeSpacePos(int64 lenght)
 {
     int64 returnPos = -1;
-    int64 newSize;
-    int64 newPos;
     
     FreeSpaceBlockMap::iterator itr = m_rFreeSpace.find(lenght);
     if(itr != m_rFreeSpace.end())
@@ -462,8 +453,8 @@ int64 DiskWriter::GetFreeSpacePos(int64 lenght)
             returnPos = itr2->second.back();
             itr2->second.pop_back();
             //
-            newSize = itr2->first - lenght;
-            newPos = returnPos + lenght;
+            int64 newSize = itr2->first - lenght;
+            int64 newPos = returnPos + lenght;
             
             //update or add new position
             itr = m_rFreeSpace.find(newSize);

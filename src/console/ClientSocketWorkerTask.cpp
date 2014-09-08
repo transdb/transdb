@@ -178,14 +178,10 @@ void ClientSocketWorkerTask::HandleReadData(ClientSocketTaskData &rClientSocketT
     //buffer for read data
     ByteBuffer rReadData;
     
-	//for compresion
-	int compressionStatus = Z_ERRNO;
-	ByteBuffer rBuffOut;
-    
     //read data from packet
     rClientSocketTaskData >> token >> flags >> userID >> timeStamp;
     
-    //read data - if timeStamp == 0 then read all datas under userID
+    //read data - if timeStamp == 0 then read all data under userID
     if(timeStamp == 0)
     {
         m_rStorage.ReadData(m_rDataFileHandle, *m_pLRUCache, userID, rReadData);
@@ -198,7 +194,8 @@ void ClientSocketWorkerTask::HandleReadData(ClientSocketTaskData &rClientSocketT
 	//try to compress
 	if(rReadData.size() > (uint32)g_DataSizeForCompression)
 	{
-		compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rReadData.contents(), rReadData.size(), rBuffOut);
+		ByteBuffer rBuffOut;
+		int compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rReadData.contents(), rReadData.size(), rBuffOut);
 		if(compressionStatus == Z_OK)
 		{
 			Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rReadData.size(), rBuffOut.size());
@@ -342,10 +339,6 @@ void ClientSocketWorkerTask::HandleGetAllY(ClientSocketTaskData &rClientSocketTa
     //buffer for y keys
     ByteBuffer rY;
     
-	//for compresion
-	int compressionStatus = Z_ERRNO;
-	ByteBuffer rBuffOut;
-    
     //read data from packet
     rClientSocketTaskData >> token >> flags >> userID;
     
@@ -355,7 +348,8 @@ void ClientSocketWorkerTask::HandleGetAllY(ClientSocketTaskData &rClientSocketTa
 	//try to compress
 	if(rY.size() > (size_t)g_DataSizeForCompression)
 	{
-		compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rY.contents(), rY.size(), rBuffOut);
+		ByteBuffer rBuffOut;
+		int compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rY.contents(), rY.size(), rBuffOut);
 		if(compressionStatus == Z_OK)
 		{
 			Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rY.size(), rBuffOut.size());
@@ -391,14 +385,11 @@ void ClientSocketWorkerTask::HandleStatus(ClientSocketTaskData &rClientSocketTas
     //get stats
     m_rStorage.GetStats(rBuff);
     
-	//for compresion
-	int compressionStatus = Z_ERRNO;
-	ByteBuffer rBuffOut;
-    
 	//try to compress
 	if(rBuff.size() > (uint32)g_DataSizeForCompression)
 	{
-		compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rBuff.contents(), rBuff.size(), rBuffOut);
+		ByteBuffer rBuffOut;
+		int compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rBuff.contents(), rBuff.size(), rBuffOut);
 		if(compressionStatus == Z_OK)
 		{
 			Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rBuff.size(), rBuffOut.size());
@@ -426,11 +417,9 @@ void ClientSocketWorkerTask::HandleDeleteX(ClientSocketTaskData &rClientSocketTa
     uint32 flags;
     uint8 *pUserIDs;
     size_t usersSize;
-    uint64 userID;
     ByteBuffer rUsers;
 
 	//for decompresion
-	int decompressionStatus = Z_ERRNO;
 	ByteBuffer rBuffOut;
     
     //TODO: check overflow
@@ -446,7 +435,7 @@ void ClientSocketWorkerTask::HandleDeleteX(ClientSocketTaskData &rClientSocketTa
     //decompress
     if(flags & ePF_COMPRESSED)
     {
-        decompressionStatus = CommonFunctions::decompressGzip(pUserIDs, usersSize, rBuffOut);
+        int decompressionStatus = CommonFunctions::decompressGzip(pUserIDs, usersSize, rBuffOut);
         if(decompressionStatus == Z_OK)
         {
             Log.Debug(__FUNCTION__, "Data decompressed. Original size: %u, new size: %u", usersSize, rBuffOut.size());
@@ -470,6 +459,7 @@ void ClientSocketWorkerTask::HandleDeleteX(ClientSocketTaskData &rClientSocketTa
         //iterate and delete all users        
         while(rUsers.rpos() < rUsers.size())
         {
+            uint64 userID;
             rUsers >> userID;
             Log.Debug(__FUNCTION__, "Deleting userID: " I64FMTD, userID);
             m_rStorage.DeleteData(*m_pLRUCache, userID);
@@ -491,11 +481,9 @@ void ClientSocketWorkerTask::HandleDefragmentData(ClientSocketTaskData &rClientS
     uint32 flags;
     uint8 *pUserIDs;
     size_t usersSize;
-    uint64 userID;
     ByteBuffer rUsers;
     
 	//for compresion
-	int compressionStatus = Z_ERRNO;
 	ByteBuffer rBuffOut;
     
     //TODO: check overflow
@@ -511,8 +499,8 @@ void ClientSocketWorkerTask::HandleDefragmentData(ClientSocketTaskData &rClientS
     //decompress
     if(flags & ePF_COMPRESSED)
     {
-        compressionStatus = CommonFunctions::decompressGzip(pUserIDs, usersSize, rBuffOut);
-        if(compressionStatus == Z_OK)
+        int decompressionStatus = CommonFunctions::decompressGzip(pUserIDs, usersSize, rBuffOut);
+        if(decompressionStatus == Z_OK)
         {
             Log.Debug(__FUNCTION__, "Data decompressed. Original size: %u, new size: %u", usersSize, rBuffOut.size());
             flags = ePF_NULL;
@@ -535,6 +523,7 @@ void ClientSocketWorkerTask::HandleDefragmentData(ClientSocketTaskData &rClientS
         //iterate and delete all users
         while(rUsers.rpos() < rUsers.size())
         {
+            uint64 userID;
             rUsers >> userID;
             Log.Debug(__FUNCTION__, "Defragmenting userID: " I64FMTD, userID);
             m_rStorage.DefragmentData(m_rDataFileHandle, *m_pLRUCache, userID);
@@ -576,7 +565,6 @@ void ClientSocketWorkerTask::HandleWriteDataNum(ClientSocketTaskData &rClientSoc
     uint32 writeStatus = 0;
     
 	//for decompresion
-	int decompressionStatus = Z_ERRNO;
 	ByteBuffer rBuffOut;
     
     //read data from packet
@@ -590,7 +578,7 @@ void ClientSocketWorkerTask::HandleWriteDataNum(ClientSocketTaskData &rClientSoc
     //decompress
     if(flags & ePF_COMPRESSED)
     {
-        decompressionStatus = CommonFunctions::decompressGzip(pData, dataSize, rBuffOut);
+        int decompressionStatus = CommonFunctions::decompressGzip(pData, dataSize, rBuffOut);
         if(decompressionStatus == Z_OK)
         {
             Log.Debug(__FUNCTION__, "Data decompressed. Original size: %u, new size: %u", dataSize, rBuffOut.size());

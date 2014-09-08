@@ -110,12 +110,11 @@ ClientSocket::ClientSocket(SOCKET fd) : Socket(fd, g_SocketReadBufferSize, g_Soc
 
 ClientSocket::~ClientSocket()
 {
-    Packet * pPacket;
     //delete packets in queue
     LockingPtr<PacketQueue> pPacketQueue(m_packetQueue, m_packetQueueLock);
     while(pPacketQueue->size())
     {
-        pPacket = pPacketQueue->front();
+        Packet *pPacket = pPacketQueue->front();
         pPacketQueue->pop();
         delete pPacket;
     }
@@ -292,13 +291,11 @@ uint64 ClientSocket::GetQueueSize()
 
 void ClientSocket::ProcessQueue()
 {
-	Packet * pPacket;
-    
     LockingPtr<PacketQueue> pPacketQueue(m_packetQueue, m_packetQueueLock);    
     while(pPacketQueue->size())
     {
         //get packet
-        pPacket = pPacketQueue->front();
+        Packet *pPacket = pPacketQueue->front();
 		/* try to push out as many as you can */
 		switch(_OutPacket(pPacket->GetOpcode(), pPacket->size(), pPacket->size() ? pPacket->contents() : NULL))
 		{
