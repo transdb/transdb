@@ -181,21 +181,27 @@ uint32 BlockManager::WriteRecord(uint64 recordkey, const uint8 *pRecord, uint16 
     
     //PHASE 3 --> try to write
     //find empty space in blocks
-    for(uint16 i = 0;i < m_blockCount;++i)
+    //search from end to begin -> mostly there appends to the end
+    uint16 blockNum = m_blockCount;
+    for(;;)
     {
-        pBlock = GetBlock(i);
+        --blockNum;
+        //get block and try to write
+        pBlock = GetBlock(blockNum);
         status = Block::WriteRecord(pBlock, recordkey, pRecord, recordSizeLocal);
         if(status == eBLS_OK)
         {
-            m_rBlockIndex.insert(BlocksIndex::value_type(recordkey, i));
+            m_rBlockIndex.insert(BlocksIndex::value_type(recordkey, blockNum));
             break;
         }
-        else if(status == eBLS_NO_SPACE_FOR_NEW_DATA && (i == (m_blockCount - 1)))
+        else if(status == eBLS_NO_SPACE_FOR_NEW_DATA && blockNum == 0)
         {
-            //realloc blocks + 1
+            //realloc blocks + 1 -> modify m_blockCount
             ReallocBlocks();
             //set status
             retStatus |= eBMS_ReallocatedBlocks;
+            //reset control variable
+            blockNum = m_blockCount;
         }
     }
     
