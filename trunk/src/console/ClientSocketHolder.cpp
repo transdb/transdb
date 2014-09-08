@@ -97,14 +97,13 @@ void ClientSocketHolder::Update()
     if(!m_clientSockets.empty())
     {
         time_t t = UNIXTIME;
-        ClientSocket *pSocket;
         ClientSocketMap::iterator itr, itr2;
         
         //ping + process queue
         for(itr = m_clientSockets.begin();itr != m_clientSockets.end();)
         {
             itr2 = itr++;
-            pSocket = itr2->second;
+            ClientSocket *pSocket = itr2->second;
             //
             if(pSocket->m_lastPong < t && ((uint64)(t - pSocket->m_lastPong) > (uint64)g_PingTimeout))
             {

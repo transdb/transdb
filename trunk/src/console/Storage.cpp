@@ -382,13 +382,11 @@ uint32 Storage::WriteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x,
 
 void Storage::DeleteData(LRUCache &rLRUCache, uint64 x)
 {
-	uint64 recordSize;
-
     RecordIndexMap::accessor rWriteAccessor;
     if(m_dataIndexes.find(rWriteAccessor, x))
     {
 		//save values
-		recordSize = rWriteAccessor->second.m_blockCount * BLOCK_SIZE;
+		uint64 recordSize = rWriteAccessor->second.m_blockCount * BLOCK_SIZE;
 
         //delete from LRU
         rLRUCache.remove(x);
@@ -446,15 +444,11 @@ struct FillXKeys
     
     void operator()(const tbb::blocked_range<uint32>& range) const
     {
-        uint8 *pBlock;
-        uint16 position;
-        DREC *pDREC;
-        
         //build index map
         for(uint32 i = range.begin();i != range.end();++i)
         {
-            position = 0;
-            pBlock = (m_pData + (INDEX_BLOCK_SIZE * i));
+            uint16 position = 0;
+            uint8 *pBlock = (m_pData + (INDEX_BLOCK_SIZE * i));
             
             //read record
             for(;;)
@@ -463,7 +457,7 @@ struct FillXKeys
                     break;
                 
                 //get record
-                pDREC = (DREC*)(pBlock + position);
+                DREC *pDREC = (DREC*)(pBlock + position);
                 
                 //has data
                 if(!IndexBlock::IsEmptyDREC(pDREC))

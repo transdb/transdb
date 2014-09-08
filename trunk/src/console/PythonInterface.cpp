@@ -113,8 +113,8 @@ static int TransDB_init(TransDB *self, PyObject *args, PyObject *kwds)
     }
     
     //init variables
-    self->m_pStorage = (Storage*)PyCObject_AsVoidPtr(pStorage);
-    self->m_pLRUCache = (LRUCache*)PyCObject_AsVoidPtr(pLRUCache);
+    self->m_pStorage = static_cast<Storage*>(PyCObject_AsVoidPtr(pStorage));
+    self->m_pLRUCache = static_cast<LRUCache*>(PyCObject_AsVoidPtr(pLRUCache));
     void *pHandle = PyCObject_AsVoidPtr(pFileHandle);
     memcpy(&self->m_rDataFileHandle, pHandle, sizeof(HANDLE));
     
@@ -270,19 +270,9 @@ bool PythonInterface::run()
 {
     CommonFunctions::SetThreadName("PythonInterface thread");
     
-    PyObject *pModule;
-    PyObject *pName;
-    PyObject *pDict;
-    PyObject *pClass;
-    PyObject *pCallMethodResult;
-    PyThreadState *mainThreadState;
-    PyThreadState *myThreadState;
-    PyThreadState *tempState;
-    PyInterpreterState *mainInterpreterState;
-    char cBuff[1024];
     bool reloadModule = false;
     //parameters
-    const char *pFunctionProto = "(sii)";
+    static const char *pFunctionProto = "(sii)";
    
     while(m_threadRunning)
     {
@@ -296,6 +286,7 @@ bool PythonInterface::run()
         Py_Initialize();
         
         //set script directiory
+        char cBuff[1024] = { 0 };
         sprintf(cBuff, "import sys\nsys.path[0]=\"%s\"\n", g_PythonScriptsFolderPath.c_str());
         PyRun_SimpleString(cBuff);
         
@@ -315,20 +306,21 @@ bool PythonInterface::run()
         PyEval_InitThreads();
         
         // Save a pointer to the main PyThreadState object
-        mainThreadState = PyThreadState_Get();
+        PyThreadState *mainThreadState = PyThreadState_Get();
         
         // Get a reference to the PyInterpreterState
-        mainInterpreterState = mainThreadState->interp;
+        PyInterpreterState *mainInterpreterState = mainThreadState->interp;
         
         // Create a thread state object for this thread
-        myThreadState = PyThreadState_New(mainInterpreterState);
+        PyThreadState *myThreadState = PyThreadState_New(mainInterpreterState);
         
         // Swap in my thread state
-        tempState = PyThreadState_Swap(myThreadState);
+        PyThreadState *tempState = PyThreadState_Swap(myThreadState);
 
         // Now execute some python code (call python functions)
-        pName = PyString_FromString(g_PythonModuleName.c_str());
-        pModule = PyImport_Import(pName);
+        PyObject *pName = PyString_FromString(g_PythonModuleName.c_str());
+        PyObject *pModule = PyImport_Import(pName);
+        Py_DECREF(pName);
         PyErr_Print();
         
         //import skeleton module
@@ -368,10 +360,10 @@ bool PythonInterface::run()
                        g_PythonScriptVersion.c_str());
             
             // pDict and pFunc are borrowed references
-            pDict = PyModule_GetDict(pModule);
+            PyObject *pDict = PyModule_GetDict(pModule);
             
             // Build the name of a callable class
-            pClass = PyDict_GetItemString(pDict, g_PythonClassName.c_str());
+            PyObject *pClass = PyDict_GetItemString(pDict, g_PythonClassName.c_str());
             
             // Create an instance of the class
             if (PyCallable_Check(pClass))
@@ -383,12 +375,12 @@ bool PythonInterface::run()
             m_pythonScriptRunning = true;
             
             // Call a method of the class with parameters
-            pCallMethodResult = PyObject_CallMethod(m_pInstance,
-                                                    (char*)g_PythonRunableMethod.c_str(),
-                                                    (char*)pFunctionProto,
-                                                    g_ListenHost.c_str(),
-                                                    g_ListenPort,
-                                                    g_WebSocketPort);
+            PyObject *pCallMethodResult = PyObject_CallMethod(m_pInstance,
+                                                              (char*)g_PythonRunableMethod.c_str(),
+                                                              (char*)pFunctionProto,
+                                                              g_ListenHost.c_str(),
+                                                              g_ListenPort,
+                                                              g_WebSocketPort);
             
             //set init
             m_pythonScriptRunning = false;
@@ -418,14 +410,7 @@ bool PythonInterface::run()
                 m_pScriptSkeletonModule = NULL;
             }
         }
-        
-        // Clean up
-        if(pName)
-        {
-            Py_DECREF(pName);
-            pName = NULL;
-        }
-     
+            
         // Clean up thread state
         PyThreadState_Clear(myThreadState);
         PyThreadState_Delete(myThreadState);
