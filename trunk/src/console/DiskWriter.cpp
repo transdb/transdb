@@ -574,7 +574,7 @@ static uint32 _S_DiskWriter_GetFreeSpaceDump(ByteBuffer &rBuff,
 	if(rBuff.size() > (size_t)g_DataSizeForCompression)
 	{
         ByteBuffer rBuffOut;
-		int compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rBuff.contents(), rBuff.size(), rBuffOut);
+		int compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rBuff.contents(), rBuff.size(), rBuffOut, g_ZlibBufferSize);
 		if(compressionStatus == Z_OK)
 		{
 			Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rBuff.size(), rBuffOut.size());
