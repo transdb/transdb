@@ -222,7 +222,7 @@ void Block::GetRecord(uint8 *pBlock, uint64 recordKey, ByteBuffer &rData)
     //check if gzipped
     if(CommonFunctions::isGziped(pRecordLocal))
     {
-        int status = CommonFunctions::decompressGzip(pRecordLocal, recordSizeLocal, rOut);
+        int status = CommonFunctions::decompressGzip(pRecordLocal, recordSizeLocal, rOut, g_ZlibBufferSize);
         if(status == Z_OK)
         {
             pRecordLocal = (uint8*)rOut.contents();
@@ -263,7 +263,7 @@ void Block::GetRecords(uint8 *pBlock, ByteBuffer &rData)
         //unzip + rewrite variables
         if(CommonFunctions::isGziped(pRecordLocal))
         {
-            int status = CommonFunctions::decompressGzip(pRecordLocal, recordSizeLocal, rOut);
+            int status = CommonFunctions::decompressGzip(pRecordLocal, recordSizeLocal, rOut, g_ZlibBufferSize);
             if(status == Z_OK)
             {
                 pRecordLocal = (uint8*)rOut.contents();

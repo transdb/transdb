@@ -298,7 +298,7 @@ bool PythonInterface::run()
         {
             PyErr_Print();
         }
-        PyObject *m = Py_InitModule3("ctransdb", ctransdb_methods, "Module constains interface for work with transDB");
+        PyObject *m = Py_InitModule3("ctransdb", ctransdb_methods, "Module contains interface for work with transDB");
         PyModule_AddObject(m, "TransDB", (PyObject*)&TransDBType);
         
         // Initialize thread support

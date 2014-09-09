@@ -195,7 +195,7 @@ void ClientSocketWorkerTask::HandleReadData(ClientSocketTaskData &rClientSocketT
 	if(rReadData.size() > (uint32)g_DataSizeForCompression)
 	{
 		ByteBuffer rBuffOut;
-		int compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rReadData.contents(), rReadData.size(), rBuffOut);
+		int compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rReadData.contents(), rReadData.size(), rBuffOut, g_ZlibBufferSize);
 		if(compressionStatus == Z_OK)
 		{
 			Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rReadData.size(), rBuffOut.size());
@@ -349,7 +349,7 @@ void ClientSocketWorkerTask::HandleGetAllY(ClientSocketTaskData &rClientSocketTa
 	if(rY.size() > (size_t)g_DataSizeForCompression)
 	{
 		ByteBuffer rBuffOut;
-		int compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rY.contents(), rY.size(), rBuffOut);
+		int compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rY.contents(), rY.size(), rBuffOut, g_ZlibBufferSize);
 		if(compressionStatus == Z_OK)
 		{
 			Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rY.size(), rBuffOut.size());
@@ -389,7 +389,7 @@ void ClientSocketWorkerTask::HandleStatus(ClientSocketTaskData &rClientSocketTas
 	if(rBuff.size() > (uint32)g_DataSizeForCompression)
 	{
 		ByteBuffer rBuffOut;
-		int compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rBuff.contents(), rBuff.size(), rBuffOut);
+		int compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rBuff.contents(), rBuff.size(), rBuffOut, g_ZlibBufferSize);
 		if(compressionStatus == Z_OK)
 		{
 			Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rBuff.size(), rBuffOut.size());
@@ -430,7 +430,7 @@ void ClientSocketWorkerTask::HandleDeleteX(ClientSocketTaskData &rClientSocketTa
     //decompress
     if(flags & ePF_COMPRESSED)
     {
-        int decompressionStatus = CommonFunctions::decompressGzip(pXs, XSize, rBuffOut);
+        int decompressionStatus = CommonFunctions::decompressGzip(pXs, XSize, rBuffOut, g_ZlibBufferSize);
         if(decompressionStatus == Z_OK)
         {
             Log.Debug(__FUNCTION__, "Data decompressed. Original size: %u, new size: %u", XSize, rBuffOut.size());
@@ -487,7 +487,7 @@ void ClientSocketWorkerTask::HandleDefragmentData(ClientSocketTaskData &rClientS
     //decompress
     if(flags & ePF_COMPRESSED)
     {
-        int decompressionStatus = CommonFunctions::decompressGzip(pXs, XSize, rBuffOut);
+        int decompressionStatus = CommonFunctions::decompressGzip(pXs, XSize, rBuffOut, g_ZlibBufferSize);
         if(decompressionStatus == Z_OK)
         {
             Log.Debug(__FUNCTION__, "Data decompressed. Original size: %u, new size: %u", XSize, rBuffOut.size());
@@ -564,7 +564,7 @@ void ClientSocketWorkerTask::HandleWriteDataNum(ClientSocketTaskData &rClientSoc
     //decompress
     if(flags & ePF_COMPRESSED)
     {
-        int decompressionStatus = CommonFunctions::decompressGzip(pData, dataSize, rBuffOut);
+        int decompressionStatus = CommonFunctions::decompressGzip(pData, dataSize, rBuffOut, g_ZlibBufferSize);
         if(decompressionStatus == Z_OK)
         {
             Log.Debug(__FUNCTION__, "Data decompressed. Original size: %u, new size: %u", dataSize, rBuffOut.size());
@@ -630,7 +630,7 @@ void ClientSocketWorkerTask::HandleReadLog(ClientSocketTaskData &rClientSocketTa
     
     if(rBuff.size() > (uint32)g_DataSizeForCompression)
     {
-        compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rBuff.contents(), rBuff.size(), rBuffOut);
+        compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rBuff.contents(), rBuff.size(), rBuffOut, g_ZlibBufferSize);
         if(compressionStatus == Z_OK)
         {
             Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rBuff.size(), rBuffOut.size());
@@ -684,7 +684,7 @@ void ClientSocketWorkerTask::HandleReadConfig(ClientSocketTaskData &rClientSocke
     
     if(rBuff.size() > (uint32)g_DataSizeForCompression)
     {
-        compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rBuff.contents(), rBuff.size(), rBuffOut);
+        compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rBuff.contents(), rBuff.size(), rBuffOut, g_ZlibBufferSize);
         if(compressionStatus == Z_OK)
         {
             Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rBuff.size(), rBuffOut.size());
@@ -753,7 +753,7 @@ void ClientSocketWorkerTask::HandleExecutePythonScript(ClientSocketTaskData &rCl
     //compress data
     if(sResult.size() > (uint32)g_DataSizeForCompression)
     {
-        compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, (const uint8*)sResult.data(), sResult.size(), rBuffOut);
+        compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, (const uint8*)sResult.data(), sResult.size(), rBuffOut, g_ZlibBufferSize);
         if(compressionStatus == Z_OK)
         {
             Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", sResult.size(), rBuffOut.size());
