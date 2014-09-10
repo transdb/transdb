@@ -60,7 +60,7 @@ void BlockManager::ReallocBlocks()
     m_blockCount += 1;
     
     //realloc block array
-    void *pNewBlocks = scalable_aligned_realloc(m_pBlocks, m_blockCount * BLOCK_SIZE, 512);
+    void *pNewBlocks = scalable_aligned_realloc(m_pBlocks, m_blockCount * BLOCK_SIZE, g_DataFileMallocAlignment);
     if(pNewBlocks == NULL)
     {
         throw std::bad_alloc();
