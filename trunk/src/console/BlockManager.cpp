@@ -20,7 +20,7 @@ BlockManager::BlockManager(uint8 *pBlocks, uint16 blockCount) : m_pBlocks(pBlock
     for(uint16 i = 0;i < m_blockCount;++i)
     {
         uint8 *pBlock = GetBlock(i);
-        CIDF *pCIDF = Block::GetCIDF(pBlock);
+        CIDF *pCIDF = Block_GetCIDF(pBlock);
         uint16 position = CIDFOffset - sizeof(RDF);
         uint16 endOfRDFArea = pCIDF->m_location + pCIDF->m_amoutOfFreeSpace;
         for(;;)
@@ -73,7 +73,7 @@ void BlockManager::ReallocBlocks()
     memset(pNewBlock, 0, BLOCK_SIZE);
     
     //init new block
-    Block::InitBlock(pNewBlock);
+    Block_InitBlock(pNewBlock);
 }
 
 uint32 BlockManager::WriteRecord(uint64 recordkey, const uint8 *pRecord, uint16 recordSize)
@@ -116,7 +116,7 @@ uint32 BlockManager::WriteRecord(uint64 recordkey, const uint8 *pRecord, uint16 
         //update
         uint16 RDFPosition;
         uint16 recordPosition;
-        E_BLS updateStatus = Block::UpdateRecord(pBlock, recordkey, pRecord, recordSize, NULL, &RDFPosition, &recordPosition);
+        E_BLS updateStatus = Block_UpdateRecord(pBlock, recordkey, pRecord, recordSize, NULL, &RDFPosition, &recordPosition);
         if(updateStatus == eBLS_OK)
         {
             return retStatus;
@@ -171,7 +171,7 @@ uint32 BlockManager::WriteRecord(uint64 recordkey, const uint8 *pRecord, uint16 
         --blockNum;
         //get block and try to write
         uint8 *pBlock = GetBlock(blockNum);
-        E_BLS writeStatus = Block::WriteRecord(pBlock, recordkey, pRecord, recordSize);
+        E_BLS writeStatus = Block_WriteRecord(pBlock, recordkey, pRecord, recordSize);
         if(writeStatus == eBLS_OK)
         {
             m_rBlockIndex.insert(BlocksIndex::value_type(recordkey, blockNum));
@@ -191,26 +191,26 @@ uint32 BlockManager::WriteRecord(uint64 recordkey, const uint8 *pRecord, uint16 
     return retStatus;
 }
 
-void BlockManager::ReadRecord(uint64 recordkey, ByteBuffer &rData)
+void BlockManager::ReadRecord(uint64 recordkey, CByteBuffer *pData)
 {
     BlocksIndex::iterator itr = m_rBlockIndex.find(recordkey);
     if(itr != m_rBlockIndex.end())
     {
         uint8 *pBlock = GetBlock(itr->second);
-        Block::GetRecord(pBlock, recordkey, rData);
+        Block_GetRecord(pBlock, recordkey, pData);
     }
 }
 
-void BlockManager::ReadRecords(ByteBuffer &rData)
+void BlockManager::ReadRecords(CByteBuffer *pData)
 {
     //pre-realloc buffer
     //key|recordSize|record|....Nx
-    rData.reserve(BLOCK_SIZE * m_blockCount);
+    CByteBuffer_reserve(pData, BLOCK_SIZE * m_blockCount);
     
     for(uint16 i = 0;i < m_blockCount;++i)
     {
         uint8 *pBlock = GetBlock(i);
-        Block::GetRecords(pBlock, rData);
+        Block_GetRecords(pBlock, pData);
     }
 }
 
@@ -232,7 +232,7 @@ void BlockManager::DeleteRecord(BlocksIndex::iterator &itr)
     
     //delete
     pBlock = GetBlock(itr->second);
-    deleteStatus = Block::DeleteRecord(pBlock, itr->first, NULL, &RDFPosition, &recordPosition);
+    deleteStatus = Block_DeleteRecord(pBlock, itr->first, NULL, &RDFPosition, &recordPosition);
     if(deleteStatus != eBLS_OK)
     {
         Log.Warning(__FUNCTION__, "Trying to delete non-existant key: " I64FMTD " in block number: %u", itr->first, itr->second);
@@ -259,7 +259,7 @@ void BlockManager::ClearDirtyFlags()
     for(uint16 i = 0;i < m_blockCount;++i)
     {
         uint8 *pBlock = GetBlock(i);
-        CIDF *pCIDF = Block::GetCIDF(pBlock);
+        CIDF *pCIDF = Block_GetCIDF(pBlock);
         pCIDF->m_flags &= ~eBLF_Dirty;
     }
 }
@@ -267,7 +267,6 @@ void BlockManager::ClearDirtyFlags()
 void BlockManager::DefragmentData()
 {
     //TODO: sort for best fit
-    ByteBuffer rData;
     
     //save record count
     size_t numOfrecords = numOfRecords();
@@ -276,9 +275,11 @@ void BlockManager::DefragmentData()
         Log.Warning(__FUNCTION__, "numOfrecords == 0");
         return;
     }
+    //create bytebuffer
+    CByteBuffer *pData = CByteBuffer_create();
     
     //read all data - key|recordSize|record|....Nx
-    ReadRecords(rData);
+    ReadRecords(pData);
     
     //deallloc blocks
     DeallocBlocks();
@@ -288,15 +289,15 @@ void BlockManager::DefragmentData()
     //insert
     if(numOfrecords)
     {
-        while(rData.rpos() < rData.size())
+        while(pData->m_rpos < pData->m_size)
         {
             uint64 recordkey;
             uint16 recordSize;
             uint8 arData[BLOCK_SIZE];
             //get record
-            rData >> recordkey;
-            rData >> recordSize;
-            rData.read(arData, recordSize);
+            CByteBuffer_read(pData, &recordkey, sizeof(recordkey));
+            CByteBuffer_read(pData, &recordSize, sizeof(recordSize));
+            CByteBuffer_read(pData, &arData, recordSize);
             
             //insert - ignore return value
             (void)WriteRecord(recordkey, arData, recordSize);
@@ -305,6 +306,9 @@ void BlockManager::DefragmentData()
     
     //update counter
     g_NumOfRecordDeframentations++;
+    
+    //delete bytebuffer
+    CByteBuffer_destroy(pData);
 }
 
 uint32 BlockManager::GetBlocksCrc32() const

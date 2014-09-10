@@ -29,9 +29,12 @@
 #include "../shared/CrashHandler.h"
 #include "../shared/Containers/Vector.h"
 #include "../shared/Containers/HashMap.h"
-#include "../shared/Containers/avl.h"
 #include "../shared/IO/IO.h"
 #include "../shared/CommonFunctions.h"
+
+//clib
+#include "../shared/clib/CCommon.h"
+#include "../shared/clib/Buffers/CByteBuffer.h"
 
 //Intel TBB
 #define TBB_PREVIEW_MEMORY_POOL 1

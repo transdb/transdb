@@ -36,8 +36,8 @@ public:
     ~BlockManager();
     
     uint32 WriteRecord(uint64 recordkey, const uint8 *pRecord, uint16 recordSize);
-    void ReadRecord(uint64 recordkey, ByteBuffer &rData);
-    void ReadRecords(ByteBuffer &rData);
+    void ReadRecord(uint64 recordkey, CByteBuffer *pData);
+    void ReadRecords(CByteBuffer *pData);
     void DeleteRecord(uint64 recordkey);
     void GetAllRecordKeys(ByteBuffer &rY);
     void ClearDirtyFlags();

@@ -6,26 +6,29 @@
 //  Copyright (c) 2012 Miroslav Kudrnac. All rights reserved.
 //
 
-#include "StdAfx.h"
+#include <string.h>
+#include "../shared/clib/CCommon.h"
+#include "../shared/zlib/zlib.h"
+#include "Block.h"
 
-CIDF *Block::GetCIDF(uint8 *pBlock)
+CIDF *Block_GetCIDF(uint8 *pBlock)
 {
     return (CIDF*)(pBlock + CIDFOffset);
 }
 
-void Block::InitBlock(uint8 *pBlock)
+void Block_InitBlock(uint8 *pBlock)
 {
     //write CIDF
-    CIDF *pCIDF = Block::GetCIDF(pBlock);
+    CIDF *pCIDF = Block_GetCIDF(pBlock);
     pCIDF->m_amoutOfFreeSpace = CIDFOffset;
     pCIDF->m_location = 0;
     pCIDF->m_flags = eBLF_Dirty;
 }
 
-RDF *Block::ContainsKey(uint8 *pBlock, uint64 recordKey, uint16 *RDFPosition, uint16 *recordPosition)
+RDF *Block_ContainsKey(uint8 *pBlock, uint64 recordKey, uint16 *RDFPosition, uint16 *recordPosition)
 {
     //get CIDF
-    CIDF *pCIDF = Block::GetCIDF(pBlock);
+    CIDF *pCIDF = Block_GetCIDF(pBlock);
     RDF *pRDF;
     
     //find RDS by key - Loop must be from end of block to begin
@@ -63,7 +66,7 @@ RDF *Block::ContainsKey(uint8 *pBlock, uint64 recordKey, uint16 *RDFPosition, ui
     return pRDF;
 }
 
-E_BLS Block::WriteRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pRecord, uint16 recordSize)
+E_BLS Block_WriteRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pRecord, uint16 recordSize)
 {
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     //key check must be done by blockmanager
@@ -73,7 +76,7 @@ E_BLS Block::WriteRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pRecord, 
     uint16 positionOfNewRDS;
     
     //get CIDF
-    pCIDF = Block::GetCIDF(pBlock);
+    pCIDF = Block_GetCIDF(pBlock);
     
     //no space BlockManager should allocate new block
     if(pCIDF->m_amoutOfFreeSpace < (recordSize + sizeof(RDF)))
@@ -98,11 +101,11 @@ E_BLS Block::WriteRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pRecord, 
     return eBLS_OK;
 }
 
-E_BLS Block::DeleteRecord(uint8 *pBlock, uint64 recordKey, RDF *pRDF, uint16 *RDFPosition, uint16 *recordPosition)
+E_BLS Block_DeleteRecord(uint8 *pBlock, uint64 recordKey, RDF *pRDF, uint16 *RDFPosition, uint16 *recordPosition)
 {
     if(pRDF == NULL)
     {
-        pRDF = Block::ContainsKey(pBlock, recordKey, RDFPosition, recordPosition);
+        pRDF = Block_ContainsKey(pBlock, recordKey, RDFPosition, recordPosition);
         if(pRDF == NULL)
             return eBLS_KEY_NOT_FOUND;
     }
@@ -114,7 +117,7 @@ E_BLS Block::DeleteRecord(uint8 *pBlock, uint64 recordKey, RDF *pRDF, uint16 *RD
     RDF rRDFCopy;
     
     //get CIDF
-    pCIDF = Block::GetCIDF(pBlock);
+    pCIDF = Block_GetCIDF(pBlock);
     
     //create copy of RDF - current will be deleted
     memcpy(&rRDFCopy, pRDF, sizeof(RDF));
@@ -169,7 +172,7 @@ E_BLS Block::DeleteRecord(uint8 *pBlock, uint64 recordKey, RDF *pRDF, uint16 *RD
     return eBLS_OK;
 }
 
-E_BLS Block::UpdateRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pNewRecord, uint16 recordSize, RDF *pRDF, uint16 *RDFPosition, uint16 *recordPosition)
+E_BLS Block_UpdateRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pNewRecord, uint16 recordSize, RDF *pRDF, uint16 *RDFPosition, uint16 *recordPosition)
 {
     CIDF *pCIDF;
     E_BLS addStatus = eBLS_OK;
@@ -177,7 +180,7 @@ E_BLS Block::UpdateRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pNewReco
     //find RDS by key
     if(pRDF == NULL)
     {
-        pRDF = Block::ContainsKey(pBlock, recordKey, RDFPosition, recordPosition);
+        pRDF = Block_ContainsKey(pBlock, recordKey, RDFPosition, recordPosition);
         if(pRDF == NULL)
             return eBLS_KEY_NOT_FOUND;
     }
@@ -188,96 +191,107 @@ E_BLS Block::UpdateRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pNewReco
         //data has same size replace
         memcpy(pBlock + (*recordPosition), pNewRecord, recordSize);
         //get CIDF - update dirty flag
-        pCIDF = Block::GetCIDF(pBlock);
+        pCIDF = Block_GetCIDF(pBlock);
         pCIDF->m_flags |= eBLF_Dirty;
     }
     else
     {
         //delete old data and add new
-        Block::DeleteRecord(pBlock, recordKey, pRDF, RDFPosition, recordPosition);
+        Block_DeleteRecord(pBlock, recordKey, pRDF, RDFPosition, recordPosition);
         //add new data
-        addStatus = Block::WriteRecord(pBlock, recordKey, pNewRecord, recordSize);
+        addStatus = Block_WriteRecord(pBlock, recordKey, pNewRecord, recordSize);
     }
     
     return addStatus;
 }
 
-void Block::GetRecord(uint8 *pBlock, uint64 recordKey, ByteBuffer &rData)
+void Block_GetRecord(uint8 *pBlock, uint64 recordKey, CByteBuffer *pData)
 {
-    RDF *pRDF;
     uint16 RDFPosition;
     uint16 recordPosition;
-    ByteBuffer rOut;
-    uint8 *pRecordLocal;
-    uint16 recordSizeLocal;
-    
-    pRDF = Block::ContainsKey(pBlock, recordKey, &RDFPosition, &recordPosition);
+    RDF *pRDF = Block_ContainsKey(pBlock, recordKey, &RDFPosition, &recordPosition);
     if(pRDF == NULL)
         return;
     
     //set support variables
-    pRecordLocal = (uint8*)(pBlock + recordPosition);
-    recordSizeLocal = pRDF->m_recordLength;
+    uint8 *pRecordLocal = (uint8*)(pBlock + recordPosition);
+    uint16 recordSizeLocal = pRDF->m_recordLength;
     
     //check if gzipped
-    if(CommonFunctions::isGziped(pRecordLocal))
+    if(CCommon_isGziped(pRecordLocal))
     {
-        int status = CommonFunctions::decompressGzip(pRecordLocal, recordSizeLocal, rOut, g_ZlibBufferSize);
-        if(status == Z_OK)
+        int status = CCommon_decompressGzip(pRecordLocal, recordSizeLocal, pData, 512*1024);
+        if(status != Z_OK)
         {
-            pRecordLocal = (uint8*)rOut.contents();
-            recordSizeLocal = (uint16)rOut.size();
-            ++g_NumOfRecordDecompressions;
+            //decompress failed append original record
+            CByteBuffer_resize(pData, 0);
+            CByteBuffer_append(pData, pRecordLocal, recordSizeLocal);
         }
     }
-    
-    //append record
-    rData.append(pRecordLocal, recordSizeLocal);
+    else
+    {
+        //append record
+        CByteBuffer_append(pData, pRecordLocal, recordSizeLocal);
+    }
 }
 
-void Block::GetRecords(uint8 *pBlock, ByteBuffer &rData)
+void Block_GetRecords(uint8 *pBlock, CByteBuffer *pData)
 {
     //get CIDF
-    CIDF *pCIDF = Block::GetCIDF(pBlock);
+    CIDF *pCIDF = Block_GetCIDF(pBlock);
     
     //interate RDS
-    uint16 recordSize = 0;
-    uint16 position = CIDFOffset - sizeof(RDF);
+    uint16 recordPosition = 0;
+    uint16 RDFPosition = CIDFOffset - sizeof(RDF);
     uint16 endOfRDFArea = pCIDF->m_location + pCIDF->m_amoutOfFreeSpace;
     
-    ByteBuffer rOut;    
     for(;;)
     {
         //end of RDF area
-        if(position < endOfRDFArea)
+        if(RDFPosition < endOfRDFArea)
             break;
         
         //get RDF
-        RDF *pRDF = (RDF*)(pBlock + position);
-        position -= sizeof(RDF);
+        RDF *pRDF = (RDF*)(pBlock + RDFPosition);
+        RDFPosition -= sizeof(RDF);
         
         //save variables
-        uint8 *pRecordLocal = (uint8*)(pBlock + recordSize);
-        uint16 recordSizeLocal = pRDF->m_recordLength;
+        uint8 *pRecord = (uint8*)(pBlock + recordPosition);
+        uint16 recordSize = pRDF->m_recordLength;
+        
+        //append key
+        CByteBuffer_append(pData, &pRDF->m_key, sizeof(pRDF->m_key));
+        //append size, will be rewrited if record is compressed
+        CByteBuffer_append(pData, &recordSize, sizeof(recordSize));
         
         //unzip + rewrite variables
-        if(CommonFunctions::isGziped(pRecordLocal))
+        if(CCommon_isGziped(pRecord))
         {
-            int status = CommonFunctions::decompressGzip(pRecordLocal, recordSizeLocal, rOut, g_ZlibBufferSize);
-            if(status == Z_OK)
+            //save wpos if decompress fails or we need to change record size after decompress
+            size_t wpos = pData->m_wpos;
+            //
+            int status = CCommon_decompressGzip(pRecord, recordSize, pData, 512*1024);
+            if(status != Z_OK)
             {
-                pRecordLocal = (uint8*)rOut.contents();
-                recordSizeLocal = (uint16)rOut.size();
-                ++g_NumOfRecordDecompressions;
+                //decompress failed append original record
+                CByteBuffer_resize(pData, wpos);
+                CByteBuffer_append(pData, pRecord, recordSize);
+            }
+            else
+            {
+                //calc decompressed record size
+                recordSize = pData->m_wpos - wpos;
+                //change record size
+                CByteBuffer_put(pData, wpos - sizeof(recordSize), &recordSize, sizeof(recordSize));
             }
         }
-        
-        //copy key + records size + record
-        rData << uint64(pRDF->m_key);
-        rData << uint16(recordSizeLocal);
-        rData.append(pRecordLocal, recordSizeLocal);
+        else
+        {
+            //append record non compressed record
+            CByteBuffer_append(pData, pRecord, recordSize);
+        }
         
         //count position of data
-        recordSize += pRDF->m_recordLength;
+        recordPosition += pRDF->m_recordLength;
     }
 }
