@@ -24,6 +24,9 @@ public:
     //send packet
     void SendPacket(uint64 socketID, const Packet &rPacket);
     void SendPacket(uint64 socketID, const StackPacket &rPacket);
+    
+    //send packet for CByteBuffer
+    void SendPacket(uint64 socketID, uint16 opcode, CByteBuffer *pData);
    
     //stream supoort
     OUTPACKET_RESULT StartStreamSend(uint64 socketID, const Packet &rPacket, size_t dataSize);
