@@ -175,13 +175,19 @@ void ClientSocketWorkerTask::HandleReadData(ClientSocketTaskData &rClientSocketT
     uint64 Y;
     static const size_t packetSize = sizeof(token)+sizeof(flags)+sizeof(X)+sizeof(Y);
     
-    //buffer for read data
-    CByteBuffer *pReadData = CByteBuffer_create();
-    
     //read data from packet
     rClientSocketTaskData >> token >> flags >> X >> Y;
     
-    //read data - if timeStamp == 0 then read all data under userID
+    //buffer for read data
+    CByteBuffer *pReadData = CByteBuffer_create();
+    //prepare packet
+    CByteBuffer_reserve(pReadData, packetSize);
+    CByteBuffer_append(pReadData, &token, sizeof(token));
+    CByteBuffer_append(pReadData, &flags, sizeof(flags));
+    CByteBuffer_append(pReadData, &X, sizeof(X));
+    CByteBuffer_append(pReadData, &Y, sizeof(Y));
+    
+    //read data - if Y == 0 then read all data under X
     if(Y == 0)
     {
         m_rStorage.ReadData(m_rDataFileHandle, *m_pLRUCache, X, pReadData);
@@ -191,16 +197,21 @@ void ClientSocketWorkerTask::HandleReadData(ClientSocketTaskData &rClientSocketT
         m_rStorage.ReadData(m_rDataFileHandle, *m_pLRUCache, X, Y, pReadData);
     }
     
+    //calc where data start and what size it has
+    uint8 *pReadDataBegin = pReadData->m_storage + packetSize;
+    size_t readDataSize = pReadData->m_size - packetSize;
+    
 	//try to compress
-	if(pReadData->m_size > (uint32)g_DataSizeForCompression)
+	if(readDataSize > (uint32)g_DataSizeForCompression)
 	{
         CByteBuffer *pBuffOut = CByteBuffer_create();
-        int compressionStatus = CCommon_compressGzip(g_GzipCompressionLevel, pReadData->m_storage, pReadData->m_size, pBuffOut, g_ZlibBufferSize);
+        int compressionStatus = CCommon_compressGzip(g_GzipCompressionLevel, pReadDataBegin, readDataSize, pBuffOut, g_ZlibBufferSize);
         if(compressionStatus == Z_OK)
         {
             flags = ePF_COMPRESSED;
-            CByteBuffer_resize(pReadData, 0);
-            CByteBuffer_append(pReadData, pBuffOut->m_storage, pBuffOut->m_size);
+            //prepare space and rewrite noncompressed data
+            CByteBuffer_resize(pReadData, pBuffOut->m_size + packetSize);
+            CByteBuffer_put(pReadData, packetSize, pBuffOut->m_storage, pBuffOut->m_size);
         }
         else
         {
@@ -209,14 +220,22 @@ void ClientSocketWorkerTask::HandleReadData(ClientSocketTaskData &rClientSocketT
         CByteBuffer_destroy(pBuffOut);
 	}
     
-    //send back data
-    Packet rResponse(S_MSG_READ_DATA, packetSize + pReadData->m_size);
-    rResponse << token;
-    rResponse << flags;
-    rResponse << X;
-    rResponse << Y;
-    rResponse.append(pReadData->m_storage, pReadData->m_size);
-    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
+    //modify flags
+    CByteBuffer_put(pReadData, sizeof(token), &flags, sizeof(flags));
+    
+    //append data
+    CByteBuffer_append(pReadData, pReadData, pReadData->m_wpos - packetSize);
+    
+    //send back
+    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), S_MSG_READ_DATA, pReadData);
+    
+//    Packet rResponse(S_MSG_READ_DATA, packetSize + pReadData->m_size);
+//    rResponse << token;
+//    rResponse << flags;
+//    rResponse << X;
+//    rResponse << Y;
+//    rResponse.append(pReadData->m_storage, pReadData->m_size);
+//    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
     
     //clear memory
     CByteBuffer_destroy(pReadData);
