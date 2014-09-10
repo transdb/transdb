@@ -45,15 +45,19 @@
 		8D3E57DF188EA4CD00D54CBC /* SortedVector.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D3E57DE188EA4CD00D54CBC /* SortedVector.h */; };
 		8D691523165101D7002D4A28 /* ClientSocketWorker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D691521165101D7002D4A28 /* ClientSocketWorker.cpp */; };
 		8D69152716510D56002D4A28 /* ClientSocketWorkerTask.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D69152516510D56002D4A28 /* ClientSocketWorkerTask.cpp */; };
-		8D7251B415E6211600E9E1EB /* Block.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D7251B315E6211600E9E1EB /* Block.cpp */; };
-		8D86F237194F47F700E783BF /* avl.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D86F235194F47F700E783BF /* avl.c */; };
-		8D86F238194F47F700E783BF /* avl.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D86F236194F47F700E783BF /* avl.h */; };
+		8D7251B415E6211600E9E1EB /* Block.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D7251B315E6211600E9E1EB /* Block.c */; };
 		8D8F15601635741600A72AD7 /* MemoryAllocator.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D8F155B1635741600A72AD7 /* MemoryAllocator.h */; };
 		8D922B9E15F49DD900F8AAF7 /* ClientSocketHolder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D922B9D15F49DD900F8AAF7 /* ClientSocketHolder.cpp */; };
 		8D997D21166CB34200A5F84B /* StatGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D997D1F166CB34200A5F84B /* StatGenerator.cpp */; };
 		8D99BEB315EE5C2200BCE873 /* Config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE275215E22BA8007F75A3 /* Config.cpp */; };
+		8D9AF24019C079FC007F88E8 /* CVector.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D9AF23E19C079FC007F88E8 /* CVector.c */; };
+		8D9AF24119C079FC007F88E8 /* CVector.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D9AF23F19C079FC007F88E8 /* CVector.h */; };
+		8D9AF24419C07D1C007F88E8 /* CCommon.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D9AF24319C07D1C007F88E8 /* CCommon.c */; };
 		8DAC6D4F188D39C7001851BB /* CfgDefines.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DAC6D4E188D39C7001851BB /* CfgDefines.cpp */; };
 		8DAC6D51188D3BE3001851BB /* Vector.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DAC6D50188D3BE3001851BB /* Vector.h */; };
+		8DACDCF119C0631600B1E092 /* avl.c in Sources */ = {isa = PBXBuildFile; fileRef = 8DACDCEF19C0631600B1E092 /* avl.c */; };
+		8DACDCF219C0631600B1E092 /* avl.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DACDCF019C0631600B1E092 /* avl.h */; };
+		8DACDCF619C063A700B1E092 /* CByteBuffer.c in Sources */ = {isa = PBXBuildFile; fileRef = 8DACDCF519C063A700B1E092 /* CByteBuffer.c */; };
 		8DC9C51115F4F62B001058CC /* IndexBlock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DC9C51015F4F62B001058CC /* IndexBlock.cpp */; };
 		8DDB5436173268E400A69B7D /* cpuid.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DDB5435173268E400A69B7D /* cpuid.h */; };
 		8DE1A22E1671ED9000159613 /* CrashHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DE1A22C1671ED9000159613 /* CrashHandler.cpp */; };
@@ -193,17 +197,24 @@
 		8D69152516510D56002D4A28 /* ClientSocketWorkerTask.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ClientSocketWorkerTask.cpp; sourceTree = "<group>"; };
 		8D69152616510D56002D4A28 /* ClientSocketWorkerTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ClientSocketWorkerTask.h; sourceTree = "<group>"; };
 		8D7251B015E6178400E9E1EB /* Block.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Block.h; sourceTree = "<group>"; };
-		8D7251B315E6211600E9E1EB /* Block.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Block.cpp; sourceTree = "<group>"; usesTabs = 0; };
-		8D86F235194F47F700E783BF /* avl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = avl.c; sourceTree = "<group>"; };
-		8D86F236194F47F700E783BF /* avl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = avl.h; sourceTree = "<group>"; };
+		8D7251B315E6211600E9E1EB /* Block.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Block.c; sourceTree = "<group>"; usesTabs = 0; };
+		8D73E3DC19C0A1BC00C1FAFB /* CDefines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CDefines.h; sourceTree = "<group>"; };
 		8D8F155B1635741600A72AD7 /* MemoryAllocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MemoryAllocator.h; sourceTree = "<group>"; };
 		8D922B9C15F49DD300F8AAF7 /* ClientSocketHolder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ClientSocketHolder.h; sourceTree = "<group>"; };
 		8D922B9D15F49DD900F8AAF7 /* ClientSocketHolder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ClientSocketHolder.cpp; sourceTree = "<group>"; };
 		8D997D1F166CB34200A5F84B /* StatGenerator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StatGenerator.cpp; sourceTree = "<group>"; };
 		8D997D20166CB34200A5F84B /* StatGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StatGenerator.h; sourceTree = "<group>"; };
+		8D9AF23E19C079FC007F88E8 /* CVector.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CVector.c; sourceTree = "<group>"; };
+		8D9AF23F19C079FC007F88E8 /* CVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CVector.h; sourceTree = "<group>"; };
+		8D9AF24219C07D13007F88E8 /* CCommon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CCommon.h; sourceTree = "<group>"; };
+		8D9AF24319C07D1C007F88E8 /* CCommon.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CCommon.c; sourceTree = "<group>"; };
 		8DAC6D4D188D39B1001851BB /* CfgDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CfgDefines.h; sourceTree = "<group>"; };
 		8DAC6D4E188D39C7001851BB /* CfgDefines.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CfgDefines.cpp; sourceTree = "<group>"; };
 		8DAC6D50188D3BE3001851BB /* Vector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Vector.h; sourceTree = "<group>"; };
+		8DACDCEF19C0631600B1E092 /* avl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = avl.c; sourceTree = "<group>"; };
+		8DACDCF019C0631600B1E092 /* avl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = avl.h; sourceTree = "<group>"; };
+		8DACDCF419C0639500B1E092 /* CByteBuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CByteBuffer.h; sourceTree = "<group>"; };
+		8DACDCF519C063A700B1E092 /* CByteBuffer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CByteBuffer.c; sourceTree = "<group>"; };
 		8DB7891118A3902200560037 /* log.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = log.html; sourceTree = "<group>"; };
 		8DBB052319044F4200922E7E /* transdb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = transdb; path = ../cfg/transdb; sourceTree = "<group>"; };
 		8DBFC82E19B5BBDE00FCB8FB /* pythonScript.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = pythonScript.html; sourceTree = "<group>"; };
@@ -415,8 +426,6 @@
 		8D48B9B31666062B005156B2 /* Containers */ = {
 			isa = PBXGroup;
 			children = (
-				8D86F235194F47F700E783BF /* avl.c */,
-				8D86F236194F47F700E783BF /* avl.h */,
 				8D15F40118883B2400EC443F /* HashMap.h */,
 				8DAC6D50188D3BE3001851BB /* Vector.h */,
 				8D3E57DE188EA4CD00D54CBC /* SortedVector.h */,
@@ -444,7 +453,7 @@
 		8D7251AE15E6176E00E9E1EB /* Block */ = {
 			isa = PBXGroup;
 			children = (
-				8D7251B315E6211600E9E1EB /* Block.cpp */,
+				8D7251B315E6211600E9E1EB /* Block.c */,
 				8D7251B015E6178400E9E1EB /* Block.h */,
 				8D0CA2EF15E7943200506B8F /* BlockManager.cpp */,
 				8D0CA2EE15E7942B00506B8F /* BlockManager.h */,
@@ -482,6 +491,38 @@
 				8D997D20166CB34200A5F84B /* StatGenerator.h */,
 			);
 			name = Stats;
+			sourceTree = "<group>";
+		};
+		8DACDCED19C0631600B1E092 /* clib */ = {
+			isa = PBXGroup;
+			children = (
+				8DACDCF319C0636E00B1E092 /* Buffers */,
+				8DACDCEE19C0631600B1E092 /* Containers */,
+				8D9AF24319C07D1C007F88E8 /* CCommon.c */,
+				8D9AF24219C07D13007F88E8 /* CCommon.h */,
+				8D73E3DC19C0A1BC00C1FAFB /* CDefines.h */,
+			);
+			path = clib;
+			sourceTree = "<group>";
+		};
+		8DACDCEE19C0631600B1E092 /* Containers */ = {
+			isa = PBXGroup;
+			children = (
+				8DACDCEF19C0631600B1E092 /* avl.c */,
+				8DACDCF019C0631600B1E092 /* avl.h */,
+				8D9AF23E19C079FC007F88E8 /* CVector.c */,
+				8D9AF23F19C079FC007F88E8 /* CVector.h */,
+			);
+			path = Containers;
+			sourceTree = "<group>";
+		};
+		8DACDCF319C0636E00B1E092 /* Buffers */ = {
+			isa = PBXGroup;
+			children = (
+				8DACDCF519C063A700B1E092 /* CByteBuffer.c */,
+				8DACDCF419C0639500B1E092 /* CByteBuffer.h */,
+			);
+			path = Buffers;
 			sourceTree = "<group>";
 		};
 		8DC9C50D15F4F60B001058CC /* IndexBlock */ = {
@@ -528,28 +569,29 @@
 		8DFE274915E22BA8007F75A3 /* shared */ = {
 			isa = PBXGroup;
 			children = (
-				8D33EE49192B8FAE007F448C /* zlib */,
-				8D33EE44192B8C95007F448C /* IO */,
-				8DE1A22C1671ED9000159613 /* CrashHandler.cpp */,
-				8DE1A22D1671ED9000159613 /* CrashHandler.h */,
-				8D48B9B31666062B005156B2 /* Containers */,
-				8D8F155A1635741600A72AD7 /* Memory */,
-				8D22DE1C15FF9A88001E00B5 /* CRC32 */,
 				8DFE274A15E22BA8007F75A3 /* Auth */,
 				8DFE274D15E22BA8007F75A3 /* CallBack.cpp */,
 				8DFE274E15E22BA8007F75A3 /* CallBack.h */,
+				8DACDCED19C0631600B1E092 /* clib */,
 				8DFE274F15E22BA8007F75A3 /* CommonFunctions.cpp */,
 				8DFE275015E22BA8007F75A3 /* CommonFunctions.h */,
 				8DFE275115E22BA8007F75A3 /* Config */,
+				8D48B9B31666062B005156B2 /* Containers */,
+				8DDB5435173268E400A69B7D /* cpuid.h */,
+				8DE1A22C1671ED9000159613 /* CrashHandler.cpp */,
+				8DE1A22D1671ED9000159613 /* CrashHandler.h */,
+				8D22DE1C15FF9A88001E00B5 /* CRC32 */,
 				8DFE275515E22BA8007F75A3 /* Defines.cpp */,
 				8DFE275615E22BA8007F75A3 /* Defines.h */,
 				8DFE275715E22BA8007F75A3 /* Enums.h */,
+				8D33EE44192B8C95007F448C /* IO */,
 				8DFE275815E22BA8007F75A3 /* Logs */,
+				8D8F155A1635741600A72AD7 /* Memory */,
 				8DFE275C15E22BA8007F75A3 /* Network */,
 				8DFE277515E22BA8007F75A3 /* Packets */,
 				8DFE277E15E22BA8007F75A3 /* Singleton.h */,
 				8DFE278015E22BA8007F75A3 /* Threading */,
-				8DDB5435173268E400A69B7D /* cpuid.h */,
+				8D33EE49192B8FAE007F448C /* zlib */,
 			);
 			name = shared;
 			path = ../src/shared;
@@ -680,7 +722,6 @@
 				8DFE27CE15E22C35007F75A3 /* Log.h in Headers */,
 				8D33EE77192B8FAE007F448C /* zutil.h in Headers */,
 				8DFE27D015E22C35007F75A3 /* BaseSocket.h in Headers */,
-				8D86F238194F47F700E783BF /* avl.h in Headers */,
 				8DFE27D115E22C35007F75A3 /* CircularBuffer.h in Headers */,
 				8D33EE70192B8FAE007F448C /* inftrees.h in Headers */,
 				8DFE27D215E22C35007F75A3 /* ListenSocketLinux.h in Headers */,
@@ -688,6 +729,7 @@
 				8DFE27D415E22C35007F75A3 /* Network.h in Headers */,
 				8D33EE6B192B8FAE007F448C /* inffast.h in Headers */,
 				8DFE27D515E22C35007F75A3 /* SocketDefines.h in Headers */,
+				8DACDCF219C0631600B1E092 /* avl.h in Headers */,
 				8D33EE64192B8FAE007F448C /* crc32.h in Headers */,
 				8DFE27D615E22C35007F75A3 /* SocketGarbageCollector.h in Headers */,
 				8D33EE48192B8C95007F448C /* IO.h in Headers */,
@@ -707,6 +749,7 @@
 				8DFE27DE15E22C35007F75A3 /* ByteBuffer.h in Headers */,
 				8DFE27DF15E22C35007F75A3 /* GeewaPacket.h in Headers */,
 				8D33EE6C192B8FAE007F448C /* inffixed.h in Headers */,
+				8D9AF24119C079FC007F88E8 /* CVector.h in Headers */,
 				8DFE27E015E22C35007F75A3 /* Packets.h in Headers */,
 				8DFE27E115E22C35007F75A3 /* StackBuffer.h in Headers */,
 				8DFE27E315E22C35007F75A3 /* Singleton.h in Headers */,
@@ -794,7 +837,7 @@
 				8DFE282815E22F48007F75A3 /* Launcher.cpp in Sources */,
 				8DFE282B15E230A9007F75A3 /* ClientSocket.cpp in Sources */,
 				8DFE283115E23B60007F75A3 /* Storage.cpp in Sources */,
-				8D7251B415E6211600E9E1EB /* Block.cpp in Sources */,
+				8D7251B415E6211600E9E1EB /* Block.c in Sources */,
 				8D0CA2F015E7943200506B8F /* BlockManager.cpp in Sources */,
 				8D2711FC15F0DFBC005F94B6 /* DiskWriter.cpp in Sources */,
 				8D922B9E15F49DD900F8AAF7 /* ClientSocketHolder.cpp in Sources */,
@@ -814,11 +857,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8D86F237194F47F700E783BF /* avl.c in Sources */,
+				8DACDCF119C0631600B1E092 /* avl.c in Sources */,
 				8D33EE69192B8FAE007F448C /* infback.c in Sources */,
 				8D33EE6F192B8FAE007F448C /* inftrees.c in Sources */,
 				8D99BEB315EE5C2200BCE873 /* Config.cpp in Sources */,
 				8D33EE71192B8FAE007F448C /* trees.c in Sources */,
+				8DACDCF619C063A700B1E092 /* CByteBuffer.c in Sources */,
 				8DFE27EA15E22C46007F75A3 /* Crypt.cpp in Sources */,
 				8DFE27EB15E22C46007F75A3 /* CallBack.cpp in Sources */,
 				8DFE27EC15E22C46007F75A3 /* CommonFunctions.cpp in Sources */,
@@ -827,6 +871,7 @@
 				8DFE27EF15E22C46007F75A3 /* CircularBuffer.cpp in Sources */,
 				8D33EE73192B8FAE007F448C /* uncompr.c in Sources */,
 				8D33EE65192B8FAE007F448C /* deflate.c in Sources */,
+				8D9AF24019C079FC007F88E8 /* CVector.c in Sources */,
 				8DFE27F015E22C46007F75A3 /* SocketGarbageCollector.cpp in Sources */,
 				8DFE27F115E22C46007F75A3 /* SocketLinux.cpp in Sources */,
 				8DFE27F215E22C46007F75A3 /* SocketMac.cpp in Sources */,
@@ -842,6 +887,7 @@
 				8DFE27F715E22C46007F75A3 /* SocketOpsWin32.cpp in Sources */,
 				8D33EE6D192B8FAE007F448C /* inflate.c in Sources */,
 				8D33EE63192B8FAE007F448C /* crc32.c in Sources */,
+				8D9AF24419C07D1C007F88E8 /* CCommon.c in Sources */,
 				8D33EE47192B8C95007F448C /* IO.cpp in Sources */,
 				8DFE27F815E22C46007F75A3 /* SocketWindows.cpp in Sources */,
 				8DFE27F915E22C46007F75A3 /* GeewaPacket.cpp in Sources */,

@@ -9,6 +9,13 @@
 #ifndef TransDB_Block_h
 #define TransDB_Block_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+    
+#include "../shared/clib/CDefines.h"
+#include "../shared/clib/Buffers/CByteBuffer.h"
+
 //disable alignment
 #pragma pack(push, 1)
 //Control interval
@@ -48,40 +55,42 @@ static const uint16 CIDFOffset      = (BLOCK_SIZE - sizeof(CIDF));
 //max record size
 static const uint16 MAX_RECORD_SIZE = (CIDFOffset - sizeof(RDF));
 
-class Block
-{
-public:
-    /** Get ControlIntervalDefinitionField from block
-     */
-    static CIDF *GetCIDF(uint8 *pBlock);
-    
-    /** Init block
-     */
-    static void InitBlock(uint8 *pBlock);
-    
-    /** Search for record with key in block
-     */
-    static RDF *ContainsKey(uint8 *pBlock, uint64 recordKey, uint16 *RDFPosition, uint16 *recordPosition);
-    
-    /** Write record to block
-     */
-    static E_BLS WriteRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pRecord, uint16 recordSize);
-    
-    /** Delete record from block by record key
-     */
-    static E_BLS DeleteRecord(uint8 *pBlock, uint64 recordKey, RDF *pRDF, uint16 *RDFPosition, uint16 *recordPosition);
-    
-    /** Update record in block
-     */
-    static E_BLS UpdateRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pNewRecord, uint16 recordSize, RDF *pRDF, uint16 *RDFPosition, uint16 *recordPosition);
-    
-    /** Get record by key
-     */
-    static void GetRecord(uint8 *pBlock, uint64 recordKey, ByteBuffer &rData);
-    
-    /** Get all records from block
-     */
-    static void GetRecords(uint8 *pBlock, ByteBuffer &rData);
-};
 
+/** Get ControlIntervalDefinitionField from block
+ */
+CIDF *Block_GetCIDF(uint8 *pBlock);
+    
+/** Init block
+ */
+void Block_InitBlock(uint8 *pBlock);
+
+/** Search for record with key in block
+ */
+RDF *Block_ContainsKey(uint8 *pBlock, uint64 recordKey, uint16 *RDFPosition, uint16 *recordPosition);
+
+/** Write record to block
+ */
+E_BLS Block_WriteRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pRecord, uint16 recordSize);
+
+/** Delete record from block by record key
+ */
+E_BLS Block_DeleteRecord(uint8 *pBlock, uint64 recordKey, RDF *pRDF, uint16 *RDFPosition, uint16 *recordPosition);
+
+/** Update record in block
+ */
+E_BLS Block_UpdateRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pNewRecord, uint16 recordSize, RDF *pRDF, uint16 *RDFPosition, uint16 *recordPosition);
+
+/** Get record by key
+ */
+void Block_GetRecord(uint8 *pBlock, uint64 recordKey, CByteBuffer *pData);
+
+/** Get all records from block
+ */
+void Block_GetRecords(uint8 *pBlock, CByteBuffer *pData);
+
+
+#ifdef __cplusplus
+}
+#endif
+    
 #endif

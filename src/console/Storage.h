@@ -23,8 +23,8 @@ public:
 	~Storage();
     
 	//handlers
-    void ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, uint64 y, ByteBuffer &rData);
-    void ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, ByteBuffer &rData);
+    void ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, uint64 y, CByteBuffer *pData);
+    void ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, CByteBuffer *pData);
     uint32 WriteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, uint64 y, const uint8 *pRecord, uint16 recordSize);
     void DeleteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, uint64 y);
     void DeleteData(LRUCache &rLRUCache, uint64 x);

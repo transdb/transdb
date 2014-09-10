@@ -134,14 +134,15 @@ static PyObject *TransDB_ReadData(TransDB *self, PyObject *args, PyObject *kwds)
     }
     
     //read data
-    ByteBuffer rData;
+    CByteBuffer *pData = CByteBuffer_create();
     if(y != 0)
-        self->m_pStorage->ReadData(self->m_rDataFileHandle, *self->m_pLRUCache, x, y, rData);
+        self->m_pStorage->ReadData(self->m_rDataFileHandle, *self->m_pLRUCache, x, y, pData);
     else
-        self->m_pStorage->ReadData(self->m_rDataFileHandle, *self->m_pLRUCache, x, rData);
+        self->m_pStorage->ReadData(self->m_rDataFileHandle, *self->m_pLRUCache, x, pData);
     
-    //return PyByteArray
-    PyObject *pPyData = PyByteArray_FromStringAndSize((const char*)rData.contents(), rData.size());
+    //create Python bytearray and dealloc bytebuffer
+    PyObject *pPyData = PyByteArray_FromStringAndSize((const char*)pData->m_storage, pData->m_size);
+    CByteBuffer_destroy(pData);
     return pPyData;
 }
 

@@ -257,7 +257,7 @@ void Storage::Crc32Check(const HANDLE &rDataFileHandle)
     Log.Notice(__FUNCTION__, "Finished checking integrity of data file.");
 }
 
-void Storage::ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, uint64 y, ByteBuffer &rData)
+void Storage::ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, uint64 y, CByteBuffer *pData)
 {
     RecordIndexMap::accessor rWriteAccessor;
     if(m_dataIndexes.find(rWriteAccessor, x))
@@ -269,13 +269,13 @@ void Storage::ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, ui
         CheckBlockManager(rDataFileHandle, x, rWriteAccessor);
         
         //read data
-        rWriteAccessor->second.m_pBlockManager->ReadRecord(y, rData);
+        rWriteAccessor->second.m_pBlockManager->ReadRecord(y, pData);
     }
     
-    Log.Debug(__FUNCTION__, "Read data [x:" I64FMTD ",y:" I64FMTD "] size: " I64FMTD, x, y, rData.size());
+    Log.Debug(__FUNCTION__, "Read data [x:" I64FMTD ",y:" I64FMTD "] size: " I64FMTD, x, y, pData->m_size);
 }
 
-void Storage::ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, ByteBuffer &rData)
+void Storage::ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, CByteBuffer *pData)
 {
     RecordIndexMap::accessor rWriteAccessor;
     if(m_dataIndexes.find(rWriteAccessor, x))
@@ -287,10 +287,10 @@ void Storage::ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, By
         CheckBlockManager(rDataFileHandle, x, rWriteAccessor);
         
         //read data
-        rWriteAccessor->second.m_pBlockManager->ReadRecords(rData);
+        rWriteAccessor->second.m_pBlockManager->ReadRecords(pData);
     }
     
-    Log.Debug(__FUNCTION__, "Read data [x:" I64FMTD ",y:" I64FMTD "] size: " I64FMTD, x, 0, rData.size());
+    Log.Debug(__FUNCTION__, "Read data [x:" I64FMTD ",y:" I64FMTD "] size: " I64FMTD, x, 0, pData->m_size);
 }
 
 uint32 Storage::WriteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, uint64 y, const uint8 *pRecord, uint16 recordSize)
