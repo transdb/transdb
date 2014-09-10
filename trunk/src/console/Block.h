@@ -49,11 +49,11 @@ typedef enum E_BLOCK_FLAGS
 } E_BLF;
 
 //block size - 4kB 
-#define BLOCK_SIZE	4096
+#define BLOCK_SIZE          4096
 //CIDF offset in block
-#define CIDFOffset	(BLOCK_SIZE - sizeof(CIDF))
+#define CIDFOffset          (BLOCK_SIZE - sizeof(CIDF))
 //max record size
-#define MAX_RECORD_SIZE	(CIDFOffset - sizeof(RDF))
+#define MAX_RECORD_SIZE     (CIDFOffset - sizeof(RDF))
 
 /** Get ControlIntervalDefinitionField from block
  */
