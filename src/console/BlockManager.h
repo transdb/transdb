@@ -9,8 +9,13 @@
 #ifndef TransDB_BlockManager_h
 #define TransDB_BlockManager_h
 
-class Storage;
-class ClientSocketWorkerTask;
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "../shared/clib/CDefines.h"
+#include "../shared/clib/Buffers/CByteBuffer.h"
+#include "../shared/clib/Containers/avl.h"
 
 typedef enum BlockManagerStatus
 {
@@ -23,43 +28,98 @@ typedef enum BlockManagerStatus
     eBMS_NeedDefrag             = 64
 } E_BMS;
 
-
-//for Y
-class BlockManager
+typedef struct BlockManager
 {
-    //must be ordered map
-    typedef std::map<uint64, uint16>    BlocksIndex;
+    struct avl_table    *blockIndex;
+    uint8               *blocks;
+    uint16              blockCount;
+} blman;
+
+/**
+ */
+blman *blman_create(uint8 *blocks, uint16 blockCount);
+
+/**
+ */
+void blman_destroy(blman *self);
+
+/**
+ */
+uint32 blman_write_record(blman *self, uint64 recordkey, const uint8 *record, uint16 recordsize);
+
+/**
+ */
+void blman_read_record(blman *self, uint64 recordkey, bbuff *record);
+
+/**
+ */
+void blman_read_records(blman *self, bbuff *records);
+
+/**
+ */
+void blman_delete_record(blman *self, uint64 recordkey);
+
+/**
+ */
+void blman_get_all_record_keys(blman *self, bbuff *recordkeys);
+
+/**
+ */
+void blman_clear_dirty_flags(blman *self);
+
+/**
+ */
+void blman_defragment_data(blman *self);
+
+/**
+ */
+uint32 blman_get_blocks_crc32(blman *self);
+
+/**
+ */
+uint8 *blman_get_block(blman *self, uint16 blocknum);
+
     
-public:
-    explicit BlockManager();
-    explicit BlockManager(uint8 *pBlocks, uint16 blockCount);
-    ~BlockManager();
+#ifdef __cplusplus
+}
+#endif
     
-    uint32 WriteRecord(uint64 recordkey, const uint8 *pRecord, uint16 recordSize);
-    void ReadRecord(uint64 recordkey, bbuff *pData);
-    void ReadRecords(bbuff *pData);
-    void DeleteRecord(uint64 recordkey);
-    void GetAllRecordKeys(bbuff *pY);
-    void ClearDirtyFlags();
-    void DefragmentData();
-    uint32 GetBlocksCrc32() const;
-    
-    INLINE uint16 numOfBlocks() const               { return m_blockCount; }
-    INLINE uint8 *GetBlock(uint16 blockNum) const   { return m_pBlocks + (BLOCK_SIZE * blockNum); }
-    INLINE size_t numOfRecords() const              { return m_rBlockIndex.size(); }
-    
-private:
-	//disable copy constructor and assign
-	DISALLOW_COPY_AND_ASSIGN(BlockManager);
-    
-    void DeallocBlocks();
-    void ReallocBlocks();
-    void DeleteRecord(BlocksIndex::iterator &itr);
-    
-    //declarations
-    BlocksIndex     m_rBlockIndex;
-    uint8           *m_pBlocks;
-    uint16          m_blockCount;
-};
+////for Y
+//class BlockManager
+//{
+//    //must be ordered map
+//    typedef std::map<uint64, uint16>    BlocksIndex;
+//    
+//public:
+//    explicit BlockManager();
+//    explicit BlockManager(uint8 *pBlocks, uint16 blockCount);
+//    ~BlockManager();
+//    
+//    uint32 WriteRecord(uint64 recordkey, const uint8 *pRecord, uint16 recordSize);
+//    void ReadRecord(uint64 recordkey, bbuff *pData);
+//    void ReadRecords(bbuff *pData);
+//    void DeleteRecord(uint64 recordkey);
+//    void GetAllRecordKeys(bbuff *pY);
+//    void ClearDirtyFlags();
+//    void DefragmentData();
+//    uint32 GetBlocksCrc32() const;
+//    
+//    INLINE uint16 numOfBlocks() const               { return m_blockCount; }
+//    INLINE uint8 *GetBlock(uint16 blockNum) const   { return m_pBlocks + (BLOCK_SIZE * blockNum); }
+//    INLINE size_t numOfRecords() const              { return m_rBlockIndex.size(); }
+//    
+//private:
+//	//disable copy constructor and assign
+//	DISALLOW_COPY_AND_ASSIGN(BlockManager);
+//    
+//    void DeallocBlocks();
+//    void ReallocBlocks();
+//    void DeleteRecord(BlocksIndex::iterator &itr);
+//    
+//    //declarations
+//    BlocksIndex     m_rBlockIndex;
+//    uint8           *m_pBlocks;
+//    uint16          m_blockCount;
+//};
 
 #endif
