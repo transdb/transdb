@@ -269,7 +269,7 @@ void Storage::ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, ui
         CheckBlockManager(rDataFileHandle, x, rWriteAccessor);
         
         //read data
-        rWriteAccessor->second.m_pBlockManager->ReadRecord(y, pData);
+        blman_read_record(rWriteAccessor->second.m_pBlockManager, y, pData);
     }
 }
 
@@ -285,7 +285,7 @@ void Storage::ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, bb
         CheckBlockManager(rDataFileHandle, x, rWriteAccessor);
         
         //read data
-        rWriteAccessor->second.m_pBlockManager->ReadRecords(pData);
+        blman_read_records(rWriteAccessor->second.m_pBlockManager, pData);
     }
 }
 
@@ -307,7 +307,7 @@ uint32 Storage::WriteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x,
         //create block manager + add new block for write + update num of blocks
         void *pBlockManagerMem = scalable_malloc(sizeof(BlockManager));
         rWriteAccesor->second.m_pBlockManager = new(pBlockManagerMem) BlockManager();
-        rWriteAccesor->second.m_blockCount = rWriteAccesor->second.m_pBlockManager->numOfBlocks();
+        rWriteAccesor->second.m_blockCount = rWriteAccesor->second.m_pBlockManager->blockCount;
         
         //init index block
         rWriteAccesor->second.m_IB_blockNumber = 0;
@@ -315,12 +315,13 @@ uint32 Storage::WriteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x,
         //set flags to eRIF_RealocateBlocks
         rWriteAccesor->second.m_flags = eRIF_RelocateBlocks | eRIF_Dirty;
         //write data to block
-        status = rWriteAccesor->second.m_pBlockManager->WriteRecord(y, pRecord, recordSize);
+        status = blman_write_record(rWriteAccesor->second.m_pBlockManager, y, pRecord, recordSize);
+        
         //set record start to -1 (data are not written on disk)
         rWriteAccesor->second.m_recordStart = -1;
             
         //inc memory use
-        m_memoryUsed += ((rWriteAccesor->second.m_pBlockManager->numOfBlocks() * BLOCK_SIZE) + sizeof(BlockManager));
+        m_memoryUsed += ((rWriteAccesor->second.m_pBlockManager->blockCount * BLOCK_SIZE) + sizeof(BlockManager));
                
         //queue write to disk
         m_pDiskWriter->Queue(rWriteAccesor);
@@ -331,7 +332,7 @@ uint32 Storage::WriteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x,
         //check manager - load from disk if not in memory
         CheckBlockManager(rDataFileHandle, x, rWriteAccesor);
         //
-        status = rWriteAccesor->second.m_pBlockManager->WriteRecord(y, pRecord, recordSize);
+        status = blman_write_record(rWriteAccesor->second.m_pBlockManager, y, pRecord, recordSize);
         if(status == eBMS_FailRecordTooBig)
         {
             Log.Warning(__FUNCTION__, "Record [x:" I64FMTD ", y:" I64FMTD "] size: %u is too big, max record size is: %u.", x, y, recordSize, MAX_RECORD_SIZE);
@@ -423,7 +424,7 @@ void Storage::DeleteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, 
         CheckBlockManager(rDataFileHandle, x, rWriteAccessor);
         
         //delete
-        rWriteAccessor->second.m_pBlockManager->DeleteRecord(y);
+        blman_delete_record(rWriteAccessor->second.m_pBlockManager, y);
         
         //queue write to disk
         m_pDiskWriter->Queue(rWriteAccessor);
@@ -535,7 +536,7 @@ void Storage::GetAllY(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, bbu
         CheckBlockManager(rDataFileHandle, x, rWriteAccessor);
         
         //read data
-        rWriteAccessor->second.m_pBlockManager->GetAllRecordKeys(pY);
+        blman_get_all_record_keys(rWriteAccessor->second.m_pBlockManager, pY);
     }
 }
 
@@ -561,18 +562,18 @@ void Storage::DefragmentDataInternal(RecordIndexMap::accessor &rWriteAccessor)
     int64 memoryUsageAfterDefrag;
     
     //save memory usage
-    memoryUsageBeforeDefrag = ((rWriteAccessor->second.m_pBlockManager->numOfBlocks() * BLOCK_SIZE) + sizeof(BlockManager));
+    memoryUsageBeforeDefrag = ((rWriteAccessor->second.m_pBlockManager->blockCount * BLOCK_SIZE) + sizeof(BlockManager));
     
     //set flag reallocate blocks so diskwrite must find new place fro data
     rWriteAccessor->second.m_flags |= eRIF_RelocateBlocks;
     
     //DEFRAGMENT
     {
-        rWriteAccessor->second.m_pBlockManager->DefragmentData();
+        blman_defragment_data(rWriteAccessor->second.m_pBlockManager);
     }
     
     //calc new memory usage
-    memoryUsageAfterDefrag = ((rWriteAccessor->second.m_pBlockManager->numOfBlocks() * BLOCK_SIZE) + sizeof(BlockManager));
+    memoryUsageAfterDefrag = ((rWriteAccessor->second.m_pBlockManager->blockCount * BLOCK_SIZE) + sizeof(BlockManager));
     
     //set dirty
     rWriteAccessor->second.m_flags |= eRIF_Dirty;
@@ -635,7 +636,7 @@ void Storage::CheckMemory(LRUCache &rLRUCache)
                 Log.Debug(__FUNCTION__, "Memory usage: " I64FMTD ", memory limit: " I64FMTD ", removing x: " I64FMTD " from memory.", m_memoryUsed.load(), g_MemoryLimit, xToDelete);
                 
                 //update memory counter
-                m_memoryUsed -= ((rWriteAccessor->second.m_pBlockManager->numOfBlocks() * BLOCK_SIZE) + sizeof(BlockManager));
+                m_memoryUsed -= ((rWriteAccessor->second.m_pBlockManager->blockCount * BLOCK_SIZE) + sizeof(BlockManager));
                 
                 //clean memory
                 rWriteAccessor->second.m_pBlockManager->~BlockManager();
@@ -656,12 +657,6 @@ bool Storage::CheckBlockManager(const HANDLE &rDataFileHandle, const uint64 &x, 
 {
     if(rWriteAccessor->second.m_pBlockManager == NULL)
     {
-        void *pBlocks;
-        int64 blocksSize;
-        uint64 startTime;
-        uint64 endTime;
-        uint32 crc32;
-        
         //this cannot happen, else it causes a crash
         if(rWriteAccessor->second.m_flags & eRIF_RelocateBlocks)
         {
@@ -670,22 +665,21 @@ bool Storage::CheckBlockManager(const HANDLE &rDataFileHandle, const uint64 &x, 
         }
         
         //for stats
-        startTime = GetTickCount64();
+        uint64 startTime = GetTickCount64();
         
 		//preallocate
-        blocksSize = rWriteAccessor->second.m_blockCount * BLOCK_SIZE;
-		pBlocks = scalable_aligned_malloc(blocksSize, g_DataFileMallocAlignment);
+        int64 blocksSize = rWriteAccessor->second.m_blockCount * BLOCK_SIZE;
+		void *pBlocks = scalable_aligned_malloc(blocksSize, g_DataFileMallocAlignment);
         
         //read all blocks in one IO
         IO::fseek(rDataFileHandle, rWriteAccessor->second.m_recordStart, IO::IO_SEEK_SET);
         IO::fread(pBlocks, blocksSize, rDataFileHandle);
         
 		//create new blockmanager
-        void *pBlockManagerMem = scalable_malloc(sizeof(BlockManager));
-        rWriteAccessor->second.m_pBlockManager = new(pBlockManagerMem) BlockManager((uint8*)pBlocks, rWriteAccessor->second.m_blockCount);
+        rWriteAccessor->second.m_pBlockManager = blman_create((uint8*)pBlocks, rWriteAccessor->second.m_blockCount);
         
         //compute crc32
-        crc32 = rWriteAccessor->second.m_pBlockManager->GetBlocksCrc32();
+        uint32 crc32 = blman_get_blocks_crc32(rWriteAccessor->second.m_pBlockManager);
         //check crc32
         if(rWriteAccessor->second.m_crc32 != crc32)
         {
@@ -693,13 +687,13 @@ bool Storage::CheckBlockManager(const HANDLE &rDataFileHandle, const uint64 &x, 
         }
         
         //inc memory use
-        m_memoryUsed += ((rWriteAccessor->second.m_pBlockManager->numOfBlocks() * BLOCK_SIZE) + sizeof(BlockManager));
+        m_memoryUsed += ((rWriteAccessor->second.m_pBlockManager->blockCount * BLOCK_SIZE) + sizeof(BlockManager));
         
         //stats
         ++g_NumOfReadsFromDisk;
         
         //calc avg read time
-        endTime = GetTickCount64() - startTime;
+        uint64 endTime = GetTickCount64() - startTime;
         m_sumDiskReadTime += endTime;
         g_AvgDiskReadTime = m_sumDiskReadTime / g_NumOfReadsFromDisk;
         return true;

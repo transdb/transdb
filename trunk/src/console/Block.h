@@ -67,9 +67,9 @@ void Block_InitBlock(uint8 *pBlock);
  */
 RDF *Block_ContainsKey(uint8 *pBlock, uint64 recordKey, uint16 *RDFPosition, uint16 *recordPosition);
 
-/** Write record to block
+/** Write record to block - return NULL if record cannot be wrtitten
  */
-E_BLS Block_WriteRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pRecord, uint16 recordSize);
+RDF *Block_WriteRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pRecord, uint16 recordSize);
 
 /** Delete record from block by record key
  */

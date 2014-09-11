@@ -68,18 +68,18 @@ struct RecordIndex
 		memset(&m_padding, 0, sizeof(m_padding));    
 	}
 
-    int64               m_recordStart;				//8
-    BlockManager        *m_pBlockManager;			//8
-    uint16              m_blockCount;				//2
+    int64   m_recordStart;				//8
+    blman   *m_pBlockManager;			//8
+    uint16  m_blockCount;				//2
     
     //memory disk index
-    int16               m_IB_recordOffset;          //2 - record offset in index block
-    uint32              m_IB_blockNumber;           //4 - record block number
+    int16   m_IB_recordOffset;          //2 - record offset in index block
+    uint32  m_IB_blockNumber;           //4 - record block number
     
 	//flags
-    uint32              m_crc32;                    //4
-	uint8				m_flags;					//1
-    uint8               m_padding[3];               //3 - free bytes
+    uint32  m_crc32;                    //4
+	uint8	m_flags;					//1
+    uint8   m_padding[3];               //3 - free bytes
 };
 
 //record index flags

@@ -66,27 +66,25 @@ RDF *Block_ContainsKey(uint8 *pBlock, uint64 recordKey, uint16 *RDFPosition, uin
     return pRDF;
 }
 
-E_BLS Block_WriteRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pRecord, uint16 recordSize)
+RDF *Block_WriteRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pRecord, uint16 recordSize)
 {
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     //key check must be done by blockmanager
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    CIDF *pCIDF;
-    RDF *pRDF;
-    uint16 positionOfNewRDS;
     
     //get CIDF
-    pCIDF = Block_GetCIDF(pBlock);
-    
+    CIDF *pCIDF = Block_GetCIDF(pBlock);
     //no space BlockManager should allocate new block
     if(pCIDF->m_amoutOfFreeSpace < (recordSize + sizeof(RDF)))
-        return eBLS_NO_SPACE_FOR_NEW_DATA;
+    {
+        return NULL;
+    }
     
     //get position of new RDS
-    positionOfNewRDS = (pCIDF->m_location + pCIDF->m_amoutOfFreeSpace) - sizeof(RDF);
+    uint16 positionOfNewRDS = (pCIDF->m_location + pCIDF->m_amoutOfFreeSpace) - sizeof(RDF);
     
     //write RDS
-    pRDF = (RDF*)(pBlock + positionOfNewRDS);
+    RDF *pRDF = (RDF*)(pBlock + positionOfNewRDS);
     pRDF->m_key = recordKey;
     pRDF->m_recordLength = recordSize;
     
@@ -98,7 +96,7 @@ E_BLS Block_WriteRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pRecord, u
     pCIDF->m_location += recordSize;
     pCIDF->m_flags |= eBLF_Dirty;
     
-    return eBLS_OK;
+    return pRDF;
 }
 
 E_BLS Block_DeleteRecord(uint8 *pBlock, uint64 recordKey, RDF *pRDF, uint16 *RDFPosition, uint16 *recordPosition)

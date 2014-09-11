@@ -103,9 +103,9 @@ static bool _S_DiskWriter_ProcessQueue(DiskWriter::DirtyXQueue *pQueue,
 
 void DiskWriter::WriteDataWithoutRelocateFlag(HANDLE hDataFile, RecordIndexMap::accessor &rWriteAccessor)
 {
-    for(uint16 i = 0;i < rWriteAccessor->second.m_pBlockManager->numOfBlocks();++i)
+    for(uint16 i = 0;i < rWriteAccessor->second.m_pBlockManager->blockCount;++i)
     {
-        uint8 *pBlock = rWriteAccessor->second.m_pBlockManager->GetBlock(i);
+        uint8 *pBlock = blman_get_block(rWriteAccessor->second.m_pBlockManager, i);
         CIDF *pCIDF = Block_GetCIDF(pBlock);
         if(pCIDF->m_flags & eBLF_Dirty)
         {
@@ -121,13 +121,8 @@ void DiskWriter::WriteDataWithoutRelocateFlag(HANDLE hDataFile, RecordIndexMap::
 
 bool DiskWriter::WriteDataWithRelocateFlag(HANDLE hDataFile, RecordIndexMap::accessor &rWriteAccessor)
 {
-    int64 requestDiskSize;
-    int64 freePos;
-    void *pBlocks;
-    size_t blocksSize;
-    
-    requestDiskSize = rWriteAccessor->second.m_pBlockManager->numOfBlocks() * BLOCK_SIZE;
-    freePos = GetFreeSpacePos(requestDiskSize);
+    int64 requestDiskSize = rWriteAccessor->second.m_pBlockManager->blockCount * BLOCK_SIZE;
+    int64 freePos = GetFreeSpacePos(requestDiskSize);
     if(freePos == -1)
     {
         ReallocDataFile(hDataFile, requestDiskSize);
@@ -143,11 +138,11 @@ bool DiskWriter::WriteDataWithRelocateFlag(HANDLE hDataFile, RecordIndexMap::acc
     rWriteAccessor->second.m_recordStart = freePos;
     
     //clear dirty flag
-    rWriteAccessor->second.m_pBlockManager->ClearDirtyFlags();
+    blman_clear_dirty_flags(rWriteAccessor->second.m_pBlockManager);
     
     //calc blocks size and get 1st block its address is start
-    blocksSize = rWriteAccessor->second.m_pBlockManager->numOfBlocks() * BLOCK_SIZE;
-    pBlocks = rWriteAccessor->second.m_pBlockManager->GetBlock(0);
+    size_t blocksSize = rWriteAccessor->second.m_pBlockManager->blockCount * BLOCK_SIZE;
+    void *pBlocks = rWriteAccessor->second.m_pBlockManager->blocks;
     
     //write to disk
     IO::fseek(hDataFile, freePos, IO::IO_SEEK_SET);
@@ -244,10 +239,10 @@ void DiskWriter::Process()
                 ++g_NumOfWritesToDisk;
                 
                 //update block count
-                rWriteAccessor->second.m_blockCount = rWriteAccessor->second.m_pBlockManager->numOfBlocks();
+                rWriteAccessor->second.m_blockCount = rWriteAccessor->second.m_pBlockManager->blockCount;
                 
                 //update crc32
-                uint32 crc32 = rWriteAccessor->second.m_pBlockManager->GetBlocksCrc32();
+                uint32 crc32 = blman_get_blocks_crc32(rWriteAccessor->second.m_pBlockManager);
                 if(rWriteAccessor->second.m_crc32 != crc32)
                 {
                     rWriteAccessor->second.m_crc32 = crc32;
