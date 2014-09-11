@@ -148,7 +148,7 @@ uint32 blman_write_record(blman *self, uint64 recordkey, const uint8 *record, ui
 
     //PHASE 1 --> try to update
     //try to update record first
-    RDF rRDFSearch = {recordkey, 0};
+    RDF rRDFSearch = { recordkey, 0 };
     RDF *pRDFFind = avl_find(self->blockIndex, &rRDFSearch);
     if(pRDFFind != NULL)
     {
@@ -281,21 +281,93 @@ void blman_delete_record(blman *self, uint64 recordkey)
 
 void blman_get_all_record_keys(blman *self, bbuff *recordKeys)
 {
-    
+    if(self->blockIndex->avl_count != 0)
+    {
+        //prealloc
+        bbuff_reserve(recordKeys, self->blockIndex->avl_count * sizeof(uint64));
+        //add to buffer
+        RDF *pRDF;
+        struct avl_traverser rTraverser;
+        avl_t_init(&rTraverser, self->blockIndex);
+        //
+        while((pRDF = avl_t_next(&rTraverser)) != NULL)
+        {
+            bbuff_append(recordKeys, &pRDF->m_key, sizeof(pRDF->m_key));
+        }
+    }
 }
 
 void blman_clear_dirty_flags(blman *self)
 {
-    
+    for(uint16 i = 0;i < self->blockCount;++i)
+    {
+        uint8 *pBlock = blman_get_block(self, i);
+        CIDF *pCIDF = Block_GetCIDF(pBlock);
+        pCIDF->m_flags &= ~eBLF_Dirty;
+    }
 }
 
 void blman_defragment_data(blman *self)
 {
+    //TODO: sort for best fit
+
+    //save record count
+    size_t numOfrecords = self->blockIndex->avl_count;
+    if(numOfrecords == 0)
+    {
+//        Log.Warning(__FUNCTION__, "numOfrecords == 0");
+        return;
+    }
+    //create bytebuffer
+    bbuff *records = bbuff_create();
+
+    //read all data - key|recordSize|record|....Nx
+    blman_read_records(self, records);
+
+    //deallloc blocks
+    blman_dealloc_blocks(self);
+    //create empty one
+    blman_realloc_blocks(self);
+
+    //insert
+    if(numOfrecords)
+    {
+        while(records->rpos < records->size)
+        {
+            uint64 recordkey;
+            uint16 recordSize;
+            uint8 arData[BLOCK_SIZE];
+            //get record
+            bbuff_read(records, &recordkey, sizeof(recordkey));
+            bbuff_read(records, &recordSize, sizeof(recordSize));
+            bbuff_read(records, &arData, recordSize);
+
+            //insert - ignore return value
+            (void)blman_write_record(self, recordkey, arData, recordSize);
+        }
+    }
     
+    //update counter
+//    g_NumOfRecordDeframentations++;
+    
+    //delete bytebuffer
+    bbuff_destroy(records);
 }
 
 uint32 blman_get_blocks_crc32(blman *self)
 {
+//	size_t crc32ArraySize = sizeof(uint32) * self->blockCount;
+//	uint32 *pCrc32Array = (uint32*)alloca(crc32ArraySize);
+//
+//	for (uint16 i = 0; i < self->blockCount; ++i)
+//	{
+//		uint8 *pBlock = blman_get_block(self, i);
+//		pCrc32Array[i] = g_CRC32->ComputeCRC32(pBlock, BLOCK_SIZE);
+//	}
+//
+//	uint32 crc32 = g_CRC32->ComputeCRC32((BYTE*)pCrc32Array, crc32ArraySize);
+//	return crc32;
+    
     return 0;
 }
 
