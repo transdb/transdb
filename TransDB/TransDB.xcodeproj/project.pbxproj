@@ -48,6 +48,8 @@
 		8D7251B415E6211600E9E1EB /* Block.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D7251B315E6211600E9E1EB /* Block.c */; };
 		8D8F15601635741600A72AD7 /* MemoryAllocator.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D8F155B1635741600A72AD7 /* MemoryAllocator.h */; };
 		8D922B9E15F49DD900F8AAF7 /* ClientSocketHolder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D922B9D15F49DD900F8AAF7 /* ClientSocketHolder.cpp */; };
+		8D937B5719C19A070011032A /* base64.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D937B5519C19A070011032A /* base64.c */; };
+		8D937B5819C19A070011032A /* base64.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D937B5619C19A070011032A /* base64.h */; };
 		8D997D21166CB34200A5F84B /* StatGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D997D1F166CB34200A5F84B /* StatGenerator.cpp */; };
 		8D99BEB315EE5C2200BCE873 /* Config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE275215E22BA8007F75A3 /* Config.cpp */; };
 		8D9AF24019C079FC007F88E8 /* CVector.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D9AF23E19C079FC007F88E8 /* CVector.c */; };
@@ -202,6 +204,8 @@
 		8D8F155B1635741600A72AD7 /* MemoryAllocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MemoryAllocator.h; sourceTree = "<group>"; };
 		8D922B9C15F49DD300F8AAF7 /* ClientSocketHolder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ClientSocketHolder.h; sourceTree = "<group>"; };
 		8D922B9D15F49DD900F8AAF7 /* ClientSocketHolder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ClientSocketHolder.cpp; sourceTree = "<group>"; };
+		8D937B5519C19A070011032A /* base64.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = base64.c; sourceTree = "<group>"; };
+		8D937B5619C19A070011032A /* base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = base64.h; sourceTree = "<group>"; };
 		8D997D1F166CB34200A5F84B /* StatGenerator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StatGenerator.cpp; sourceTree = "<group>"; };
 		8D997D20166CB34200A5F84B /* StatGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StatGenerator.h; sourceTree = "<group>"; };
 		8D9AF23E19C079FC007F88E8 /* CVector.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CVector.c; sourceTree = "<group>"; };
@@ -484,6 +488,15 @@
 			name = Socket;
 			sourceTree = "<group>";
 		};
+		8D937B5419C19A070011032A /* base64 */ = {
+			isa = PBXGroup;
+			children = (
+				8D937B5519C19A070011032A /* base64.c */,
+				8D937B5619C19A070011032A /* base64.h */,
+			);
+			path = base64;
+			sourceTree = "<group>";
+		};
 		8D997D1D166CB30600A5F84B /* Stats */ = {
 			isa = PBXGroup;
 			children = (
@@ -496,6 +509,7 @@
 		8DACDCED19C0631600B1E092 /* clib */ = {
 			isa = PBXGroup;
 			children = (
+				8D937B5419C19A070011032A /* base64 */,
 				8DACDCF319C0636E00B1E092 /* Buffers */,
 				8DACDCEE19C0631600B1E092 /* Containers */,
 				8D9AF24319C07D1C007F88E8 /* CCommon.c */,
@@ -733,6 +747,7 @@
 				8D33EE64192B8FAE007F448C /* crc32.h in Headers */,
 				8DFE27D615E22C35007F75A3 /* SocketGarbageCollector.h in Headers */,
 				8D33EE48192B8C95007F448C /* IO.h in Headers */,
+				8D937B5819C19A070011032A /* base64.h in Headers */,
 				8DFE27D715E22C35007F75A3 /* SocketLinux.h in Headers */,
 				8D33EE68192B8FAE007F448C /* gzguts.h in Headers */,
 				8DFE27D815E22C35007F75A3 /* SocketMac.h in Headers */,
@@ -874,6 +889,7 @@
 				8D9AF24019C079FC007F88E8 /* CVector.c in Sources */,
 				8DFE27F015E22C46007F75A3 /* SocketGarbageCollector.cpp in Sources */,
 				8DFE27F115E22C46007F75A3 /* SocketLinux.cpp in Sources */,
+				8D937B5719C19A070011032A /* base64.c in Sources */,
 				8DFE27F215E22C46007F75A3 /* SocketMac.cpp in Sources */,
 				8DFE27F315E22C46007F75A3 /* SocketMgrLinux.cpp in Sources */,
 				8D33EE76192B8FAE007F448C /* zutil.c in Sources */,

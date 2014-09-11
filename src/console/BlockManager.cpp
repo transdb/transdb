@@ -191,7 +191,7 @@ uint32 BlockManager::WriteRecord(uint64 recordkey, const uint8 *pRecord, uint16 
     return retStatus;
 }
 
-void BlockManager::ReadRecord(uint64 recordkey, CByteBuffer *pData)
+void BlockManager::ReadRecord(uint64 recordkey, bbuff *pData)
 {
     BlocksIndex::iterator itr = m_rBlockIndex.find(recordkey);
     if(itr != m_rBlockIndex.end())
@@ -201,11 +201,11 @@ void BlockManager::ReadRecord(uint64 recordkey, CByteBuffer *pData)
     }
 }
 
-void BlockManager::ReadRecords(CByteBuffer *pData)
+void BlockManager::ReadRecords(bbuff *pData)
 {
     //pre-realloc buffer
     //key|recordSize|record|....Nx
-    CByteBuffer_reserve(pData, BLOCK_SIZE * m_blockCount);
+    bbuff_reserve(pData, BLOCK_SIZE * m_blockCount);
     
     for(uint16 i = 0;i < m_blockCount;++i)
     {
@@ -240,16 +240,16 @@ void BlockManager::DeleteRecord(BlocksIndex::iterator &itr)
     m_rBlockIndex.erase(itr);
 }
 
-void BlockManager::GetAllRecordKeys(ByteBuffer &rY)
+void BlockManager::GetAllRecordKeys(bbuff *pY)
 {
     if(!m_rBlockIndex.empty())
     {
         //prealloc
-        rY.reserve(m_rBlockIndex.size() * sizeof(uint64));
+        bbuff_reserve(pY, m_rBlockIndex.size() * sizeof(uint64));
         //add to buffer
         for(BlocksIndex::iterator itr = m_rBlockIndex.begin();itr != m_rBlockIndex.end();++itr)
         {
-            rY << uint64(itr->first);
+            bbuff_append(pY, &itr->first, sizeof(itr->first));
         }
     }
 }
@@ -276,7 +276,7 @@ void BlockManager::DefragmentData()
         return;
     }
     //create bytebuffer
-    CByteBuffer *pData = CByteBuffer_create();
+    CByteBuffer *pData = bbuff_create();
     
     //read all data - key|recordSize|record|....Nx
     ReadRecords(pData);
@@ -289,15 +289,15 @@ void BlockManager::DefragmentData()
     //insert
     if(numOfrecords)
     {
-        while(pData->m_rpos < pData->m_size)
+        while(pData->rpos < pData->size)
         {
             uint64 recordkey;
             uint16 recordSize;
             uint8 arData[BLOCK_SIZE];
             //get record
-            CByteBuffer_read(pData, &recordkey, sizeof(recordkey));
-            CByteBuffer_read(pData, &recordSize, sizeof(recordSize));
-            CByteBuffer_read(pData, &arData, recordSize);
+            bbuff_read(pData, &recordkey, sizeof(recordkey));
+            bbuff_read(pData, &recordSize, sizeof(recordSize));
+            bbuff_read(pData, &arData, recordSize);
             
             //insert - ignore return value
             (void)WriteRecord(recordkey, arData, recordSize);
@@ -308,7 +308,7 @@ void BlockManager::DefragmentData()
     g_NumOfRecordDeframentations++;
     
     //delete bytebuffer
-    CByteBuffer_destroy(pData);
+    bbuff_destroy(pData);
 }
 
 uint32 BlockManager::GetBlocksCrc32() const
