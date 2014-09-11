@@ -81,11 +81,11 @@ E_BLS Block_UpdateRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pNewRecor
 
 /** Get record by key
  */
-void Block_GetRecord(uint8 *pBlock, uint64 recordKey, CByteBuffer *pData);
+void Block_GetRecord(uint8 *pBlock, uint64 recordKey, bbuff *pData);
 
 /** Get all records from block
  */
-void Block_GetRecords(uint8 *pBlock, CByteBuffer *pData);
+void Block_GetRecords(uint8 *pBlock, bbuff *pData);
 
 
 #ifdef __cplusplus

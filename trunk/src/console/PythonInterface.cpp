@@ -134,15 +134,15 @@ static PyObject *TransDB_ReadData(TransDB *self, PyObject *args, PyObject *kwds)
     }
     
     //read data
-    CByteBuffer *pData = CByteBuffer_create();
+    bbuff *pData = bbuff_create();
     if(y != 0)
         self->m_pStorage->ReadData(self->m_rDataFileHandle, *self->m_pLRUCache, x, y, pData);
     else
         self->m_pStorage->ReadData(self->m_rDataFileHandle, *self->m_pLRUCache, x, pData);
     
     //create Python bytearray and dealloc bytebuffer
-    PyObject *pPyData = PyByteArray_FromStringAndSize((const char*)pData->m_storage, pData->m_size);
-    CByteBuffer_destroy(pData);
+    PyObject *pPyData = PyByteArray_FromStringAndSize((const char*)pData->storage, pData->size);
+    bbuff_destroy(pData);
     return pPyData;
 }
 
@@ -196,11 +196,12 @@ static PyObject *TransDB_GetAllY(TransDB *self, PyObject *args, PyObject *kwds)
     }
     
     //read all Y
-    ByteBuffer rY;
-    self->m_pStorage->GetAllY(self->m_rDataFileHandle, *self->m_pLRUCache, x, rY);
+    bbuff *pY = bbuff_create();
+    self->m_pStorage->GetAllY(self->m_rDataFileHandle, *self->m_pLRUCache, x, pY);
     
-    //return PyByteArray
-    PyObject *pPyData = PyByteArray_FromStringAndSize((const char*)rY.contents(), rY.size());
+    //create Python bytearray and dealloc bytebuffer
+    PyObject *pPyData = PyByteArray_FromStringAndSize((const char*)pY->storage, pY->size);
+    bbuff_destroy(pY);
     return pPyData;
 }
 

@@ -23,13 +23,13 @@ public:
 	~Storage();
     
 	//handlers
-    void ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, uint64 y, CByteBuffer *pData);
-    void ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, CByteBuffer *pData);
+    void ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, uint64 y, bbuff *pData);
+    void ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, bbuff *pData);
     uint32 WriteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, uint64 y, const uint8 *pRecord, uint16 recordSize);
     void DeleteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, uint64 y);
     void DeleteData(LRUCache &rLRUCache, uint64 x);
     void GetAllX(XKeyVec &rXKeyVec, uint32 sortFlags);
-    void GetAllY(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, ByteBuffer &rY);
+    void GetAllY(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, bbuff *pY);
     void GetStats(ByteBuffer &rBuff);
     void DefragmentData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x);
     void GetFreeSpaceDump(uint64 socketID, uint32 token, uint32 flags, uint32 dumpFlags);

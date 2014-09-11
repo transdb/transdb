@@ -257,7 +257,7 @@ void Storage::Crc32Check(const HANDLE &rDataFileHandle)
     Log.Notice(__FUNCTION__, "Finished checking integrity of data file.");
 }
 
-void Storage::ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, uint64 y, CByteBuffer *pData)
+void Storage::ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, uint64 y, bbuff *pData)
 {
     RecordIndexMap::accessor rWriteAccessor;
     if(m_dataIndexes.find(rWriteAccessor, x))
@@ -271,11 +271,9 @@ void Storage::ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, ui
         //read data
         rWriteAccessor->second.m_pBlockManager->ReadRecord(y, pData);
     }
-    
-    Log.Debug(__FUNCTION__, "Read data [x:" I64FMTD ",y:" I64FMTD "] size: " I64FMTD, x, y, pData->m_size);
 }
 
-void Storage::ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, CByteBuffer *pData)
+void Storage::ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, bbuff *pData)
 {
     RecordIndexMap::accessor rWriteAccessor;
     if(m_dataIndexes.find(rWriteAccessor, x))
@@ -289,8 +287,6 @@ void Storage::ReadData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, CB
         //read data
         rWriteAccessor->second.m_pBlockManager->ReadRecords(pData);
     }
-    
-    Log.Debug(__FUNCTION__, "Read data [x:" I64FMTD ",y:" I64FMTD "] size: " I64FMTD, x, 0, pData->m_size);
 }
 
 uint32 Storage::WriteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, uint64 y, const uint8 *pRecord, uint16 recordSize)
@@ -527,7 +523,7 @@ void Storage::GetAllX(XKeyVec &rXKeyVec, uint32 sortFlags)
     scalable_aligned_free(pData);
 }
 
-void Storage::GetAllY(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, ByteBuffer &rY)
+void Storage::GetAllY(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, bbuff *pY)
 {
     RecordIndexMap::accessor rWriteAccessor;
     if(m_dataIndexes.find(rWriteAccessor, x))
@@ -539,10 +535,7 @@ void Storage::GetAllY(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, Byt
         CheckBlockManager(rDataFileHandle, x, rWriteAccessor);
         
         //read data
-        rWriteAccessor->second.m_pBlockManager->GetAllRecordKeys(rY);
-        
-        //debug log
-        Log.Debug(__FUNCTION__, "Read data [x:" I64FMTD ",y:" I64FMTD "] size: " I64FMTD, x, 0, rY.size());
+        rWriteAccessor->second.m_pBlockManager->GetAllRecordKeys(pY);
     }
 }
 

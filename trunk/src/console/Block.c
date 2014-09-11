@@ -205,7 +205,7 @@ E_BLS Block_UpdateRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pNewRecor
     return addStatus;
 }
 
-void Block_GetRecord(uint8 *pBlock, uint64 recordKey, CByteBuffer *pData)
+void Block_GetRecord(uint8 *pBlock, uint64 recordKey, bbuff *pData)
 {
     uint16 RDFPosition;
     uint16 recordPosition;
@@ -224,18 +224,18 @@ void Block_GetRecord(uint8 *pBlock, uint64 recordKey, CByteBuffer *pData)
         if(status != Z_OK)
         {
             //decompress failed append original record
-            CByteBuffer_resize(pData, 0);
-            CByteBuffer_append(pData, pRecordLocal, recordSizeLocal);
+            bbuff_resize(pData, 0);
+            bbuff_append(pData, pRecordLocal, recordSizeLocal);
         }
     }
     else
     {
         //append record
-        CByteBuffer_append(pData, pRecordLocal, recordSizeLocal);
+        bbuff_append(pData, pRecordLocal, recordSizeLocal);
     }
 }
 
-void Block_GetRecords(uint8 *pBlock, CByteBuffer *pData)
+void Block_GetRecords(uint8 *pBlock, bbuff *pData)
 {
     //get CIDF
     CIDF *pCIDF = Block_GetCIDF(pBlock);
@@ -260,35 +260,36 @@ void Block_GetRecords(uint8 *pBlock, CByteBuffer *pData)
         uint16 recordSize = pRDF->m_recordLength;
         
         //append key
-        CByteBuffer_append(pData, &pRDF->m_key, sizeof(pRDF->m_key));
+        bbuff_append(pData, &pRDF->m_key, sizeof(pRDF->m_key));
         //append size, will be rewrited if record is compressed
-        CByteBuffer_append(pData, &recordSize, sizeof(recordSize));
+        bbuff_append(pData, &recordSize, sizeof(recordSize));
         
         //unzip + rewrite variables
         if(CCommon_isGziped(pRecord))
         {
             //save wpos if decompress fails or we need to change record size after decompress
-            size_t wpos = pData->m_wpos;
-            //
+            size_t wpos = pData->wpos;
+            
+            //decompress directly to bytebuffer
             int status = CCommon_decompressGzip(pRecord, recordSize, pData, 512*1024);
             if(status != Z_OK)
             {
                 //decompress failed append original record
-                CByteBuffer_resize(pData, wpos);
-                CByteBuffer_append(pData, pRecord, recordSize);
+                bbuff_resize(pData, wpos);
+                bbuff_append(pData, pRecord, recordSize);
             }
             else
             {
                 //calc decompressed record size
-                recordSize = pData->m_wpos - wpos;
+                recordSize = pData->wpos - wpos;
                 //change record size
-                CByteBuffer_put(pData, wpos - sizeof(recordSize), &recordSize, sizeof(recordSize));
+                bbuff_put(pData, wpos - sizeof(recordSize), &recordSize, sizeof(recordSize));
             }
         }
         else
         {
             //append record non compressed record
-            CByteBuffer_append(pData, pRecord, recordSize);
+            bbuff_append(pData, pRecord, recordSize);
         }
         
         //count position of data
