@@ -10,29 +10,39 @@
 	<string>TransDB</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>BB9BBE9D-FA9D-47CC-B7F9-D1FC7A1CBE75</key>
+		<key>141d2eb5-4d50-5b48-94a8-3209c207636d</key>
 		<string>http://hyperv02.vps4u.cz:8443/svn/TransStorageServer</string>
+		<key>89b511ab-9c3f-d142-8dbd-1a3b8e1c1a46++505</key>
+		<string>http://hyperv02.vps4u.cz:8443/svn/shared/trunk</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
 	<string>trunk/TransDB/TransDB.xcodeproj/project.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>BB9BBE9D-FA9D-47CC-B7F9-D1FC7A1CBE75</key>
+		<key>141d2eb5-4d50-5b48-94a8-3209c207636d</key>
 		<string>../../../..</string>
+		<key>89b511ab-9c3f-d142-8dbd-1a3b8e1c1a46++505</key>
+		<string>../../../../trunk/src/shared</string>
 	</dict>
 	<key>IDESourceControlProjectRepositoryRootDictionary</key>
 	<dict>
-		<key>BB9BBE9D-FA9D-47CC-B7F9-D1FC7A1CBE75</key>
-		<string>http://hyperv02.vps4u.cz:8443/svn/TransStorageServer</string>
+		<key>89b511ab-9c3f-d142-8dbd-1a3b8e1c1a46++505</key>
+		<string>http://hyperv02.vps4u.cz:8443/svn/shared</string>
 	</dict>
-	<key>IDESourceControlProjectURL</key>
-	<string>http://hyperv02.vps4u.cz:8443/svn/TransStorageServer/trunk/TransDB/TransDB.xcodeproj</string>
 	<key>IDESourceControlProjectVersion</key>
-	<integer>110</integer>
+	<integer>111</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>BB9BBE9D-FA9D-47CC-B7F9-D1FC7A1CBE75</string>
+	<string>141d2eb5-4d50-5b48-94a8-3209c207636d</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.subversion</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>89b511ab-9c3f-d142-8dbd-1a3b8e1c1a46++505</string>
+			<key>IDESourceControlWCCName</key>
+			<string>shared</string>
+		</dict>
 		<dict>
 			<key>IDESourceControlRepositoryBranchesRelativeLocationKey</key>
 			<string>branches</string>
@@ -43,7 +53,7 @@
 			<key>IDESourceControlRepositoryTrunkRelativeLocationKey</key>
 			<string>trunk</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>BB9BBE9D-FA9D-47CC-B7F9-D1FC7A1CBE75</string>
+			<string>141d2eb5-4d50-5b48-94a8-3209c207636d</string>
 			<key>IDESourceControlWCCName</key>
 			<string>TransStorageServer</string>
 		</dict>

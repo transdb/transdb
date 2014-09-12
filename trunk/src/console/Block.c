@@ -25,48 +25,37 @@ void Block_InitBlock(uint8 *pBlock)
     pCIDF->m_flags = eBLF_Dirty;
 }
 
-RDF *Block_ContainsKey(uint8 *pBlock, uint64 recordKey, uint16 *RDFPosition, uint16 *recordPosition)
+RDF *Block_ContainsKey(uint8 *pBlock, uint64 recordKey, uint16 *recordPosition_Out)
 {
     //get CIDF
     CIDF *pCIDF = Block_GetCIDF(pBlock);
-    RDF *pRDF;
+    RDF *pRDF = NULL;
     
     //find RDS by key - Loop must be from end of block to begin
-    uint16 RDFPositionLocal = 0;
-    uint16 recordPositionLocal = 0;
-    uint16 position = CIDFOffset - sizeof(RDF);
+    *recordPosition_Out = 0;
+    uint16 RDFposition = CIDFOffset - sizeof(RDF);
     uint16 endOfRDFArea = pCIDF->m_location + pCIDF->m_amoutOfFreeSpace;
     for(;;)
     {
         //end of RDF area
-        if(position < endOfRDFArea)
-        {
-            pRDF = NULL;
+        if(RDFposition < endOfRDFArea)
             break;
-        }
         
-        //save RDF position
-        RDFPositionLocal = position;
         //get RDF
-        pRDF = (RDF*)(pBlock + position);
+        pRDF = (RDF*)(pBlock + RDFposition);
         //check key
         if(pRDF->m_key == recordKey)
             break;
         
-        //count position of data
-        recordPositionLocal += pRDF->m_recordLength;
-        //
-        position -= sizeof(RDF);
+        //update position of data
+        *recordPosition_Out += pRDF->m_recordLength;
+        //update position of RDF
+        RDFposition -= sizeof(RDF);
     }
-    
-    //set pointer`s value
-    *recordPosition = recordPositionLocal;
-    *RDFPosition = RDFPositionLocal;
-    
     return pRDF;
 }
 
-RDF *Block_WriteRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pRecord, uint16 recordSize)
+E_BLS Block_WriteRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pRecord, uint16 recordSize)
 {
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     //key check must be done by blockmanager
@@ -77,13 +66,13 @@ RDF *Block_WriteRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pRecord, ui
     //no space BlockManager should allocate new block
     if(pCIDF->m_amoutOfFreeSpace < (recordSize + sizeof(RDF)))
     {
-        return NULL;
+        return eBLS_NO_SPACE_FOR_NEW_DATA;
     }
     
     //get position of new RDS
     uint16 positionOfNewRDS = (pCIDF->m_location + pCIDF->m_amoutOfFreeSpace) - sizeof(RDF);
     
-    //write RDS
+    //write RDF
     RDF *pRDF = (RDF*)(pBlock + positionOfNewRDS);
     pRDF->m_key = recordKey;
     pRDF->m_recordLength = recordSize;
@@ -96,30 +85,36 @@ RDF *Block_WriteRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pRecord, ui
     pCIDF->m_location += recordSize;
     pCIDF->m_flags |= eBLF_Dirty;
     
-    return pRDF;
+    return eBLS_OK;
 }
 
-E_BLS Block_DeleteRecord(uint8 *pBlock, uint64 recordKey, RDF *pRDF, uint16 *RDFPosition, uint16 *recordPosition)
+E_BLS Block_DeleteRecordByKey(uint8 *pBlock, uint64 recordKey)
 {
+    uint16 recordPosition;
+    RDF *pRDF = Block_ContainsKey(pBlock, recordKey, &recordPosition);
     if(pRDF == NULL)
-    {
-        pRDF = Block_ContainsKey(pBlock, recordKey, RDFPosition, recordPosition);
-        if(pRDF == NULL)
-            return eBLS_KEY_NOT_FOUND;
-    }
+        return eBLS_KEY_NOT_FOUND;
     
+    Block_DeleteRecordByRDF(pBlock, pRDF, recordPosition);
+    return eBLS_OK;
+}
+
+void Block_DeleteRecordByRDF(uint8 *pBlock, RDF *pRDF, uint16 recordPosition)
+{
+    //helpers variables
     size_t moveSIZE;
     size_t destinationPosition;
     size_t sourcePosition;
-    CIDF *pCIDF;
-    RDF rRDFCopy;
     
     //get CIDF
-    pCIDF = Block_GetCIDF(pBlock);
+    CIDF *pCIDF = Block_GetCIDF(pBlock);
     
     //create copy of RDF - current will be deleted
+    RDF rRDFCopy;
     memcpy(&rRDFCopy, pRDF, sizeof(RDF));
-    
+
+    //calc RDF position
+    uint16 RDFPosition = (uint16)((uint8*)pRDF - pBlock);
     
     /*
      
@@ -133,11 +128,11 @@ E_BLS Block_DeleteRecord(uint8 *pBlock, uint64 recordKey, RDF *pRDF, uint16 *RDF
     
     //Records
     /* move size is freespace start - start of next record */
-    moveSIZE = pCIDF->m_location - (*recordPosition + rRDFCopy.m_recordLength);
+    moveSIZE = pCIDF->m_location - (recordPosition + rRDFCopy.m_recordLength);
     /* destination is record position */
-    destinationPosition = *recordPosition;
+    destinationPosition = recordPosition;
     /* source is record position + record length = start of next record */
-    sourcePosition = *recordPosition + rRDFCopy.m_recordLength;
+    sourcePosition = recordPosition + rRDFCopy.m_recordLength;
     
     //move records - only if not last record then clear data only
     if(moveSIZE > 0)
@@ -147,7 +142,7 @@ E_BLS Block_DeleteRecord(uint8 *pBlock, uint64 recordKey, RDF *pRDF, uint16 *RDF
     
     //RDFs
     /* move size if RDF position - end of freespace */
-    moveSIZE = *RDFPosition - (pCIDF->m_location + pCIDF->m_amoutOfFreeSpace);
+    moveSIZE = RDFPosition - (pCIDF->m_location + pCIDF->m_amoutOfFreeSpace);
     /* destination is end of freespace + size of RDF */
     destinationPosition = pCIDF->m_location + pCIDF->m_amoutOfFreeSpace + sizeof(RDF);
     /* source position is end of freespace */
@@ -166,36 +161,31 @@ E_BLS Block_DeleteRecord(uint8 *pBlock, uint64 recordKey, RDF *pRDF, uint16 *RDF
     
     //clear empty space
     memset(pBlock + pCIDF->m_location, 0, pCIDF->m_amoutOfFreeSpace);
-    
-    return eBLS_OK;
 }
 
-E_BLS Block_UpdateRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pNewRecord, uint16 recordSize, RDF *pRDF, uint16 *RDFPosition, uint16 *recordPosition)
+E_BLS Block_UpdateRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pNewRecord, uint16 recordSize)
 {
-    CIDF *pCIDF;
     E_BLS addStatus = eBLS_OK;
     
-    //find RDS by key
+    //find RDF by key
+    uint16 recordPosition;
+    RDF *pRDF = Block_ContainsKey(pBlock, recordKey, &recordPosition);
     if(pRDF == NULL)
-    {
-        pRDF = Block_ContainsKey(pBlock, recordKey, RDFPosition, recordPosition);
-        if(pRDF == NULL)
-            return eBLS_KEY_NOT_FOUND;
-    }
+        return eBLS_KEY_NOT_FOUND;
     
     //found key
     if(recordSize == pRDF->m_recordLength)
     {
         //data has same size replace
-        memcpy(pBlock + (*recordPosition), pNewRecord, recordSize);
+        memcpy(pBlock + recordPosition, pNewRecord, recordSize);
         //get CIDF - update dirty flag
-        pCIDF = Block_GetCIDF(pBlock);
+        CIDF *pCIDF = Block_GetCIDF(pBlock);
         pCIDF->m_flags |= eBLF_Dirty;
     }
     else
     {
         //delete old data and add new
-        Block_DeleteRecord(pBlock, recordKey, pRDF, RDFPosition, recordPosition);
+        Block_DeleteRecordByRDF(pBlock, pRDF, recordPosition);
         //add new data
         addStatus = Block_WriteRecord(pBlock, recordKey, pNewRecord, recordSize);
     }
@@ -205,9 +195,8 @@ E_BLS Block_UpdateRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pNewRecor
 
 void Block_GetRecord(uint8 *pBlock, uint64 recordKey, bbuff *pData)
 {
-    uint16 RDFPosition;
     uint16 recordPosition;
-    RDF *pRDF = Block_ContainsKey(pBlock, recordKey, &RDFPosition, &recordPosition);
+    RDF *pRDF = Block_ContainsKey(pBlock, recordKey, &recordPosition);
     if(pRDF == NULL)
         return;
     

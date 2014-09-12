@@ -65,19 +65,23 @@ void Block_InitBlock(uint8 *pBlock);
 
 /** Search for record with key in block
  */
-RDF *Block_ContainsKey(uint8 *pBlock, uint64 recordKey, uint16 *RDFPosition, uint16 *recordPosition);
+RDF *Block_ContainsKey(uint8 *pBlock, uint64 recordKey, uint16 *recordPosition_Out);
 
 /** Write record to block - return NULL if record cannot be wrtitten
  */
-RDF *Block_WriteRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pRecord, uint16 recordSize);
+E_BLS Block_WriteRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pRecord, uint16 recordSize);
 
 /** Delete record from block by record key
  */
-E_BLS Block_DeleteRecord(uint8 *pBlock, uint64 recordKey, RDF *pRDF, uint16 *RDFPosition, uint16 *recordPosition);
+E_BLS Block_DeleteRecordByKey(uint8 *pBlock, uint64 recordKey);
+    
+/** Delete record from block by RDF
+ */
+void Block_DeleteRecordByRDF(uint8 *pBlock, RDF *pRDF, uint16 recordPosition);
 
 /** Update record in block
  */
-E_BLS Block_UpdateRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pNewRecord, uint16 recordSize, RDF *pRDF, uint16 *RDFPosition, uint16 *recordPosition);
+E_BLS Block_UpdateRecord(uint8 *pBlock, uint64 recordKey, const uint8 *pNewRecord, uint16 recordSize);
 
 /** Get record by key
  */

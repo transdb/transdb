@@ -13,10 +13,30 @@
 #include "Block.h"
 #include "BlockManager.h"
 
+//Node for AVL tree
+typedef struct _Node
+{
+    uint64  m_key;
+    uint16  m_blockNumber;
+} blidxnode;
+
+blidxnode *blidxnode_create(uint64 key, uint16 blockNumber)
+{
+    blidxnode *p = malloc(sizeof(blidxnode));
+    p->m_key = key;
+    p->m_blockNumber = blockNumber;
+    return p;
+}
+
+void blidxnode_destroy(void *avl_item, void *avl_param)
+{
+    free(avl_item);
+}
+
 int blockindex_cmp(const void *avl_a, const void *avl_b, void *avl_param)
 {
-    RDF *a = (RDF*)avl_a;
-    RDF *b = (RDF*)avl_b;
+    const blidxnode *a = (blidxnode*)avl_a;
+    const blidxnode *b = (blidxnode*)avl_b;
     
     if(a->m_key < b->m_key)
         return -1;
@@ -56,14 +76,8 @@ void blman_dealloc_blocks(blman *self)
     self->blockCount = 0;
 
     //clear indexes
-    avl_destroy(self->blockIndex, NULL);
+    avl_destroy(self->blockIndex, &blidxnode_destroy);
     self->blockIndex = avl_create(&blockindex_cmp, NULL, NULL);
-}
-
-uint16 blman_get_block_number_from_rdf(blman *self, RDF *pRDF)
-{
-    uint16 blockNum = (uint16)(((uint8*)pRDF - self->blocks) / BLOCK_SIZE);
-    return blockNum;
 }
 
 blman *blman_create(uint8 *blocks, uint16 blockCount)
@@ -93,9 +107,12 @@ blman *blman_create(uint8 *blocks, uint16 blockCount)
                 if(position < endOfRDFArea)
                     break;
 
+                //get RDF
                 RDF *pRDF = (RDF*)(block + position);
-                avl_insert(p->blockIndex, pRDF);
                 position -= sizeof(RDF);
+                //create index node and inter to block index map
+                blidxnode *node = blidxnode_create(pRDF->m_key, i);
+                avl_insert(p->blockIndex, node);
             }
         }
     }
@@ -109,7 +126,7 @@ blman *blman_create(uint8 *blocks, uint16 blockCount)
 
 void blman_destroy(blman *self)
 {
-    avl_destroy(self->blockIndex, NULL);
+    avl_destroy(self->blockIndex, &blidxnode_destroy);
     scalable_aligned_free(self->blocks);
     free(self);
 }
@@ -146,26 +163,24 @@ uint32 blman_write_record(blman *self, uint64 recordkey, const uint8 *record, ui
 //        }
 //    }
 
+    
     //PHASE 1 --> try to update
     //try to update record first
-    RDF rRDFSearch = { recordkey, 0 };
-    RDF *pRDFFind = avl_find(self->blockIndex, &rRDFSearch);
-    if(pRDFFind != NULL)
+    blidxnode rNodeSearch = { recordkey, 0 };
+    blidxnode *pNodeFind = avl_find(self->blockIndex, &rNodeSearch);
+    if(pNodeFind != NULL)
     {
-        //get block
-        uint16 blocknum = blman_get_block_number_from_rdf(self, pRDFFind);
-        uint8 *block = blman_get_block(self, blocknum);
+        uint8 *block = blman_get_block(self, pNodeFind->m_blockNumber);
         //update
-        uint16 RDFPosition;
-        uint16 recordPosition;
-        E_BLS updateStatus = Block_UpdateRecord(block, recordkey, record, recordsize, NULL, &RDFPosition, &recordPosition);
+        E_BLS updateStatus = Block_UpdateRecord(block, recordkey, record, recordsize);
         if(updateStatus == eBLS_OK)
         {
             return retStatus;
         }
         
         //delete key, record will be on another block
-        avl_delete(self->blockIndex, pRDFFind);
+        avl_delete(self->blockIndex, pNodeFind);
+        blidxnode_destroy(pNodeFind, NULL);
     }
     
 //    //PHASE 2 --> check record limit
@@ -213,13 +228,15 @@ uint32 blman_write_record(blman *self, uint64 recordkey, const uint8 *record, ui
         --blockNum;
         //get block and try to write
         uint8 *block = blman_get_block(self, blockNum);
-        RDF *newRecordRDF = Block_WriteRecord(block, recordkey, record, recordsize);
-        if(newRecordRDF != NULL)
+        //
+        E_BLS writeStatus = Block_WriteRecord(block, recordkey, record, recordsize);
+        if(writeStatus == eBLS_OK)
         {
-            avl_insert(self->blockIndex, newRecordRDF);
+            blidxnode *node = blidxnode_create(recordkey, blockNum);
+            avl_insert(self->blockIndex, node);
             break;
         }
-        else if(blockNum == 0 && newRecordRDF == NULL)
+        else if(blockNum == 0 && writeStatus == eBLS_NO_SPACE_FOR_NEW_DATA)
         {
             //realloc blocks + 1 -> modify m_blockCount
             blman_realloc_blocks(self);
@@ -235,12 +252,11 @@ uint32 blman_write_record(blman *self, uint64 recordkey, const uint8 *record, ui
 
 void blman_read_record(blman *self, uint64 recordkey, bbuff *record)
 {
-    RDF rRDFSearch = {recordkey, 0};
-    RDF *pRDF = avl_find(self->blockIndex, &rRDFSearch);
-    if(pRDF != NULL)
+    blidxnode rNodeSearch = { recordkey, 0 };
+    blidxnode *node = avl_find(self->blockIndex, &rNodeSearch);
+    if(node != NULL)
     {
-        uint16 blockNum = blman_get_block_number_from_rdf(self, pRDF);
-        uint8 *block = blman_get_block(self, blockNum);
+        uint8 *block = blman_get_block(self, node->m_blockNumber);
         Block_GetRecord(block, recordkey, record);
     }
 }
@@ -260,22 +276,19 @@ void blman_read_records(blman *self, bbuff *records)
 
 void blman_delete_record(blman *self, uint64 recordkey)
 {
-    RDF rRDFSearch = {recordkey, 0};
-    RDF *pRDF = avl_find(self->blockIndex, &rRDFSearch);
-    if(pRDF != NULL)
+    blidxnode rNodeSearch = { recordkey, 0 };
+    blidxnode *node = avl_find(self->blockIndex, &rNodeSearch);
+    if(node != NULL)
     {
-        uint16 blockNum = blman_get_block_number_from_rdf(self, pRDF);
-        uint8 *block = blman_get_block(self, blockNum);
+        uint8 *block = blman_get_block(self, node->m_blockNumber);
         //
-        uint16 RDFPosition;
-        uint16 recordPosition;
-        E_BLS deleteStatus = Block_DeleteRecord(block, recordkey, NULL, &RDFPosition, &recordPosition);
+        E_BLS deleteStatus = Block_DeleteRecordByKey(block, recordkey);
         if(deleteStatus != eBLS_OK)
         {
             //TODO: CLog
             //Log.Warning(__FUNCTION__, "Trying to delete non-existant key: " I64FMTD " in block number: %u", itr->first, itr->second);
         }
-        avl_delete(self->blockIndex, pRDF);
+        avl_delete(self->blockIndex, node);
     }
 }
 
