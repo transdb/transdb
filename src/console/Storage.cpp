@@ -305,8 +305,7 @@ uint32 Storage::WriteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x,
     {
         //allocate blockmanager
         //create block manager + add new block for write + update num of blocks
-        void *pBlockManagerMem = scalable_malloc(sizeof(BlockManager));
-        rWriteAccesor->second.m_pBlockManager = new(pBlockManagerMem) BlockManager();
+        rWriteAccesor->second.m_pBlockManager = blman_create(NULL, 0);
         rWriteAccesor->second.m_blockCount = rWriteAccesor->second.m_pBlockManager->blockCount;
         
         //init index block
@@ -394,8 +393,7 @@ void Storage::DeleteData(LRUCache &rLRUCache, uint64 x)
         //release memory
         if(rWriteAccessor->second.m_pBlockManager)
         {
-            rWriteAccessor->second.m_pBlockManager->~BlockManager();
-            scalable_free((void*)rWriteAccessor->second.m_pBlockManager);
+            blman_destroy(rWriteAccessor->second.m_pBlockManager);
             rWriteAccessor->second.m_pBlockManager = NULL;
             //update memory counter
             m_memoryUsed -= (recordSize + sizeof(BlockManager));
@@ -617,7 +615,7 @@ void Storage::CheckMemory(LRUCache &rLRUCache)
     uint64 xToDelete;
     RecordIndexMap::accessor rWriteAccessor;
     
-    while(m_memoryUsed.load() > g_MemoryLimit)
+    while(m_memoryUsed > g_MemoryLimit)
     {
         if(!rLRUCache.get(&xToDelete))
             break;
@@ -639,8 +637,7 @@ void Storage::CheckMemory(LRUCache &rLRUCache)
                 m_memoryUsed -= ((rWriteAccessor->second.m_pBlockManager->blockCount * BLOCK_SIZE) + sizeof(BlockManager));
                 
                 //clean memory
-                rWriteAccessor->second.m_pBlockManager->~BlockManager();
-                scalable_free((void*)rWriteAccessor->second.m_pBlockManager);
+                blman_destroy(rWriteAccessor->second.m_pBlockManager);
                 rWriteAccessor->second.m_pBlockManager = NULL;
             }
         }
