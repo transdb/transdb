@@ -49,15 +49,15 @@ public:
         uint64 random;
 
         printf("%lu\n", time(NULL));
-        for(uint64 i = 0;i < 10;++i)
+        for(uint64 i = 0;i < 1;++i)
         {
-            for(uint64 x = 0;x < 10;++x)
+            for(uint64 x = 1;x < 100;++x)
             {
     //            random = 1;
     //            random = rand() % 1000;
                 random = x;
                 
-                for(uint64 y = 1;y < 100;++y)
+                for(uint64 y = 1;y < 1000;++y)
                 {
                     datasize = rand()%1024;
                     pData = (uint8*)malloc(datasize);

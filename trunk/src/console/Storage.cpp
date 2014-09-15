@@ -210,11 +210,11 @@ struct StorageCrc32Check
                 for(uint16 i = 0;i < blockCount;++i)
                 {
                     pBlock = ((uint8*)pBlocks + (BLOCK_SIZE * i));
-                    pCrc32Array[i] = g_CRC32->ComputeCRC32(pBlock, BLOCK_SIZE);
+                    pCrc32Array[i] = crc32_compute(pBlock, BLOCK_SIZE);
                 }
                 
                 //
-                crc32 = g_CRC32->ComputeCRC32((BYTE*)pCrc32Array, crc32ArraySize);
+                crc32 = crc32_compute((BYTE*)pCrc32Array, crc32ArraySize);
                 //check crc32
                 if(rWriteAccessor->second.m_crc32 != crc32)
                 {
@@ -422,7 +422,7 @@ void Storage::DeleteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, 
         CheckBlockManager(rDataFileHandle, x, rWriteAccessor);
         
         //delete
-        blman_delete_record(rWriteAccessor->second.m_pBlockManager, y);
+        blman_delete_record_by_key(rWriteAccessor->second.m_pBlockManager, y);
         
         //queue write to disk
         m_pDiskWriter->Queue(rWriteAccessor);

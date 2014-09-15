@@ -109,7 +109,7 @@ void StartSharedLib()
     Log.Notice("Network", "Starting subsystem... done");
     
 	//init CRC32
-    g_CRC32 = new CRC_32();
+    crc32_init();
 }
 
 int main(int argc, const char * argv[])
@@ -433,11 +433,6 @@ int main(int argc, const char * argv[])
 	Log.Notice(__FUNCTION__, "Deleting ClientSocketWorker.");
 	delete g_pClientSocketWorker;
 	Log.Notice(__FUNCTION__, "Deleted ClientSocketWorker.");
-
-	//delete CRC32
-	Log.Notice(__FUNCTION__, "Deleteting CRC32 class.");
-	delete g_CRC32;
-	Log.Notice(__FUNCTION__, "CRC32 class deleted.");
 
     //
     Log.Notice(__FUNCTION__, "Shutdown complete.");
