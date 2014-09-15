@@ -10,6 +10,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
+#include <alloca.h>
 #include "tbb/scalable_allocator.h"
 #include "../shared/zlib/zlib.h"
 #include "../shared/clib/CCommon.h"
