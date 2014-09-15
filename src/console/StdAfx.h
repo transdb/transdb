@@ -23,7 +23,6 @@
 #include "../shared/Packets/Packets.h"
 #include "../shared/CallBack.h"
 #include "../shared/Config/Config.h"
-#include "../shared/crc32.h"
 #include "../shared/Memory/MemoryAllocator.h"
 #include "../shared/Packets/GeewaPacket.h"
 #include "../shared/CrashHandler.h"
@@ -35,6 +34,7 @@
 //clib
 #include "../shared/clib/CCommon.h"
 #include "../shared/clib/Buffers/CByteBuffer.h"
+#include "../shared/clib/Crc32/crc32.h"
 
 //Intel TBB
 #define TBB_PREVIEW_MEMORY_POOL 1
@@ -49,6 +49,7 @@
 
 //cfg defines
 #include "CfgDefines.h"
+#include "HlpFunctions.h"
 
 //win32 service support
 #include "ServiceWin32.h"

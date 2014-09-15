@@ -11,12 +11,12 @@
 		8D0BAFF415FE123900E490F9 /* ConfigWatcher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D0BAFF215FE123900E490F9 /* ConfigWatcher.cpp */; };
 		8D0CA2F015E7943200506B8F /* BlockManager.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D0CA2EF15E7943200506B8F /* BlockManager.c */; };
 		8D15F40218883B2400EC443F /* HashMap.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D15F40118883B2400EC443F /* HashMap.h */; };
-		8D25817018AA2FE10094B58E /* libtbb_debug.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8DE49CCB18A3D4EE00F7D0EB /* libtbb_debug.dylib */; };
-		8D25817118AA2FE10094B58E /* libtbbmalloc_debug.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8DE49CCD18A3D50A00F7D0EB /* libtbbmalloc_debug.dylib */; };
 		8D25817218AA2FE10094B58E /* libpython2.7.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8D26B58C18859161007CDA1F /* libpython2.7.dylib */; };
 		8D26B58B18859037007CDA1F /* PythonInterface.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D26B58A18859037007CDA1F /* PythonInterface.cpp */; };
 		8D26B58D18859161007CDA1F /* libpython2.7.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8D26B58C18859161007CDA1F /* libpython2.7.dylib */; };
 		8D2711FC15F0DFBC005F94B6 /* DiskWriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D2711FB15F0DFBC005F94B6 /* DiskWriter.cpp */; };
+		8D31341F19C72722006FC720 /* crc32.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D31341E19C72722006FC720 /* crc32.h */; };
+		8D31342119C72732006FC720 /* crc32.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D31342019C72732006FC720 /* crc32.c */; };
 		8D33EE47192B8C95007F448C /* IO.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D33EE45192B8C95007F448C /* IO.cpp */; };
 		8D33EE48192B8C95007F448C /* IO.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D33EE46192B8C95007F448C /* IO.h */; };
 		8D33EE61192B8FAE007F448C /* adler32.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D33EE4A192B8FAE007F448C /* adler32.c */; };
@@ -43,9 +43,11 @@
 		8D33EE76192B8FAE007F448C /* zutil.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D33EE5F192B8FAE007F448C /* zutil.c */; };
 		8D33EE77192B8FAE007F448C /* zutil.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D33EE60192B8FAE007F448C /* zutil.h */; };
 		8D3E57DF188EA4CD00D54CBC /* SortedVector.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D3E57DE188EA4CD00D54CBC /* SortedVector.h */; };
+		8D58F78F19C715BB0091E959 /* CLog.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D58F78E19C715BB0091E959 /* CLog.h */; };
 		8D691523165101D7002D4A28 /* ClientSocketWorker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D691521165101D7002D4A28 /* ClientSocketWorker.cpp */; };
 		8D69152716510D56002D4A28 /* ClientSocketWorkerTask.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D69152516510D56002D4A28 /* ClientSocketWorkerTask.cpp */; };
 		8D7251B415E6211600E9E1EB /* Block.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D7251B315E6211600E9E1EB /* Block.c */; };
+		8D7C24E019C7260300AB87B5 /* cpuid.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D7C24DF19C7260300AB87B5 /* cpuid.h */; };
 		8D8F15601635741600A72AD7 /* MemoryAllocator.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D8F155B1635741600A72AD7 /* MemoryAllocator.h */; };
 		8D922B9E15F49DD900F8AAF7 /* ClientSocketHolder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D922B9D15F49DD900F8AAF7 /* ClientSocketHolder.cpp */; };
 		8D937B5719C19A070011032A /* base64.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D937B5519C19A070011032A /* base64.c */; };
@@ -61,11 +63,12 @@
 		8DACDCF219C0631600B1E092 /* avl.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DACDCF019C0631600B1E092 /* avl.h */; };
 		8DACDCF619C063A700B1E092 /* CByteBuffer.c in Sources */ = {isa = PBXBuildFile; fileRef = 8DACDCF519C063A700B1E092 /* CByteBuffer.c */; };
 		8DC9C51115F4F62B001058CC /* IndexBlock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DC9C51015F4F62B001058CC /* IndexBlock.cpp */; };
-		8DDB5436173268E400A69B7D /* cpuid.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DDB5435173268E400A69B7D /* cpuid.h */; };
 		8DE1A22E1671ED9000159613 /* CrashHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DE1A22C1671ED9000159613 /* CrashHandler.cpp */; };
 		8DE1A22F1671ED9000159613 /* CrashHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DE1A22D1671ED9000159613 /* CrashHandler.h */; };
-		8DE49CCC18A3D4EE00F7D0EB /* libtbb_debug.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DE49CCB18A3D4EE00F7D0EB /* libtbb_debug.dylib */; };
-		8DE49CCE18A3D50A00F7D0EB /* libtbbmalloc_debug.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DE49CCD18A3D50A00F7D0EB /* libtbbmalloc_debug.dylib */; };
+		8DEC72EF19C6E63200651235 /* libtbb.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DEC72ED19C6E63100651235 /* libtbb.dylib */; };
+		8DEC72F019C6E63200651235 /* libtbbmalloc.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DEC72EE19C6E63100651235 /* libtbbmalloc.dylib */; };
+		8DEC72F119C6E64500651235 /* libtbb.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8DEC72ED19C6E63100651235 /* libtbb.dylib */; };
+		8DEC72F219C6E64700651235 /* libtbbmalloc.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8DEC72EE19C6E63100651235 /* libtbbmalloc.dylib */; };
 		8DED012B15F8E0F0006BDBB3 /* LRUCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DED012A15F8E0F0006BDBB3 /* LRUCache.cpp */; };
 		8DFE27C815E22C35007F75A3 /* Crypt.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE274C15E22BA8007F75A3 /* Crypt.h */; };
 		8DFE27C915E22C35007F75A3 /* CallBack.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE274E15E22BA8007F75A3 /* CallBack.h */; };
@@ -129,9 +132,9 @@
 			dstPath = "";
 			dstSubfolderSpec = 16;
 			files = (
-				8D25817018AA2FE10094B58E /* libtbb_debug.dylib in CopyFiles */,
-				8D25817118AA2FE10094B58E /* libtbbmalloc_debug.dylib in CopyFiles */,
 				8D25817218AA2FE10094B58E /* libpython2.7.dylib in CopyFiles */,
+				8DEC72F119C6E64500651235 /* libtbb.dylib in CopyFiles */,
+				8DEC72F219C6E64700651235 /* libtbbmalloc.dylib in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -148,7 +151,6 @@
 		8D0CA2EE15E7942B00506B8F /* BlockManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlockManager.h; sourceTree = "<group>"; };
 		8D0CA2EF15E7943200506B8F /* BlockManager.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = BlockManager.c; sourceTree = "<group>"; };
 		8D15F40118883B2400EC443F /* HashMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HashMap.h; sourceTree = "<group>"; };
-		8D22DE1E15FF9AB3001E00B5 /* crc32.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crc32.h; sourceTree = "<group>"; };
 		8D25816E18AA2DF10094B58E /* style.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = style.css; sourceTree = "<group>"; };
 		8D25816F18AA2E960094B58E /* editor.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = editor.html; sourceTree = "<group>"; };
 		8D26B5891885902F007CDA1F /* PythonInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PythonInterface.h; sourceTree = "<group>"; };
@@ -156,6 +158,9 @@
 		8D26B58C18859161007CDA1F /* libpython2.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libpython2.7.dylib; path = ../../../../../../Library/Frameworks/Python.framework/Versions/2.7/lib/libpython2.7.dylib; sourceTree = "<group>"; };
 		8D2711F915F0DFB3005F94B6 /* DiskWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DiskWriter.h; sourceTree = "<group>"; };
 		8D2711FB15F0DFBC005F94B6 /* DiskWriter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DiskWriter.cpp; sourceTree = "<group>"; };
+		8D31341E19C72722006FC720 /* crc32.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crc32.h; sourceTree = "<group>"; };
+		8D31342019C72732006FC720 /* crc32.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = crc32.c; sourceTree = "<group>"; };
+		8D31342219C72EFB006FC720 /* HlpFunctions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HlpFunctions.h; sourceTree = "<group>"; };
 		8D33EE45192B8C95007F448C /* IO.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IO.cpp; sourceTree = "<group>"; };
 		8D33EE46192B8C95007F448C /* IO.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IO.h; sourceTree = "<group>"; };
 		8D33EE4A192B8FAE007F448C /* adler32.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = adler32.c; sourceTree = "<group>"; };
@@ -194,6 +199,7 @@
 		8D58E9471891432500D68538 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
 		8D58E9481891432500D68538 /* templates.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = templates.py; path = ../Python/templates.py; sourceTree = "<group>"; };
 		8D58E9491891432500D68538 /* transDB.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = transDB.py; path = ../Python/transDB.py; sourceTree = "<group>"; };
+		8D58F78E19C715BB0091E959 /* CLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CLog.h; sourceTree = "<group>"; };
 		8D691521165101D7002D4A28 /* ClientSocketWorker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ClientSocketWorker.cpp; sourceTree = "<group>"; };
 		8D691522165101D7002D4A28 /* ClientSocketWorker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ClientSocketWorker.h; sourceTree = "<group>"; };
 		8D69152516510D56002D4A28 /* ClientSocketWorkerTask.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ClientSocketWorkerTask.cpp; sourceTree = "<group>"; };
@@ -201,6 +207,7 @@
 		8D7251B015E6178400E9E1EB /* Block.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Block.h; sourceTree = "<group>"; };
 		8D7251B315E6211600E9E1EB /* Block.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Block.c; sourceTree = "<group>"; usesTabs = 0; };
 		8D73E3DC19C0A1BC00C1FAFB /* CDefines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CDefines.h; sourceTree = "<group>"; };
+		8D7C24DF19C7260300AB87B5 /* cpuid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cpuid.h; sourceTree = "<group>"; };
 		8D8F155B1635741600A72AD7 /* MemoryAllocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MemoryAllocator.h; sourceTree = "<group>"; };
 		8D922B9C15F49DD300F8AAF7 /* ClientSocketHolder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ClientSocketHolder.h; sourceTree = "<group>"; };
 		8D922B9D15F49DD900F8AAF7 /* ClientSocketHolder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ClientSocketHolder.cpp; sourceTree = "<group>"; };
@@ -225,11 +232,10 @@
 		8DC3C712190528BE00E66663 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; name = Makefile; path = ../Makefile; sourceTree = "<group>"; };
 		8DC9C50F15F4F621001058CC /* IndexBlock.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IndexBlock.h; sourceTree = "<group>"; };
 		8DC9C51015F4F62B001058CC /* IndexBlock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IndexBlock.cpp; sourceTree = "<group>"; };
-		8DDB5435173268E400A69B7D /* cpuid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cpuid.h; sourceTree = "<group>"; };
 		8DE1A22C1671ED9000159613 /* CrashHandler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CrashHandler.cpp; sourceTree = "<group>"; };
 		8DE1A22D1671ED9000159613 /* CrashHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CrashHandler.h; sourceTree = "<group>"; };
-		8DE49CCB18A3D4EE00F7D0EB /* libtbb_debug.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libtbb_debug.dylib; path = ../tbb/lib/libtbb_debug.dylib; sourceTree = "<group>"; };
-		8DE49CCD18A3D50A00F7D0EB /* libtbbmalloc_debug.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libtbbmalloc_debug.dylib; path = ../tbb/lib/libtbbmalloc_debug.dylib; sourceTree = "<group>"; };
+		8DEC72ED19C6E63100651235 /* libtbb.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libtbb.dylib; path = ../tbb/lib/libtbb.dylib; sourceTree = "<group>"; };
+		8DEC72EE19C6E63100651235 /* libtbbmalloc.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libtbbmalloc.dylib; path = ../tbb/lib/libtbbmalloc.dylib; sourceTree = "<group>"; };
 		8DED012915F8E0E9006BDBB3 /* LRUCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LRUCache.h; sourceTree = "<group>"; };
 		8DED012A15F8E0F0006BDBB3 /* LRUCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LRUCache.cpp; sourceTree = "<group>"; };
 		8DFE273415E22B6C007F75A3 /* TransDB */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = TransDB; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -298,10 +304,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8DE49CCE18A3D50A00F7D0EB /* libtbbmalloc_debug.dylib in Frameworks */,
+				8DEC72EF19C6E63200651235 /* libtbb.dylib in Frameworks */,
 				8D26B58D18859161007CDA1F /* libpython2.7.dylib in Frameworks */,
-				8DE49CCC18A3D4EE00F7D0EB /* libtbb_debug.dylib in Frameworks */,
 				8DFE281C15E22C93007F75A3 /* libshared.a in Frameworks */,
+				8DEC72F019C6E63200651235 /* libtbbmalloc.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -354,14 +360,6 @@
 			name = FileWatcher;
 			sourceTree = "<group>";
 		};
-		8D22DE1C15FF9A88001E00B5 /* CRC32 */ = {
-			isa = PBXGroup;
-			children = (
-				8D22DE1E15FF9AB3001E00B5 /* crc32.h */,
-			);
-			name = CRC32;
-			sourceTree = "<group>";
-		};
 		8D26B58818858FFD007CDA1F /* Python */ = {
 			isa = PBXGroup;
 			children = (
@@ -386,6 +384,15 @@
 				8D58E9491891432500D68538 /* transDB.py */,
 			);
 			name = Python;
+			sourceTree = "<group>";
+		};
+		8D31341D19C72722006FC720 /* Crc32 */ = {
+			isa = PBXGroup;
+			children = (
+				8D31342019C72732006FC720 /* crc32.c */,
+				8D31341E19C72722006FC720 /* crc32.h */,
+			);
+			path = Crc32;
 			sourceTree = "<group>";
 		};
 		8D33EE44192B8C95007F448C /* IO */ = {
@@ -454,6 +461,14 @@
 			path = ../Python/template_src;
 			sourceTree = "<group>";
 		};
+		8D58F78D19C715AB0091E959 /* Log */ = {
+			isa = PBXGroup;
+			children = (
+				8D58F78E19C715BB0091E959 /* CLog.h */,
+			);
+			path = Log;
+			sourceTree = "<group>";
+		};
 		8D7251AE15E6176E00E9E1EB /* Block */ = {
 			isa = PBXGroup;
 			children = (
@@ -511,10 +526,13 @@
 			children = (
 				8D937B5419C19A070011032A /* base64 */,
 				8DACDCF319C0636E00B1E092 /* Buffers */,
-				8DACDCEE19C0631600B1E092 /* Containers */,
 				8D9AF24319C07D1C007F88E8 /* CCommon.c */,
 				8D9AF24219C07D13007F88E8 /* CCommon.h */,
 				8D73E3DC19C0A1BC00C1FAFB /* CDefines.h */,
+				8DACDCEE19C0631600B1E092 /* Containers */,
+				8D7C24DF19C7260300AB87B5 /* cpuid.h */,
+				8D31341D19C72722006FC720 /* Crc32 */,
+				8D58F78D19C715AB0091E959 /* Log */,
 			);
 			path = clib;
 			sourceTree = "<group>";
@@ -560,8 +578,8 @@
 		8DFE272915E22B6C007F75A3 = {
 			isa = PBXGroup;
 			children = (
-				8DE49CCB18A3D4EE00F7D0EB /* libtbb_debug.dylib */,
-				8DE49CCD18A3D50A00F7D0EB /* libtbbmalloc_debug.dylib */,
+				8DEC72ED19C6E63100651235 /* libtbb.dylib */,
+				8DEC72EE19C6E63100651235 /* libtbbmalloc.dylib */,
 				8D26B58C18859161007CDA1F /* libpython2.7.dylib */,
 				8D26B58E188593A4007CDA1F /* Python */,
 				8D0271DF15F7C05500FD3CAE /* cfg */,
@@ -591,10 +609,8 @@
 				8DFE275015E22BA8007F75A3 /* CommonFunctions.h */,
 				8DFE275115E22BA8007F75A3 /* Config */,
 				8D48B9B31666062B005156B2 /* Containers */,
-				8DDB5435173268E400A69B7D /* cpuid.h */,
 				8DE1A22C1671ED9000159613 /* CrashHandler.cpp */,
 				8DE1A22D1671ED9000159613 /* CrashHandler.h */,
-				8D22DE1C15FF9A88001E00B5 /* CRC32 */,
 				8DFE275515E22BA8007F75A3 /* Defines.cpp */,
 				8DFE275615E22BA8007F75A3 /* Defines.h */,
 				8DFE275715E22BA8007F75A3 /* Enums.h */,
@@ -697,21 +713,22 @@
 			isa = PBXGroup;
 			children = (
 				8D26B58818858FFD007CDA1F /* Python */,
-				8D997D1D166CB30600A5F84B /* Stats */,
-				8D0BAFF115FE122200E490F9 /* FileWatcher */,
-				8D04CC4F15FDEBD500400092 /* WinService */,
-				8DED012815F8E0CA006BDBB3 /* LRUCache */,
-				8DC9C50D15F4F60B001058CC /* IndexBlock */,
-				8D922B9A15F49DBD00F8AAF7 /* Socket */,
 				8D7251AE15E6176E00E9E1EB /* Block */,
+				8D0BAFF115FE122200E490F9 /* FileWatcher */,
+				8DC9C50D15F4F60B001058CC /* IndexBlock */,
+				8DED012815F8E0CA006BDBB3 /* LRUCache */,
+				8D922B9A15F49DBD00F8AAF7 /* Socket */,
+				8D997D1D166CB30600A5F84B /* Stats */,
 				8D0182351611D890009A5742 /* Storage */,
+				8D04CC4F15FDEBD500400092 /* WinService */,
 				8DAC6D4E188D39C7001851BB /* CfgDefines.cpp */,
 				8DAC6D4D188D39B1001851BB /* CfgDefines.h */,
+				8D31342219C72EFB006FC720 /* HlpFunctions.h */,
 				8DFE282615E22F48007F75A3 /* Launcher.cpp */,
 				8DFE282715E22F48007F75A3 /* Launcher.h */,
+				8DFE282215E22D06007F75A3 /* main.cpp */,
 				8DFE282015E22CE7007F75A3 /* StdAfx.cpp */,
 				8DFE281F15E22CD7007F75A3 /* StdAfx.h */,
-				8DFE282215E22D06007F75A3 /* main.cpp */,
 			);
 			name = console;
 			path = ../src/console;
@@ -737,6 +754,7 @@
 				8D33EE77192B8FAE007F448C /* zutil.h in Headers */,
 				8DFE27D015E22C35007F75A3 /* BaseSocket.h in Headers */,
 				8DFE27D115E22C35007F75A3 /* CircularBuffer.h in Headers */,
+				8D58F78F19C715BB0091E959 /* CLog.h in Headers */,
 				8D33EE70192B8FAE007F448C /* inftrees.h in Headers */,
 				8DFE27D215E22C35007F75A3 /* ListenSocketLinux.h in Headers */,
 				8DFE27D315E22C35007F75A3 /* ListenSocketWin32.h in Headers */,
@@ -753,6 +771,7 @@
 				8DFE27D815E22C35007F75A3 /* SocketMac.h in Headers */,
 				8D33EE66192B8FAE007F448C /* deflate.h in Headers */,
 				8D15F40218883B2400EC443F /* HashMap.h in Headers */,
+				8D7C24E019C7260300AB87B5 /* cpuid.h in Headers */,
 				8DFE27D915E22C35007F75A3 /* SocketMgrLinux.h in Headers */,
 				8DFE27DA15E22C35007F75A3 /* SocketMgrMac.h in Headers */,
 				8D33EE75192B8FAE007F448C /* zlib.h in Headers */,
@@ -762,6 +781,7 @@
 				8DFE27DD15E22C35007F75A3 /* SocketWindows.h in Headers */,
 				8D33EE6E192B8FAE007F448C /* inflate.h in Headers */,
 				8DFE27DE15E22C35007F75A3 /* ByteBuffer.h in Headers */,
+				8D31341F19C72722006FC720 /* crc32.h in Headers */,
 				8DFE27DF15E22C35007F75A3 /* GeewaPacket.h in Headers */,
 				8D33EE6C192B8FAE007F448C /* inffixed.h in Headers */,
 				8D9AF24119C079FC007F88E8 /* CVector.h in Headers */,
@@ -774,7 +794,6 @@
 				8DFE27E915E22C35007F75A3 /* ThreadPool.h in Headers */,
 				8D8F15601635741600A72AD7 /* MemoryAllocator.h in Headers */,
 				8DE1A22F1671ED9000159613 /* CrashHandler.h in Headers */,
-				8DDB5436173268E400A69B7D /* cpuid.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -901,6 +920,7 @@
 				8DFE27F615E22C46007F75A3 /* SocketOpsLinux.cpp in Sources */,
 				8D33EE62192B8FAE007F448C /* compress.c in Sources */,
 				8DFE27F715E22C46007F75A3 /* SocketOpsWin32.cpp in Sources */,
+				8D31342119C72732006FC720 /* crc32.c in Sources */,
 				8D33EE6D192B8FAE007F448C /* inflate.c in Sources */,
 				8D33EE63192B8FAE007F448C /* crc32.c in Sources */,
 				8D9AF24419C07D1C007F88E8 /* CCommon.c in Sources */,
@@ -969,6 +989,10 @@
 		8DFE273F15E22B6C007F75A3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/Users/miroslavkudrnac/SVN/TransStorageServer/trunk/tbb/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -976,6 +1000,10 @@
 		8DFE274015E22B6C007F75A3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/Users/miroslavkudrnac/SVN/TransStorageServer/trunk/tbb/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

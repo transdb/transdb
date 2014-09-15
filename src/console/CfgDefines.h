@@ -60,9 +60,6 @@ extern int g_ZlibBufferSize;
 extern int g_DataSizeForCompression;
 extern int g_RecordSizeForCompression;
 
-//CRC
-extern CRC_32 *g_CRC32;
-
 //version
 extern const char *g_pCompiledVersion;
 
@@ -80,11 +77,10 @@ extern std::string g_PythonScriptVersion;
 extern int g_DataFileMallocAlignment;
 extern int g_IndexFileMallocAlignment;
 
-//force startrup
+//force startup
 /** 0 - abort server startup when error
     1 - force startup when freespace error
 */
-
 typedef enum E_FORCE_STARTUP_ACTION
 {
     eFSA_Abort                          = 0,
@@ -93,34 +89,7 @@ typedef enum E_FORCE_STARTUP_ACTION
 
 extern E_FSA g_ForceStartup;
 
-//Allocator
-template <class K, class V>
-class ScalableHashMapNodeAllocator
-{
-public:
-    HashNode<K, V> *allocate(const K &key, const V &value)
-    {
-        void *pMem = scalable_malloc(sizeof(HashNode<K, V>));
-        return new(pMem) HashNode<K, V>(key, value);
-    }
-    
-    void deallocate(HashNode<K, V> *p)
-    {
-        p->~HashNode<K, V>();
-        scalable_free(p);
-    }
-};
-
-#ifdef WIN32
-static void trans_func(unsigned int u, EXCEPTION_POINTERS* pExp)
-{
-    PrintCrashInformation(pExp);
-	HandleCrash(pExp);
-}
-#endif
-
 //load config
 void LoadConfig();
-
 
 #endif

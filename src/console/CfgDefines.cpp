@@ -57,9 +57,6 @@ std::atomic<size_t> g_NumOfRecordDeframentations(0);
 std::atomic<uint64> g_AvgDiskReadTime(0);
 std::atomic<uint64> g_AvgDiskWriteTime(0);
 
-//CRC
-CRC_32 *g_CRC32;
-
 //version
 #ifdef DEBUG
 const char *g_pCompiledVersion = "DEBUG";
