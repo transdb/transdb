@@ -115,14 +115,14 @@ void ClientSocketHolder::Update()
             itr2 = itr++;
             ClientSocket *pSocket = itr2->second;
             //
-            if(pSocket->m_lastPong < t && ((uint64)(t - pSocket->m_lastPong) > (uint64)g_PingTimeout))
+            if(pSocket->m_lastPong < t && ((uint64)(t - pSocket->m_lastPong) > (uint64)g_cfg.PingTimeout))
             {
                 Log.Warning(__FUNCTION__, "Connection to client: %s - dropped due to pong timeout.", pSocket->GetRemoteIP().c_str());
                 pSocket->Disconnect();
                 return;
             }
             
-			if((uint64)(t - pSocket->m_lastPing) > (uint64)g_PingSendInterval)
+			if((uint64)(t - pSocket->m_lastPing) > (uint64)g_cfg.PingSendInterval)
             {
                 // send a ping packet.
                 pSocket->SendPing();

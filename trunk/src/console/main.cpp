@@ -131,7 +131,8 @@ int main(int argc, const char * argv[])
 	//set time
 	UNIXTIME = time(NULL);
 	localtime(&UNIXTIME, &g_localTime);
-    g_StartTime = UNIXTIME;
+    //init stats
+    init_stats_default_values(&g_stats);
 
 	//parse command args
 	std::string sConfigPath;
@@ -294,7 +295,7 @@ int main(int argc, const char * argv[])
     StatGenerator::Init();
     
     //load value from config
-    LoadConfig();
+    load_and_parse_config_values();
 
 	//alignment for DMA - http://msdn.microsoft.com/en-us/library/windows/desktop/cc644950(v=vs.85).aspx
 	/** File access buffer addresses for read and write operations should be physical 
@@ -350,7 +351,7 @@ int main(int argc, const char * argv[])
 	Log.Notice(__FUNCTION__, "IndexFileMallocAlignment = %d", g_IndexFileMallocAlignment);
     
     //init intel tbb memory allocator soft limit
-    intptr_t softHeapLimit = static_cast<intptr_t>((static_cast<float>(g_MemoryLimit) * 1.10f));
+    intptr_t softHeapLimit = static_cast<intptr_t>((static_cast<float>(g_cfg.MemoryLimit) * 1.10f));
     int ret = scalable_allocation_mode(TBBMALLOC_SET_SOFT_HEAP_LIMIT, softHeapLimit);
     if(ret != TBBMALLOC_OK)
     {
@@ -373,7 +374,7 @@ int main(int argc, const char * argv[])
         return EXIT_FAILURE;
     
     //open listen socket
-    ListenSocket<ClientSocket> *pClientSocket = new ListenSocket<ClientSocket>(g_ListenHost.c_str(), g_ListenPort);
+    ListenSocket<ClientSocket> *pClientSocket = new ListenSocket<ClientSocket>(g_cfg.ListenHost, g_cfg.ListenPort);
     bool clientSocketCreated = pClientSocket->IsOpen();
 #ifdef WIN32
 	if(clientSocketCreated)

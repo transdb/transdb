@@ -99,9 +99,12 @@ static const char *g_OpcodeNames[OP_NUM] =
     "S_MSG_EXEC_PYTHON_SCRIPT",
 };
 
-ClientSocket::ClientSocket(SOCKET fd) : Socket(fd, g_SocketReadBufferSize, g_SocketWriteBufferSize), m_lastPong(UNIXTIME), m_lastPing(UNIXTIME)
+ClientSocket::ClientSocket(SOCKET fd) : Socket(fd, g_cfg.SocketReadBufferSize, g_cfg.SocketWriteBufferSize), m_lastPong(UNIXTIME), m_lastPing(UNIXTIME)
 {
-    m_socketID      = (g_SocketID++);
+    //socket ID gen
+    static std::atomic<uint64> rSocketID(0);
+    //init default values
+    m_socketID      = (rSocketID++);
     m_size          = 0;
     m_opcode        = 0;
     m_latency       = 0;
@@ -153,7 +156,7 @@ void ClientSocket::OnRead()
                 return;
 
             //stats
-            g_ReceivedBytes += (m_size + sizeof(PackerHeader));
+            g_stats.ReceivedBytes += (m_size + sizeof(PackerHeader));
             
             //prepare buffer - will by std::move to ClientSocketTaskData
             m_rClientSocketBuffer.resize(m_size);
@@ -340,7 +343,7 @@ OUTPACKET_RESULT ClientSocket::_OutPacket(uint16 opcode, size_t len, const void*
     Log.Debug(__FUNCTION__, "Sended packet opcode: (0x%.4X), name: %s, size: %u", opcode, g_OpcodeNames[opcode], (uint32)len);
     
     //stats
-    g_SendedBytes += (len + sizeof(PackerHeader));
+    g_stats.SendedBytes += (len + sizeof(PackerHeader));
     
 	//create header
 	PackerHeader rHeader;
@@ -421,7 +424,7 @@ void ClientSocket::HandleGetActivityID(ClientSocketBuffer &rPacket)
     Packet rResponse(S_MSG_GET_ACTIVITY_ID, 32);
     rResponse << token;
     rResponse << flags;
-    rResponse << g_ActivityID;
+    rResponse << g_cfg.ActivityID;
     OutPacket(rResponse.GetOpcode(), rResponse.size(), (const void*)rResponse.contents());
 }
 

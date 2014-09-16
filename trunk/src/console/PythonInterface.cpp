@@ -263,7 +263,7 @@ static PyMethodDef ctransdb_methods[] =
     { NULL, NULL, 0, NULL }
 };
 
-PythonInterface::PythonInterface(ConfigWatcher &rConfigWatcher) : m_pInstance(NULL), m_pScriptSkeletonModule(NULL), m_lastVersion(g_PythonScriptVersion), m_pythonScriptRunning(false)
+PythonInterface::PythonInterface(ConfigWatcher &rConfigWatcher) : m_pInstance(NULL), m_pScriptSkeletonModule(NULL), m_lastVersion(g_cfg.PythonScriptVersion), m_pythonScriptRunning(false)
 {
     rConfigWatcher.addListener(this);
 }
@@ -279,9 +279,9 @@ bool PythonInterface::run()
     while(m_threadRunning)
     {
         //Set the default “home” directory, that is, the location of the standard Python libraries
-        if(g_PythonHome.length() != 0)
+        if(strlen(g_cfg.PythonHome) != 0)
         {
-            Py_SetPythonHome((char*)g_PythonHome.c_str());
+            Py_SetPythonHome(g_cfg.PythonHome);
         }
         
         // Initialize python interpreter
@@ -289,7 +289,7 @@ bool PythonInterface::run()
         
         //set script directiory
         char cBuff[1024] = { 0 };
-        sprintf(cBuff, "import sys\nsys.path[0]=\"%s\"\n", g_PythonScriptsFolderPath.c_str());
+        sprintf(cBuff, "import sys\nsys.path[0]=\"%s\"\n", g_cfg.PythonScriptsFolderPath);
         PyRun_SimpleString(cBuff);
         
         //create module cfunctions with custom functions
@@ -319,7 +319,7 @@ bool PythonInterface::run()
         PyThreadState *tempState = PyThreadState_Swap(myThreadState);
 
         // Now execute some python code (call python functions)
-        PyObject *pName = PyString_FromString(g_PythonModuleName.c_str());
+        PyObject *pName = PyString_FromString(g_cfg.PythonModuleName);
         PyObject *pModule = PyImport_Import(pName);
         Py_DECREF(pName);
         PyErr_Print();
@@ -347,7 +347,7 @@ bool PythonInterface::run()
             // Swap out the current thread
             PyThreadState_Swap(tempState);
             //
-            Log.Error(__FUNCTION__, "Module: %s parse error trying to reload in 10 seconds.", g_PythonModuleName.c_str());
+            Log.Error(__FUNCTION__, "Module: %s parse error trying to reload in 10 seconds.", g_cfg.PythonModuleName);
             Wait(10*1000);
         }
         else
@@ -355,16 +355,16 @@ bool PythonInterface::run()
             //Log
             Log.Notice(__FUNCTION__,
                        "Loaded python module: %s class: %s, method: %s, version: %s.",
-                       g_PythonModuleName.c_str(),
-                       g_PythonClassName.c_str(),
-                       g_PythonRunableMethod.c_str(),
-                       g_PythonScriptVersion.c_str());
+                       g_cfg.PythonModuleName,
+                       g_cfg.PythonClassName,
+                       g_cfg.PythonRunableMethod,
+                       g_cfg.PythonScriptVersion);
             
             // pDict and pFunc are borrowed references
             PyObject *pDict = PyModule_GetDict(pModule);
             
             // Build the name of a callable class
-            PyObject *pClass = PyDict_GetItemString(pDict, g_PythonClassName.c_str());
+            PyObject *pClass = PyDict_GetItemString(pDict, g_cfg.PythonClassName);
             
             // Create an instance of the class
             if (PyCallable_Check(pClass))
@@ -377,11 +377,11 @@ bool PythonInterface::run()
             
             // Call a method of the class with parameters
             PyObject *pCallMethodResult = PyObject_CallMethod(m_pInstance,
-                                                              (char*)g_PythonRunableMethod.c_str(),
+                                                              g_cfg.PythonRunableMethod,
                                                               (char*)pFunctionProto,
-                                                              g_ListenHost.c_str(),
-                                                              g_ListenPort,
-                                                              g_WebSocketPort);
+                                                              g_cfg.ListenHost,
+                                                              g_cfg.ListenPort,
+                                                              g_cfg.WebSocketPort);
             
             //set init
             m_pythonScriptRunning = false;
@@ -446,7 +446,7 @@ static int Python_callOnShutdown(void *pPythonInterfaceArg)
 void PythonInterface::callOnShutdownPythonMethod()
 {
     PyObject *pCallMethodResult;
-    pCallMethodResult = PyObject_CallMethod(m_pInstance, (char*)g_PythonShutdownMethod.c_str(), NULL);
+    pCallMethodResult = PyObject_CallMethod(m_pInstance, g_cfg.PythonShutdownMethod, NULL);
     if(pCallMethodResult)
     {
         Py_DECREF(pCallMethodResult);
@@ -456,10 +456,10 @@ void PythonInterface::callOnShutdownPythonMethod()
 
 void PythonInterface::reloadScript()
 {
-    if(m_pInstance && m_lastVersion != g_PythonScriptVersion)
+    if(m_pInstance && m_lastVersion != std::string(g_cfg.PythonScriptVersion))
     {
         callOnShutdownPythonMethod();
-        m_lastVersion = g_PythonScriptVersion;
+        m_lastVersion = g_cfg.PythonScriptVersion;
     }
 }
 

@@ -9,69 +9,91 @@
 #ifndef TransDB_CfgDefines_h
 #define TransDB_CfgDefines_h
 
-//cfg
-extern bool g_EnableRecordLimit;
-extern int g_RecordLimit;
-extern int g_DiskFlushCoef;
-extern std::string g_DataFilePath;
-extern std::string g_IndexFilePath;
-extern uint64 g_MemoryLimit;
-extern int64 g_ReallocSize;
-extern std::string g_ListenHost;
-extern int g_ListenPort;
-extern uint32 g_SocketReadBufferSize;
-extern uint32 g_SocketWriteBufferSize;
-extern bool g_StartupCrc32Check;
-extern std::string g_DataFileName;
-extern std::string g_ActivityID;
-extern int g_PingTimeout;
-extern int g_PingSendInterval;
-extern uint64 g_LRUCacheMemReserve;
-extern int g_MaxParallelTasks;
-extern int g_MaxParallelReadTasks;
-extern int g_MaxTasksInQueue;
-extern int g_MaxReadTasksInQueue;
-extern int g_WebSocketPort;
-extern uint64 g_IndexBlockCacheSize;
-extern int g_DefragAfterRecordDelete;
-extern int g_FreeSpaceDefrag;
+typedef struct _ConfigDefines
+{
+    //ID
+    char    ActivityID[32];
+    
+    //Storage
+    char    DataFilePath[MAX_PATH];
+    char    IndexFilePath[MAX_PATH];
+    char    DataFileName[32];
+    bool    EnableRecordLimit;
+    int     RecordLimit;
+    int     DiskFlushCoef;
+    int64   ReallocSize;
+    bool    StartupCrc32Check;
+    int     DefragAfterRecordDelete;
+    int     FreeSpaceDefrag;
 
-//socket ID gen
-extern std::atomic<uint64> g_SocketID;
+    //Memory
+    uint64  MemoryLimit;
+    uint64  LRUCacheMemReserve;
+    uint64  IndexBlockCacheSize;
+    
+    //PublicSocket
+    char    ListenHost[32];
+    int     ListenPort;
+    int     WebSocketPort;
+    uint32  SocketReadBufferSize;
+    uint32  SocketWriteBufferSize;
+    int     PingTimeout;
+    int     PingSendInterval;
+    int     MaxParallelTasks;
+    int     MaxParallelReadTasks;
+    int     MaxTasksInQueue;
+    int     MaxReadTasksInQueue;
 
-//start time
-extern time_t g_StartTime;
+    //python
+    bool    PythonEnable;
+    char    PythonHome[MAX_PATH];
+    char    PythonScriptsFolderPath[MAX_PATH];
+    char    PythonModuleName[32];
+    char    PythonClassName[32];
+    char    PythonRunableMethod[32];
+    char    PythonShutdownMethod[32];
+    char    PythonScriptVersion[32];
+    
+    //zlib
+    int     GzipCompressionLevel;
+    int     ZlibBufferSize;
+    int     DataSizeForCompression;
+    int     RecordSizeForCompression;
+}ConfigDefines;
 
-//for statistics
-extern std::atomic<uint64> g_NumOfReadsFromDisk;
-extern std::atomic<uint64> g_NumOfReadsFromCache;
-extern std::atomic<uint64> g_NumOfWritesToDisk;
-extern std::atomic<size_t> g_ReceivedBytes;
-extern std::atomic<size_t> g_SendedBytes;
-extern std::atomic<size_t> g_NumOfRecordCompressions;
-extern std::atomic<size_t> g_NumOfRecordDecompressions;
-extern std::atomic<size_t> g_NumOfRecordDeframentations;
-extern std::atomic<uint64> g_AvgDiskReadTime;
-extern std::atomic<uint64> g_AvgDiskWriteTime;
+typedef struct _Statistics
+{
+    //start time
+    time_t  StartTime;
+    
+    //for statistics
+    uint64  NumOfReadsFromDisk;
+    uint64  NumOfReadsFromCache;
+    uint64  NumOfWritesToDisk;
+    uint64  ReceivedBytes;
+    uint64  SendedBytes;
+    uint64  NumOfRecordCompressions;
+    uint64  NumOfRecordDecompressions;
+    uint64  NumOfRecordDeframentations;
+    uint64  AvgDiskReadTime;
+    uint64  AvgDiskWriteTime;
+}Statistics;
 
-//zlib
-extern int g_GzipCompressionLevel;
-extern int g_ZlibBufferSize;
-extern int g_DataSizeForCompression;
-extern int g_RecordSizeForCompression;
+//config holder
+extern ConfigDefines    g_cfg;
+//stats holder
+extern Statistics       g_stats;
+
+/** Called on startup
+ */
+void init_stats_default_values(Statistics *self);
+
+/** load and parse config
+ */
+void load_and_parse_config_values();
 
 //version
 extern const char *g_pCompiledVersion;
-
-//python
-extern bool g_PythonEnable;
-extern std::string g_PythonHome;
-extern std::string g_PythonScriptsFolderPath;
-extern std::string g_PythonModuleName;
-extern std::string g_PythonClassName;
-extern std::string g_PythonRunableMethod;
-extern std::string g_PythonShutdownMethod;
-extern std::string g_PythonScriptVersion;
 
 //malloc alignment for disk IO
 extern int g_DataFileMallocAlignment;
@@ -88,8 +110,5 @@ typedef enum E_FORCE_STARTUP_ACTION
 } E_FSA;
 
 extern E_FSA g_ForceStartup;
-
-//load config
-void LoadConfig();
 
 #endif

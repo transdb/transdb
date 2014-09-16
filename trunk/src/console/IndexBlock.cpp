@@ -79,7 +79,7 @@ struct FillIndex
 };
 
 IndexBlock::IndexBlock() : m_blockCount(0),
-                           m_pLRUCache(new LRUCache("IndexBlock", g_IndexBlockCacheSize / INDEX_BLOCK_SIZE))
+                           m_pLRUCache(new LRUCache("IndexBlock", g_cfg.IndexBlockCacheSize / INDEX_BLOCK_SIZE))
 {
 
 }
@@ -398,7 +398,7 @@ uint8 *IndexBlock::GetCachedDiskBlock(HANDLE hFile, int64 blockDiskPosition, uin
     }
     
     //check cache and read block from disk
-    if((m_rDiskBlockCache.size() * INDEX_BLOCK_SIZE) > g_IndexBlockCacheSize)
+    if((m_rDiskBlockCache.size() * INDEX_BLOCK_SIZE) > g_cfg.IndexBlockCacheSize)
     {
         if(m_pLRUCache->get(&blockToDelete))
         {

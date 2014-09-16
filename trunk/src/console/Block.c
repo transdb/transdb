@@ -9,6 +9,7 @@
 #include <string.h>
 #include "../shared/clib/CCommon.h"
 #include "../shared/zlib/zlib.h"
+#include "CfgDefines.h"
 #include "Block.h"
 
 CIDF *Block_GetCIDF(uint8 *pBlock)
@@ -207,12 +208,16 @@ void Block_GetRecord(uint8 *pBlock, uint64 recordKey, bbuff *pData)
     //check if gzipped
     if(CCommon_isGziped(pRecordLocal))
     {
-        int status = CCommon_decompressGzip(pRecordLocal, recordSizeLocal, pData, 512*1024);
+        int status = CCommon_decompressGzip(pRecordLocal, recordSizeLocal, pData, g_cfg.ZlibBufferSize);
         if(status != Z_OK)
         {
             //decompress failed append original record
             bbuff_resize(pData, 0);
             bbuff_append(pData, pRecordLocal, recordSizeLocal);
+        }
+        else
+        {
+            g_stats.NumOfRecordDecompressions++;
         }
     }
     else
@@ -258,7 +263,7 @@ void Block_GetRecords(uint8 *pBlock, bbuff *pData)
             size_t wpos = pData->wpos;
             
             //decompress directly to bytebuffer
-            int status = CCommon_decompressGzip(pRecord, recordSize, pData, 512*1024);
+            int status = CCommon_decompressGzip(pRecord, recordSize, pData, g_cfg.ZlibBufferSize);
             if(status != Z_OK)
             {
                 //decompress failed append original record
@@ -271,6 +276,8 @@ void Block_GetRecords(uint8 *pBlock, bbuff *pData)
                 recordSize = pData->wpos - wpos;
                 //change record size
                 bbuff_put(pData, wpos - sizeof(recordSize), &recordSize, sizeof(recordSize));
+                //stats
+                g_stats.NumOfRecordDecompressions++;
             }
         }
         else

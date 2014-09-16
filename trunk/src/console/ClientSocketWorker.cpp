@@ -62,7 +62,7 @@ bool ClientSocketWorker::InitStorage()
 {
     //alocate storage
 	Log.Notice(__FUNCTION__, "Loading storage...");
-    m_pStorage = Storage::create(g_DataFileName.c_str());
+    m_pStorage = Storage::create(g_cfg.DataFileName);
     if(m_pStorage == NULL)
     {
         Log.Error(__FUNCTION__, "Loading storage... failed");
@@ -87,7 +87,7 @@ bool ClientSocketWorker::InitConfigWatcher()
 bool ClientSocketWorker::InitPythonInterface()
 {
     m_pPythonInterface = new PythonInterface(*m_pConfigWatcher);
-    if(g_PythonEnable)
+    if(g_cfg.PythonEnable)
     {
         Log.Notice(__FUNCTION__, "Starting python interface...");
         ThreadPool.ExecuteTask(m_pPythonInterface);
@@ -102,7 +102,7 @@ bool ClientSocketWorker::InitWorkerThreads()
 	size_t poolSize;
 
 	//allocate pool 2 times bigger than needed, for mem pool overhead, min size 8MB
-	poolSize = ((g_MaxTasksInQueue + g_MaxReadTasksInQueue) * sizeof(ClientSocketTaskData)) * 2;
+	poolSize = ((g_cfg.MaxTasksInQueue + g_cfg.MaxReadTasksInQueue) * sizeof(ClientSocketTaskData)) * 2;
     poolSize = std::max<size_t>(poolSize, 8*1024*1024);
     Log.Notice(__FUNCTION__, "Creating ClientSocketWorker memory pool size: " I64FMTD, poolSize);
     
@@ -116,13 +116,13 @@ bool ClientSocketWorker::InitWorkerThreads()
 	m_pFixedPool = new tbb::fixed_pool(m_pFixedPoolMem, poolSize);
 
 	//set queue limit
-	m_rTaskDataQueue.set_capacity(g_MaxTasksInQueue);
+	m_rTaskDataQueue.set_capacity(g_cfg.MaxTasksInQueue);
     //set read queue limit
-    m_rReadTaskDataQueue.set_capacity(g_MaxReadTasksInQueue);
+    m_rReadTaskDataQueue.set_capacity(g_cfg.MaxReadTasksInQueue);
 
 	//start worker threads
     Log.Notice(__FUNCTION__, "Spawning writer threads...");
-	for(int i = 0;i < g_MaxParallelTasks;++i)
+	for(int i = 0;i < g_cfg.MaxParallelTasks;++i)
 	{
 		ThreadPool.ExecuteTask(new ClientSocketWorkerTask(*this, *m_pStorage, *m_pPythonInterface, *m_pConfigWatcher, false));
 	}
@@ -130,7 +130,7 @@ bool ClientSocketWorker::InitWorkerThreads()
     
     //start reader worker threads
     Log.Notice(__FUNCTION__, "Spawning reader threads...");
-    for(int i = 0;i < g_MaxParallelReadTasks;++i)
+    for(int i = 0;i < g_cfg.MaxParallelReadTasks;++i)
     {
         ThreadPool.ExecuteTask(new ClientSocketWorkerTask(*this, *m_pStorage, *m_pPythonInterface, *m_pConfigWatcher, true));
     }
@@ -149,7 +149,7 @@ void ClientSocketWorker::DestroyWorkerThreads()
         /** Note that the result can be negative if there are pops waiting for the
          corresponding pushes.  The result can also exceed capacity() if there
          are push operations in flight. */
-        waitSize = g_MaxParallelTasks * (-1);
+        waitSize = g_cfg.MaxParallelTasks * (-1);
         
         //process all tasks before shutdown
         while(m_rTaskDataQueue.size() != waitSize)
@@ -159,7 +159,7 @@ void ClientSocketWorker::DestroyWorkerThreads()
         }
         
         //read tasks
-        waitSize = g_MaxParallelReadTasks * (-1);
+        waitSize = g_cfg.MaxParallelReadTasks * (-1);
         while(m_rReadTaskDataQueue.size() !=  waitSize)
         {
             Log.Notice(__FUNCTION__, "Waiting for: %d read tasks to finish.", (int32)m_rReadTaskDataQueue.size());
