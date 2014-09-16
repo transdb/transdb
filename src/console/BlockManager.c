@@ -16,6 +16,7 @@
 #include "../shared/clib/CCommon.h"
 #include "../shared/clib/Log/CLog.h"
 #include "../shared/clib/Crc32/crc32.h"
+#include "CfgDefines.h"
 #include "Block.h"
 #include "BlockManager.h"
 
@@ -180,21 +181,18 @@ uint32 blman_write_record(blman *self, uint64 recordkey, const uint8 *record, ui
     uint32 retStatus = eBMS_Ok;
     uint8 rCompressedRecord[BLOCK_SIZE];
     
-    int g_RecordSizeForCompression = 300;
-    int g_GzipCompressionLevel = 9;
-
     //PHASE 0 --> compression
     //try to compress
-    if(recordsize > g_RecordSizeForCompression)
+    if(recordsize > g_cfg.RecordSizeForCompression)
     {
         size_t outSize;
-        int cStatus = CCommon_compressGzip_Buffer(g_GzipCompressionLevel, record, recordsize, rCompressedRecord, sizeof(rCompressedRecord), &outSize);
+        int cStatus = CCommon_compressGzip_Buffer(g_cfg.GzipCompressionLevel, record, recordsize, rCompressedRecord, sizeof(rCompressedRecord), &outSize);
         if(cStatus == Z_OK && outSize < recordsize)
         {
             //replace record ptr and set new record size
             record = rCompressedRecord;
             recordsize = outSize;
-            //++g_NumOfRecordCompressions;
+            g_stats.NumOfRecordCompressions++;
         }
         else
         {
@@ -221,18 +219,13 @@ uint32 blman_write_record(blman *self, uint64 recordkey, const uint8 *record, ui
         blidxnode_destroy(pNodeFind, self->blockIndex->avl_param);
     }
     
-    //TODO: cfg
-    int g_EnableRecordLimit = 0;
-    int g_RecordLimit = 100;
-    int g_DefragAfterRecordDelete = 5;
-    
     //PHASE 2 --> check record limit
     //block limit - start to rewrite from begin (record key is timestamp)
-    if(g_EnableRecordLimit && self->blockIndex->avl_count >= g_RecordLimit)
+    if(g_cfg.EnableRecordLimit && self->blockIndex->avl_count >= g_cfg.RecordLimit)
     {
         int removedRecords = 0;
         //limit can be lowed so delete all records
-        while(self->blockIndex->avl_count >= g_RecordLimit)
+        while(self->blockIndex->avl_count >= g_cfg.RecordLimit)
         {
             struct avl_traverser rTraverser;
             avl_t_init(&rTraverser, self->blockIndex);
@@ -258,7 +251,7 @@ uint32 blman_write_record(blman *self, uint64 recordkey, const uint8 *record, ui
         }
 
         //request defragment
-        if(removedRecords >= g_DefragAfterRecordDelete)
+        if(removedRecords >= g_cfg.DefragAfterRecordDelete)
         {
             retStatus |= eBMS_NeedDefrag;
         }
@@ -398,7 +391,7 @@ void blman_defragment_data(blman *self)
     }
     
     //update counter
-//    g_NumOfRecordDeframentations++;
+    g_stats.NumOfRecordDeframentations++;
     
     //delete bytebuffer
     bbuff_destroy(records);

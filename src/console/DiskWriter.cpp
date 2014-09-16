@@ -236,7 +236,7 @@ void DiskWriter::Process()
                 }
                 
                 //stats
-                ++g_NumOfWritesToDisk;
+                g_stats.NumOfWritesToDisk++;
                 
                 //update block count
                 rWriteAccessor->second.m_blockCount = rWriteAccessor->second.m_pBlockManager->blockCount;
@@ -305,7 +305,7 @@ void DiskWriter::Process()
         //calc avg write time
         uint64 endTime = GetTickCount64() - startTime;
         m_sumDiskWriteTime += endTime;
-        g_AvgDiskWriteTime = m_sumDiskWriteTime / g_NumOfWritesToDisk;
+        g_stats.AvgDiskWriteTime = m_sumDiskWriteTime / g_stats.NumOfWritesToDisk;
         
     } /* end if */
 }
@@ -322,7 +322,7 @@ void DiskWriter::ReallocDataFile(HANDLE hDataFile, int64 minSize, bool oAddFreeS
     int64 startFreeSpace;
     
     //calc size
-    reallocSize = std::max(g_ReallocSize, minSize);
+    reallocSize = std::max(g_cfg.ReallocSize, minSize);
     
     //seek end + get new freespace start position
     IO::fseek(hDataFile, 0, IO::IO_SEEK_END);
@@ -566,10 +566,10 @@ static uint32 _S_DiskWriter_GetFreeSpaceDump(ByteBuffer &rBuff,
     }
     
 	//try to compress
-	if(rBuff.size() > (size_t)g_DataSizeForCompression)
+	if(rBuff.size() > (size_t)g_cfg.DataSizeForCompression)
 	{
         ByteBuffer rBuffOut;
-		int compressionStatus = CommonFunctions::compressGzip(g_GzipCompressionLevel, rBuff.contents(), rBuff.size(), rBuffOut, g_ZlibBufferSize);
+		int compressionStatus = CommonFunctions::compressGzip(g_cfg.GzipCompressionLevel, rBuff.contents(), rBuff.size(), rBuffOut, g_cfg.ZlibBufferSize);
 		if(compressionStatus == Z_OK)
 		{
 			Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rBuff.size(), rBuffOut.size());
@@ -635,7 +635,7 @@ public:
         }
         
         //send all chunks
-        size_t chunkSize = g_SocketWriteBufferSize / 2;
+        size_t chunkSize = g_cfg.SocketWriteBufferSize / 2;
         Vector<uint8> rChunk;
         rChunk.resize(chunkSize);
         

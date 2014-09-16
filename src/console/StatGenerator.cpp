@@ -221,7 +221,7 @@ void StatGenerator::GenerateStats(ByteBuffer &rData, bool oAddDescription)
     uint64 diskWriterItemsToProcessSize = 0;
     
     //create starttime string
-    localtime(&g_StartTime, &localTime);
+    localtime(&g_stats.StartTime, &localTime);
     sprintf(rStartTime,
             "%04u-%02u-%02u %02u:%02u:%02u",
             localTime.tm_year+1900,
@@ -245,7 +245,7 @@ void StatGenerator::GenerateStats(ByteBuffer &rData, bool oAddDescription)
     AddItemToJSONArray(ss, "num_of_cpus", GetNumOFCPU(), oAddDescription);
     AddItemToJSONArray(ss, "current_cpu_usage", GetCurrentCPUUsage(), oAddDescription);
     AddItemToJSONArray(ss, "process_memory", GetRAMUsage(), oAddDescription);
-    AddItemToJSONArray(ss, "activity_id", g_ActivityID, oAddDescription);
+    AddItemToJSONArray(ss, "activity_id", g_cfg.ActivityID, oAddDescription);
     AddItemToJSONArray(ss, "records_count", m_rStorage.m_dataIndexes.size(), oAddDescription);
     AddItemToJSONArray(ss, "records_cache_mem_usage", m_rStorage.m_memoryUsed.load(), oAddDescription);
     AddItemToJSONArray(ss, "data_file_size", m_rStorage.m_dataFileSize.load(), oAddDescription);
@@ -253,23 +253,23 @@ void StatGenerator::GenerateStats(ByteBuffer &rData, bool oAddDescription)
     AddItemToJSONArray(ss, "socket_send_packet_queue", g_rClientSocketHolder.GetAllSocketPacketQueueSize(), oAddDescription);
     AddItemToJSONArray<int64>(ss, "socket_tasks_queue", g_pClientSocketWorker->GetQueueSize(), oAddDescription);
     AddItemToJSONArray<int64>(ss, "socket_read_tasks_queue", g_pClientSocketWorker->GetReadQueueSize(), oAddDescription);
-    AddItemToJSONArray(ss, "socket_data_received", g_ReceivedBytes.load(), oAddDescription);
-    AddItemToJSONArray(ss, "socket_data_sended", g_SendedBytes.load(), oAddDescription);
+    AddItemToJSONArray(ss, "socket_data_received", g_stats.ReceivedBytes, oAddDescription);
+    AddItemToJSONArray(ss, "socket_data_sended", g_stats.SendedBytes, oAddDescription);
     //disk
-    AddItemToJSONArray(ss, "avg_disk_read_time", g_AvgDiskReadTime.load(), oAddDescription);
-    AddItemToJSONArray(ss, "avg_disk_write_time", g_AvgDiskWriteTime.load(), oAddDescription);
-    AddItemToJSONArray(ss, "disk_reads", g_NumOfReadsFromDisk.load(), oAddDescription);
-    AddItemToJSONArray(ss, "disk_cache_reads", g_NumOfReadsFromCache.load(), oAddDescription);
-    AddItemToJSONArray(ss, "disk_writes", g_NumOfWritesToDisk.load(), oAddDescription);
+    AddItemToJSONArray(ss, "avg_disk_read_time", g_stats.AvgDiskReadTime, oAddDescription);
+    AddItemToJSONArray(ss, "avg_disk_write_time", g_stats.AvgDiskWriteTime, oAddDescription);
+    AddItemToJSONArray(ss, "disk_reads", g_stats.NumOfReadsFromDisk, oAddDescription);
+    AddItemToJSONArray(ss, "disk_cache_reads", g_stats.NumOfReadsFromCache, oAddDescription);
+    AddItemToJSONArray(ss, "disk_writes", g_stats.NumOfWritesToDisk, oAddDescription);
     //diskwriter
     AddItemToJSONArray(ss, "disk_writer_queue_size", diskWriterQueueSize, oAddDescription);
     AddItemToJSONArray(ss, "disk_writer_lastNumOfItemsInProcess", diskWriterLastNumOfItemsInProcess, oAddDescription);
     AddItemToJSONArray(ss, "disk_writer_itemsToProcessSize", diskWriterItemsToProcessSize, oAddDescription);
     //compression
-    AddItemToJSONArray(ss, "record_compressions", g_NumOfRecordCompressions.load(), oAddDescription);
-    AddItemToJSONArray(ss, "record_decompressions", g_NumOfRecordDecompressions.load(), oAddDescription);
+    AddItemToJSONArray(ss, "record_compressions", g_stats.NumOfRecordCompressions, oAddDescription);
+    AddItemToJSONArray(ss, "record_decompressions", g_stats.NumOfRecordDecompressions, oAddDescription);
     //other
-    AddItemToJSONArray(ss, "record_defragmentations", g_NumOfRecordDeframentations.load(), oAddDescription, false);
+    AddItemToJSONArray(ss, "record_defragmentations", g_stats.NumOfRecordDeframentations, oAddDescription, false);
     
     ss << "]";
     

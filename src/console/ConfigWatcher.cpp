@@ -36,7 +36,7 @@ bool ConfigWatcher::run()
             if(g_rConfig.MainConfig.SetSource(sConfigPath.c_str()))
             {
                 //reload config
-                LoadConfig();
+                load_and_parse_config_values();
                 //notify
                 executeListeners();
             }

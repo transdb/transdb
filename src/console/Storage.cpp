@@ -24,8 +24,8 @@ Storage *Storage::create(const std::string &rFileName)
     return pStorage;
 }
 
-Storage::Storage(const std::string &rFileName) : m_rDataPath(g_DataFilePath + rFileName + ".dat"),
-                                                 m_rIndexPath(g_IndexFilePath + rFileName + ".idx"),
+Storage::Storage(const std::string &rFileName) : m_rDataPath(g_cfg.DataFilePath + rFileName + ".dat"),
+                                                 m_rIndexPath(g_cfg.IndexFilePath + rFileName + ".idx"),
                                                  m_dataFileSize(0),
                                                  m_pDiskWriter(new DiskWriter(*this)),
                                                  m_pDataIndexDiskWriter(new IndexBlock()),
@@ -71,7 +71,7 @@ bool Storage::Init()
 	if(m_dataFileSize == 0)
 	{
         //this function will update m_dataFileSize
-        m_pDiskWriter->ReallocDataFile(rDataFileHandle, g_ReallocSize, false);
+        m_pDiskWriter->ReallocDataFile(rDataFileHandle, g_cfg.ReallocSize, false);
 	}
 	Log.Notice(__FUNCTION__, "Data file: %s - loaded. Size: " SI64FMTD " bytes", m_rDataPath.c_str(), m_dataFileSize.load());
     
@@ -99,7 +99,7 @@ bool Storage::Init()
          */
         if((status == eIIS_FreeSpaceCorrupted) && (g_ForceStartup & eFSA_ContinueIfFreeSpaceCorrupted))
         {
-            m_pDiskWriter->ReallocDataFile(rDataFileHandle, g_ReallocSize);
+            m_pDiskWriter->ReallocDataFile(rDataFileHandle, g_cfg.ReallocSize);
         }
         else
         {
@@ -110,7 +110,7 @@ bool Storage::Init()
     Log.Notice(__FUNCTION__, "Loading index file: %s. Size: " SI64FMTD " bytes... done", m_rIndexPath.c_str(), indexFileSize);
     
 	//check all data
-	if(g_StartupCrc32Check)
+	if(g_cfg.StartupCrc32Check)
 	{
         Crc32Check(rDataFileHandle);
 	}
@@ -615,7 +615,7 @@ void Storage::CheckMemory(LRUCache &rLRUCache)
     uint64 xToDelete;
     RecordIndexMap::accessor rWriteAccessor;
     
-    while(m_memoryUsed > g_MemoryLimit)
+    while(m_memoryUsed > g_cfg.MemoryLimit)
     {
         if(!rLRUCache.get(&xToDelete))
             break;
@@ -631,7 +631,7 @@ void Storage::CheckMemory(LRUCache &rLRUCache)
             if(rWriteAccessor->second.m_pBlockManager)
             {
                 //log
-                Log.Debug(__FUNCTION__, "Memory usage: " I64FMTD ", memory limit: " I64FMTD ", removing x: " I64FMTD " from memory.", m_memoryUsed.load(), g_MemoryLimit, xToDelete);
+                Log.Debug(__FUNCTION__, "Memory usage: " I64FMTD ", memory limit: " I64FMTD ", removing x: " I64FMTD " from memory.", m_memoryUsed.load(), g_cfg.MemoryLimit, xToDelete);
                 
                 //update memory counter
                 m_memoryUsed -= ((rWriteAccessor->second.m_pBlockManager->blockCount * BLOCK_SIZE) + sizeof(BlockManager));
@@ -687,18 +687,18 @@ bool Storage::CheckBlockManager(const HANDLE &rDataFileHandle, const uint64 &x, 
         m_memoryUsed += ((rWriteAccessor->second.m_pBlockManager->blockCount * BLOCK_SIZE) + sizeof(BlockManager));
         
         //stats
-        ++g_NumOfReadsFromDisk;
+        g_stats.NumOfReadsFromDisk++;
         
         //calc avg read time
         uint64 endTime = GetTickCount64() - startTime;
         m_sumDiskReadTime += endTime;
-        g_AvgDiskReadTime = m_sumDiskReadTime / g_NumOfReadsFromDisk;
+        g_stats.AvgDiskReadTime = m_sumDiskReadTime / g_stats.NumOfReadsFromDisk;
         return true;
     }
     else
     {
         //stats
-        ++g_NumOfReadsFromCache;
+        g_stats.NumOfReadsFromCache++;
         return false;
     }
 }
@@ -713,24 +713,24 @@ bool Storage::run()
         _set_se_translator(trans_func);
 #endif
         //next disk flush time
-        time_t nextDiskFlush = UNIXTIME + g_DiskFlushCoef;
+        time_t nextDiskFlush = UNIXTIME + g_cfg.DiskFlushCoef;
         //next freespace defrag time
-        time_t nextDefragRun = UNIXTIME + g_FreeSpaceDefrag;
+        time_t nextDefragRun = UNIXTIME + g_cfg.FreeSpaceDefrag;
         
         while(m_threadRunning)
         {                
             //flush data to disk
-            if(g_DiskFlushCoef != -1 && nextDiskFlush < UNIXTIME)
+            if(g_cfg.DiskFlushCoef != -1 && nextDiskFlush < UNIXTIME)
             {
                 m_pDiskWriter->Process();
-                nextDiskFlush = UNIXTIME + g_DiskFlushCoef;
+                nextDiskFlush = UNIXTIME + g_cfg.DiskFlushCoef;
             }
             
             //run frrspace defragment if enabled
-            if(g_FreeSpaceDefrag != -1 && nextDefragRun < UNIXTIME)
+            if(g_cfg.FreeSpaceDefrag != -1 && nextDefragRun < UNIXTIME)
             {
                 m_pDiskWriter->DefragmentFreeSpace();
-                nextDefragRun = UNIXTIME + g_FreeSpaceDefrag;
+                nextDefragRun = UNIXTIME + g_cfg.FreeSpaceDefrag;
             }
             
             //process diskwrite tasks -> Send over socket
