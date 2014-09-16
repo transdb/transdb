@@ -96,7 +96,7 @@ void init_stats_default_values(Statistics *self);
 
 /** load and parse config
  */
-void load_and_parse_config_values();
+void LoadConfig();
 
 //version
 extern const char *g_pCompiledVersion;

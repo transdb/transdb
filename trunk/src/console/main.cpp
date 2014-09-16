@@ -295,7 +295,7 @@ int main(int argc, const char * argv[])
     StatGenerator::Init();
     
     //load value from config
-    load_and_parse_config_values();
+    LoadConfig();
 
 	//alignment for DMA - http://msdn.microsoft.com/en-us/library/windows/desktop/cc644950(v=vs.85).aspx
 	/** File access buffer addresses for read and write operations should be physical 
