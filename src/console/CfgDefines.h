@@ -9,6 +9,12 @@
 #ifndef TransDB_CfgDefines_h
 #define TransDB_CfgDefines_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "../shared/clib/CDefines.h"
+    
 typedef struct _ConfigDefines
 {
     //ID
@@ -111,4 +117,8 @@ typedef enum E_FORCE_STARTUP_ACTION
 
 extern E_FSA g_ForceStartup;
 
+#ifdef __cplusplus
+}
+#endif
+    
 #endif
