@@ -116,7 +116,7 @@ bool ClientSocketWorkerTask::run()
             }
             else
             {
-                Log.Debug(__FUNCTION__, "Unknown opcode (0x%.4X)", pClientSocketTaskData->opcode());
+                Log.Warning(__FUNCTION__, "Unknown opcode (0x%.4X)", pClientSocketTaskData->opcode());
             }
             
             //check memory

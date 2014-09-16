@@ -417,7 +417,18 @@ uint8 *blman_get_block(blman *self, uint16 blocknum)
     return (self->blocks + (BLOCK_SIZE * blocknum));
 }
 
-
+uint64 blman_get_memory_usage(blman *self)
+{
+    uint64 memoryUsage = 0;
+    //index
+    memoryUsage += (self->blockIndex->avl_count * (sizeof(struct avl_node) + sizeof(blidxnode)));
+    //blocks
+    memoryUsage += (self->blockCount * BLOCK_SIZE);
+    //self
+    memoryUsage += sizeof(blman);
+    
+    return memoryUsage;
+}
 
 
 
