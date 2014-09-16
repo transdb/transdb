@@ -10,22 +10,6 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../src/console/BlockManager.c"
-            timestampString = "432566392.23723"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "167"
-            endingLineNumber = "167"
-            landmarkName = "blman_destroy()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "../src/console/BlockManager.c"
             timestampString = "432566390.825004"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
@@ -58,11 +42,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../src/console/Storage.cpp"
-            timestampString = "432569724.029985"
+            timestampString = "432573072.768464"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "404"
-            endingLineNumber = "404"
+            startingLineNumber = "409"
+            endingLineNumber = "409"
             landmarkName = "Storage::DeleteData(LRUCache &amp;rLRUCache, uint64 x)"
             landmarkType = "5">
          </BreakpointContent>
@@ -74,11 +58,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../src/console/Storage.cpp"
-            timestampString = "432569773.047733"
+            timestampString = "432573072.768464"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "573"
-            endingLineNumber = "573"
+            startingLineNumber = "578"
+            endingLineNumber = "578"
             landmarkName = "Storage::DefragmentDataInternal(RecordIndexMap::accessor &amp;rWriteAccessor)"
             landmarkType = "5">
          </BreakpointContent>

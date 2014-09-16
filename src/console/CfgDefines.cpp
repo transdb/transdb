@@ -149,7 +149,7 @@ void GET_CONFIG_STRING_VALUE(int *outStatus, const char *section, const char *ke
 }
 
 //load config
-void load_and_parse_config_values()
+void LoadConfig()
 {
     //load default values
     init_config_default_values(&g_cfg);
