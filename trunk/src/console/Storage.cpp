@@ -319,8 +319,9 @@ uint32 Storage::WriteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x,
         //set record start to -1 (data are not written on disk)
         rWriteAccesor->second.m_recordStart = -1;
             
-        //inc memory use
-        m_memoryUsed += ((rWriteAccesor->second.m_pBlockManager->blockCount * BLOCK_SIZE) + sizeof(BlockManager));
+        //update memory usage
+        uint64 blockManMemoryUsage = blman_get_memory_usage(rWriteAccesor->second.m_pBlockManager);
+        m_memoryUsed += blockManMemoryUsage;
                
         //queue write to disk
         m_pDiskWriter->Queue(rWriteAccesor);
@@ -330,7 +331,11 @@ uint32 Storage::WriteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x,
         //now we have locked write access, just update data
         //check manager - load from disk if not in memory
         CheckBlockManager(rDataFileHandle, x, rWriteAccesor);
-        //
+        
+        //save memory usage before write
+        uint64 memoryUsageBeforeWrite = blman_get_memory_usage(rWriteAccesor->second.m_pBlockManager);
+        
+        //try to write record
         status = blman_write_record(rWriteAccesor->second.m_pBlockManager, y, pRecord, recordSize);
         if(status == eBMS_FailRecordTooBig)
         {
@@ -338,6 +343,11 @@ uint32 Storage::WriteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x,
         }
         else if(status & eBMS_OldRecord)
         {
+            //update memory usage
+            uint64 memoryUsageAfterWrite = blman_get_memory_usage(rWriteAccesor->second.m_pBlockManager);
+            m_memoryUsed += (memoryUsageAfterWrite - memoryUsageBeforeWrite);
+            
+            //log warning
             Log.Warning(__FUNCTION__, "Record [x:" I64FMTD ", y:" I64FMTD "] size: %u attempt to save old y.", x, y, recordSize);
         }
         else if(status & eBMS_NeedDefrag)
@@ -357,14 +367,19 @@ uint32 Storage::WriteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x,
             //set dirty
             rWriteAccesor->second.m_flags |= eRIF_Dirty;
             
-            //inc memory use
-            m_memoryUsed += BLOCK_SIZE;
+            //update memory usage
+            uint64 memoryUsageAfterWrite = blman_get_memory_usage(rWriteAccesor->second.m_pBlockManager);
+            m_memoryUsed += (memoryUsageAfterWrite - memoryUsageBeforeWrite);
             
             //queue write to disk
             m_pDiskWriter->Queue(rWriteAccesor);
         }
         else
         {
+            //update memory usage
+            uint64 memoryUsageAfterWrite = blman_get_memory_usage(rWriteAccesor->second.m_pBlockManager);
+            m_memoryUsed += (memoryUsageAfterWrite - memoryUsageBeforeWrite);
+            
             //queue write to disk
             m_pDiskWriter->Queue(rWriteAccesor);
         }
@@ -381,9 +396,6 @@ void Storage::DeleteData(LRUCache &rLRUCache, uint64 x)
     RecordIndexMap::accessor rWriteAccessor;
     if(m_dataIndexes.find(rWriteAccessor, x))
     {
-		//save values
-		uint64 recordSize = rWriteAccessor->second.m_blockCount * BLOCK_SIZE;
-
         //delete from LRU
         rLRUCache.remove(x);
         
@@ -393,10 +405,13 @@ void Storage::DeleteData(LRUCache &rLRUCache, uint64 x)
         //release memory
         if(rWriteAccessor->second.m_pBlockManager)
         {
+            //update memory usage
+            uint64 memoryUsage = blman_get_memory_usage(rWriteAccessor->second.m_pBlockManager);
+            m_memoryUsed -= memoryUsage;
+            
+            //clean memory
             blman_destroy(rWriteAccessor->second.m_pBlockManager);
             rWriteAccessor->second.m_pBlockManager = NULL;
-            //update memory counter
-            m_memoryUsed -= (recordSize + sizeof(BlockManager));
         }
         
         //delete from main map
@@ -560,7 +575,7 @@ void Storage::DefragmentDataInternal(RecordIndexMap::accessor &rWriteAccessor)
     int64 memoryUsageAfterDefrag;
     
     //save memory usage
-    memoryUsageBeforeDefrag = ((rWriteAccessor->second.m_pBlockManager->blockCount * BLOCK_SIZE) + sizeof(BlockManager));
+    memoryUsageBeforeDefrag = blman_get_memory_usage(rWriteAccessor->second.m_pBlockManager);
     
     //set flag reallocate blocks so diskwrite must find new place fro data
     rWriteAccessor->second.m_flags |= eRIF_RelocateBlocks;
@@ -571,12 +586,12 @@ void Storage::DefragmentDataInternal(RecordIndexMap::accessor &rWriteAccessor)
     }
     
     //calc new memory usage
-    memoryUsageAfterDefrag = ((rWriteAccessor->second.m_pBlockManager->blockCount * BLOCK_SIZE) + sizeof(BlockManager));
+    memoryUsageAfterDefrag = blman_get_memory_usage(rWriteAccessor->second.m_pBlockManager);
     
     //set dirty
     rWriteAccessor->second.m_flags |= eRIF_Dirty;
     
-    //update memory use
+    //update memory usage
     if(memoryUsageBeforeDefrag > memoryUsageAfterDefrag)
         m_memoryUsed += (memoryUsageAfterDefrag - memoryUsageBeforeDefrag);
     else
@@ -633,8 +648,9 @@ void Storage::CheckMemory(LRUCache &rLRUCache)
                 //log
                 Log.Debug(__FUNCTION__, "Memory usage: " I64FMTD ", memory limit: " I64FMTD ", removing x: " I64FMTD " from memory.", m_memoryUsed.load(), g_cfg.MemoryLimit, xToDelete);
                 
-                //update memory counter
-                m_memoryUsed -= ((rWriteAccessor->second.m_pBlockManager->blockCount * BLOCK_SIZE) + sizeof(BlockManager));
+                //update memory usage
+                uint64 memoryUsage = blman_get_memory_usage(rWriteAccessor->second.m_pBlockManager);
+                m_memoryUsed -= memoryUsage;
                 
                 //clean memory
                 blman_destroy(rWriteAccessor->second.m_pBlockManager);
@@ -683,8 +699,9 @@ bool Storage::CheckBlockManager(const HANDLE &rDataFileHandle, const uint64 &x, 
             Log.Error(__FUNCTION__, "CRC32 error - x: " I64FMTD " saved crc: %u loaded crc: %u", x, rWriteAccessor->second.m_crc32, crc32);
         }
         
-        //inc memory use
-        m_memoryUsed += ((rWriteAccessor->second.m_pBlockManager->blockCount * BLOCK_SIZE) + sizeof(BlockManager));
+        //update memory usage
+        uint64 blockManMemoryUsage = blman_get_memory_usage(rWriteAccessor->second.m_pBlockManager);
+        m_memoryUsed += blockManMemoryUsage;
         
         //stats
         g_stats.NumOfReadsFromDisk++;
@@ -699,7 +716,7 @@ bool Storage::CheckBlockManager(const HANDLE &rDataFileHandle, const uint64 &x, 
     {
         //stats
         g_stats.NumOfReadsFromCache++;
-        return false;
+        return true;
     }
 }
 

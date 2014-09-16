@@ -79,6 +79,10 @@ uint32 blman_get_blocks_crc32(blman *self);
  */
 uint8 *blman_get_block(blman *self, uint16 blocknum);
 
+/**
+ */
+uint64 blman_get_memory_usage(blman *self);
+    
 #ifdef __cplusplus
 }
 #endif
