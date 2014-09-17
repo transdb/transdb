@@ -400,15 +400,15 @@ void blman_defragment_data(blman *self)
 uint32 blman_get_blocks_crc32(blman *self)
 {
     //C99 - VLA
-	uint32 rCrc32Array[self->blockCount];
+	uint32 crc32Array[self->blockCount];
 
 	for (uint16 i = 0; i < self->blockCount; ++i)
 	{
 		uint8 *pBlock = blman_get_block(self, i);
-		rCrc32Array[i] = crc32_compute(pBlock, BLOCK_SIZE);
+		crc32Array[i] = crc32_compute(pBlock, BLOCK_SIZE);
 	}
 
-	uint32 crc32 = crc32_compute((BYTE*)rCrc32Array, self->blockCount * sizeof(uint32));
+	uint32 crc32 = crc32_compute((BYTE*)crc32Array, self->blockCount * sizeof(uint32));
 	return crc32;
 }
 
