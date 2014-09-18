@@ -252,7 +252,9 @@ void Storage::Crc32Check(const HANDLE &rDataFileHandle)
     tbb::parallel_sort(rInfo.begin(), rInfo.end(), &SortWriteInfoForCRC32Check);
     
     //start paraller crc32
-    tbb::parallel_for(tbb::blocked_range<uint64>(0, rInfo.size()), StorageCrc32Check(m_dataIndexes, rInfo, m_rDataPath));
+    tbb::affinity_partitioner rAp;
+    size_t grainsize = std::max<size_t>(1, rInfo.size() / g_cfg.MaxParallelReadTasks);
+    tbb::parallel_for(tbb::blocked_range<uint64>(0, rInfo.size(), grainsize), StorageCrc32Check(m_dataIndexes, rInfo, m_rDataPath), rAp);
     
     Log.Notice(__FUNCTION__, "Finished checking integrity of data file.");
 }
@@ -436,8 +438,15 @@ void Storage::DeleteData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, 
         //check manager - load from disk if not in memory
         CheckBlockManager(rDataFileHandle, x, rWriteAccessor);
         
+        //save memory usage before delete
+        uint64 memoryUsageBeforeDelete = blman_get_memory_usage(rWriteAccessor->second.m_pBlockManager);
+        
         //delete
         blman_delete_record_by_key(rWriteAccessor->second.m_pBlockManager, y);
+        
+        //update memory usage
+        uint64 memoryUsageAfterDelete = blman_get_memory_usage(rWriteAccessor->second.m_pBlockManager);
+        m_memoryUsed += (memoryUsageAfterDelete - memoryUsageBeforeDelete);
         
         //queue write to disk
         m_pDiskWriter->Queue(rWriteAccessor);
@@ -521,7 +530,9 @@ void Storage::GetAllX(XKeyVec &rXKeyVec, uint32 sortFlags)
     rFillXKeys.m_pXKeys = &rXKeyVec;
     
     //iterate and fill container with X keys
-    tbb::parallel_for(tbb::blocked_range<uint32>(0, blockCount), rFillXKeys);
+    tbb::affinity_partitioner rAp;
+    size_t grainsize = std::max<size_t>(1, blockCount / g_cfg.MaxParallelReadTasks);
+    tbb::parallel_for(tbb::blocked_range<uint32>(0, blockCount, grainsize), rFillXKeys, rAp);
  
     //defragment
     rXKeyVec.shrink_to_fit();

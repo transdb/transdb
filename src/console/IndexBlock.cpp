@@ -128,7 +128,9 @@ E_IIS IndexBlock::Init(HANDLE hFile,
         rFillIndex.m_pRecordIndexMap = pRecordIndexMap;
         
         //iterate and fill containers
-        tbb::parallel_for(tbb::blocked_range<uint32>(0, m_blockCount), rFillIndex);
+        tbb::affinity_partitioner rAp;
+        size_t grainsize = std::max<size_t>(1, m_blockCount / g_cfg.MaxParallelReadTasks);
+        tbb::parallel_for(tbb::blocked_range<uint32>(0, m_blockCount, grainsize), rFillIndex, rAp);
         
         //defragment
         pIndexDef->shrink_to_fit();

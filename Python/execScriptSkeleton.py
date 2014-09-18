@@ -7,6 +7,7 @@ import struct
 import pickle
 import zlib
 import cStringIO
+import socket
 
 def executePythonScript(storage, LRUCache, fileHandle, script):
     """ Check and execute python script """

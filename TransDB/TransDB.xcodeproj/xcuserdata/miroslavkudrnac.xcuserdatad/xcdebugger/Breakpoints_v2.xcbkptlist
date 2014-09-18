@@ -42,12 +42,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../src/console/Storage.cpp"
-            timestampString = "432573072.768464"
+            timestampString = "432740238.216561"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "409"
-            endingLineNumber = "409"
-            landmarkName = "Storage::DeleteData(LRUCache &amp;rLRUCache, uint64 x)"
+            startingLineNumber = "589"
+            endingLineNumber = "589"
+            landmarkName = "Storage::DefragmentDataInternal(RecordIndexMap::accessor &amp;rWriteAccessor)"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -58,12 +58,44 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../src/console/Storage.cpp"
-            timestampString = "432573072.768464"
+            timestampString = "432740238.216561"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "578"
-            endingLineNumber = "578"
-            landmarkName = "Storage::DefragmentDataInternal(RecordIndexMap::accessor &amp;rWriteAccessor)"
+            startingLineNumber = "256"
+            endingLineNumber = "256"
+            landmarkName = "Storage::Crc32Check(const HANDLE &amp;rDataFileHandle)"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../src/console/IndexBlock.cpp"
+            timestampString = "432739151.946775"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "131"
+            endingLineNumber = "131"
+            landmarkName = "IndexBlock::Init(HANDLE hFile, RecordIndexMap *pRecordIndexMap, FreeSpaceBlockMap &amp;rFreeSpace, int64 dataFileSize)"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../src/console/Storage.cpp"
+            timestampString = "432739200.390037"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "533"
+            endingLineNumber = "533"
+            landmarkName = "Storage::GetAllX(XKeyVec &amp;rXKeyVec, uint32 sortFlags)"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
