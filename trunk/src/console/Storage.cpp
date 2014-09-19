@@ -785,11 +785,11 @@ bool Storage::run()
     return false;
 }
 
-void Storage::GetStats(ByteBuffer &rBuff)
+void Storage::GetStats(bbuff *pBuff)
 {
     //generate stats with decription
     StatGenerator rStatGenerator(*this);
-    rStatGenerator.GenerateStats(rBuff, true);
+    rStatGenerator.GenerateStats(pBuff, true);
 }
 
 

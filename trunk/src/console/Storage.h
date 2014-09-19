@@ -30,7 +30,7 @@ public:
     void DeleteData(LRUCache &rLRUCache, uint64 x);
     void GetAllX(XKeyVec &rXKeyVec, uint32 sortFlags);
     void GetAllY(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, bbuff *pY);
-    void GetStats(ByteBuffer &rBuff);
+    void GetStats(bbuff *pBuff);
     void DefragmentData(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x);
     void GetFreeSpaceDump(uint64 socketID, uint32 token, uint32 flags, uint32 dumpFlags);
     void DefragmentFreeSpace(uint64 socketID, uint32 token, uint32 flags);

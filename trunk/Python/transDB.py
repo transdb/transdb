@@ -102,7 +102,7 @@ def stats():
         packet.data = struct.pack('<I', token)
         sendQueue.put(packet)
         data = getData(token)
-        return json.loads(data[:-1])
+        return json.loads(data)
     except Exception as e:
         cfunctions.Log_Error("transDB.stats: " + str(e))
 

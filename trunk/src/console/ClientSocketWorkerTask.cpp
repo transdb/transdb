@@ -268,7 +268,6 @@ void ClientSocketWorkerTask::HandleGetAllX(ClientSocketTaskData &rClientSocketTa
     uint32 token;
     uint32 flags;
     uint32 sortFlags;
-    static const size_t packetSize = sizeof(token)+sizeof(flags);
     OUTPACKET_RESULT result;
     size_t XKeysSize;
     
@@ -285,7 +284,8 @@ void ClientSocketWorkerTask::HandleGetAllX(ClientSocketTaskData &rClientSocketTa
     XKeysSize = rXKeyVec.size() * sizeof(XKeyVec::value_type);
     
     //init stream send
-    Packet rResponse(S_MSG_GET_ALL_X, packetSize);
+    uint8 buff[32];
+    StackPacket rResponse(S_MSG_GET_ALL_X, buff, sizeof(buff));
     rResponse << token;
     rResponse << flags;
     result = g_rClientSocketHolder.StartStreamSend(rClientSocketTaskData.socketID(), rResponse, XKeysSize);
@@ -406,38 +406,52 @@ void ClientSocketWorkerTask::HandleStatus(ClientSocketTaskData &rClientSocketTas
 {
     uint32 token;
     uint32 flags;
-    ByteBuffer rBuff;
+    static const size_t packetSize = sizeof(token)+sizeof(flags);
     
     //read data from packet
     rClientSocketTaskData >> token >> flags;
     
+    //buffer for stats
+    bbuff *pBuff = bbuff_create();
+    
+    //prepare packet
+    bbuff_reserve(pBuff, packetSize);
+    bbuff_append(pBuff, &token, sizeof(token));
+    bbuff_append(pBuff, &flags, sizeof(flags));
+    
     //get stats
-    m_rStorage.GetStats(rBuff);
+    m_rStorage.GetStats(pBuff);
+    
+    //calc where data start and what size it has
+    uint8 *pStatsDataBegin = pBuff->storage + packetSize;
+    size_t StatsSize = pBuff->size - packetSize;
     
 	//try to compress
-	if(rBuff.size() > (uint32)g_cfg.DataSizeForCompression)
+	if(StatsSize > (size_t)g_cfg.DataSizeForCompression)
 	{
-		ByteBuffer rBuffOut;
-		int compressionStatus = CommonFunctions::compressGzip(g_cfg.GzipCompressionLevel, rBuff.contents(), rBuff.size(), rBuffOut, g_cfg.ZlibBufferSize);
-		if(compressionStatus == Z_OK)
-		{
-			Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rBuff.size(), rBuffOut.size());
-			flags = ePF_COMPRESSED;
-			rBuff.clear();
-            rBuff.append(rBuffOut);
-		}
+        bbuff *pBuffOut = bbuff_create();
+        int compressionStatus = CCommon_compressGzip(g_cfg.GzipCompressionLevel, pStatsDataBegin, StatsSize, pBuffOut, g_cfg.ZlibBufferSize);
+        if(compressionStatus == Z_OK)
+        {
+            flags = ePF_COMPRESSED;
+            //modify flags
+            bbuff_put(pBuff, sizeof(token), &flags, sizeof(flags));
+            //prepare space and rewrite noncompressed data
+            bbuff_resize(pBuff, pBuffOut->size + packetSize);
+            bbuff_put(pBuff, packetSize, pBuffOut->storage, pBuffOut->size);
+        }
         else
         {
             Log.Error(__FUNCTION__, "Data compression failed.");
         }
+        bbuff_destroy(pBuffOut);
 	}
     
-    //send data back
-    Packet rResponse(S_MSG_STATUS, 8 + rBuff.size());
-    rResponse << token;
-    rResponse << flags;
-    rResponse.append(rBuff);
-    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
+    //send back
+    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), S_MSG_STATUS, pBuff);
+    
+    //clear memory
+    bbuff_destroy(pBuff);
 }
 
 void ClientSocketWorkerTask::HandleDeleteX(ClientSocketTaskData &rClientSocketTaskData)
@@ -645,97 +659,126 @@ void ClientSocketWorkerTask::HandleReadLog(ClientSocketTaskData &rClientSocketTa
 {
     uint32 token;
     uint32 flags;
-    ByteBuffer rBuff;
-    
-	//for compresion
-	int compressionStatus = Z_ERRNO;
-	ByteBuffer rBuffOut;
+    static const size_t packetSize = sizeof(token)+sizeof(flags);
     
     //read data from packet
     rClientSocketTaskData >> token >> flags;
     
-    //read log file from disk
-    Log.GetFileLogContent(rBuff);
+    //buffer for log
+    bbuff *pBuff = bbuff_create();
     
-    if(rBuff.size() > (uint32)g_cfg.DataSizeForCompression)
+    //prepare packet
+    bbuff_reserve(pBuff, packetSize);
+    bbuff_append(pBuff, &token, sizeof(token));
+    bbuff_append(pBuff, &flags, sizeof(flags));
+    
+    //read log file from disk
+    Log.GetFileLogContent(pBuff);
+    
+    //calc where data start and what size it has
+    uint8 *pLogDataBegin = pBuff->storage + packetSize;
+    size_t logSize = pBuff->size - packetSize;
+    
+    //try to compress
+    if(logSize > (size_t)g_cfg.DataSizeForCompression)
     {
-        compressionStatus = CommonFunctions::compressGzip(g_cfg.GzipCompressionLevel, rBuff.contents(), rBuff.size(), rBuffOut, g_cfg.ZlibBufferSize);
+        bbuff *pBuffOut = bbuff_create();
+        int compressionStatus = CCommon_compressGzip(g_cfg.GzipCompressionLevel, pLogDataBegin, logSize, pBuffOut, g_cfg.ZlibBufferSize);
         if(compressionStatus == Z_OK)
         {
-            Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rBuff.size(), rBuffOut.size());
             flags = ePF_COMPRESSED;
+            //modify flags
+            bbuff_put(pBuff, sizeof(token), &flags, sizeof(flags));
+            //prepare space and rewrite noncompressed data
+            bbuff_resize(pBuff, pBuffOut->size + packetSize);
+            bbuff_put(pBuff, packetSize, pBuffOut->storage, pBuffOut->size);
         }
         else
         {
             Log.Error(__FUNCTION__, "Data compression failed.");
         }
+        bbuff_destroy(pBuffOut);
     }
     
-    //send back data
-    Packet rResponse(S_MSG_READ_LOG, sizeof(token)+sizeof(flags)+rBuff.size());
-    rResponse << token;
-    rResponse << flags;
+    //send back
+    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), S_MSG_READ_LOG, pBuff);
     
-    if(compressionStatus == Z_OK)
-        rResponse.append(rBuffOut);
-    else
-        rResponse.append(rBuff);
-    
-    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
+    //clear memory
+    bbuff_destroy(pBuff);
 }
 
 void ClientSocketWorkerTask::HandleReadConfig(ClientSocketTaskData &rClientSocketTaskData)
 {
     uint32 token;
     uint32 flags;
-    ByteBuffer rBuff;
-    
-	//for compresion
-	int compressionStatus = Z_ERRNO;
-	ByteBuffer rBuffOut;
+    static const size_t packetSize = sizeof(token)+sizeof(flags);
     
     //read data from packet
     rClientSocketTaskData >> token >> flags;
     
-    //get config data
+    //buffer for config
+    bbuff *pBuff = bbuff_create();
+    
+    //prepare packet
+    bbuff_reserve(pBuff, packetSize);
+    bbuff_append(pBuff, &token, sizeof(token));
+    bbuff_append(pBuff, &flags, sizeof(flags));
+    
+    //get config path
     std::string sConfigPath = g_rConfig.MainConfig.GetConfigFilePath();
-    HANDLE hFile = IO::fopen(sConfigPath.c_str(), IO::IO_READ_ONLY, IO::IO_NORMAL);
+    //fill buffer with data
+    HANDLE hFile = INVALID_HANDLE_VALUE;
+    IOHandleGuard rIOGuard(hFile);
+    hFile = IO::fopen(sConfigPath.c_str(), IO::IO_READ_ONLY, IO::IO_NORMAL);
     if(hFile != INVALID_HANDLE_VALUE)
     {
         IO::fseek(hFile, 0, IO::IO_SEEK_END);
         int64 fileSize = IO::ftell(hFile);
         IO::fseek(hFile, 0, IO::IO_SEEK_SET);
+        
+        //prealloc buffer
+        bbuff_reserve(pBuff, pBuff->wpos + fileSize);
+        
         //read to buffer
-        rBuff.resize(fileSize);
-        IO::fread((void*)rBuff.contents(), rBuff.size(), hFile);
-        IO::fclose(hFile);
+        //append data
+        uint8 buff[4096];
+        size_t bytesRead;
+        while((bytesRead = IO::fread(buff, sizeof(buff), hFile)) > 0)
+        {
+            bbuff_append(pBuff, buff, bytesRead);
+        }
     }
     
-    if(rBuff.size() > (uint32)g_cfg.DataSizeForCompression)
+    //calc where data start and what size it has
+    uint8 *pCfgDataBegin = pBuff->storage + packetSize;
+    size_t cfgSize = pBuff->size - packetSize;
+    
+    //try to compress
+    if(cfgSize > (size_t)g_cfg.DataSizeForCompression)
     {
-        compressionStatus = CommonFunctions::compressGzip(g_cfg.GzipCompressionLevel, rBuff.contents(), rBuff.size(), rBuffOut, g_cfg.ZlibBufferSize);
+        bbuff *pBuffOut = bbuff_create();
+        int compressionStatus = CCommon_compressGzip(g_cfg.GzipCompressionLevel, pCfgDataBegin, cfgSize, pBuffOut, g_cfg.ZlibBufferSize);
         if(compressionStatus == Z_OK)
         {
-            Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rBuff.size(), rBuffOut.size());
             flags = ePF_COMPRESSED;
+            //modify flags
+            bbuff_put(pBuff, sizeof(token), &flags, sizeof(flags));
+            //prepare space and rewrite noncompressed data
+            bbuff_resize(pBuff, pBuffOut->size + packetSize);
+            bbuff_put(pBuff, packetSize, pBuffOut->storage, pBuffOut->size);
         }
         else
         {
             Log.Error(__FUNCTION__, "Data compression failed.");
         }
+        bbuff_destroy(pBuffOut);
     }
     
-    //send back data
-    Packet rResponse(S_MSG_READ_CONFIG, sizeof(token)+sizeof(flags)+rBuff.size());
-    rResponse << token;
-    rResponse << flags;
+    //send back
+    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), S_MSG_READ_CONFIG, pBuff);
     
-    if(compressionStatus == Z_OK)
-        rResponse.append(rBuffOut);
-    else
-        rResponse.append(rBuff);
-    
-    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
+    //clear memory
+    bbuff_destroy(pBuff);
 }
 
 void ClientSocketWorkerTask::HandleDefragmentFreeSpace(ClientSocketTaskData &rClientSocketTaskData)
@@ -808,7 +851,8 @@ void ClientSocketWorkerTask::HandleExecutePythonScript(ClientSocketTaskData &rCl
     }
     
     //init stream send
-    Packet rResponse(S_MSG_EXEC_PYTHON_SCRIPT, 32);
+    uint8 buff[32];
+    StackPacket rResponse(S_MSG_EXEC_PYTHON_SCRIPT, buff, sizeof(buff));
     rResponse << token;
     rResponse << flags;
     result = g_rClientSocketHolder.StartStreamSend(rClientSocketTaskData.socketID(), rResponse, sendDataSize);

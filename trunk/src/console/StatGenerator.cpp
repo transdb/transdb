@@ -211,7 +211,7 @@ void StatGenerator::GetDiskWriterStats(uint64 &queueSize, uint64 &lastNumOfItems
     itemsToProcessSize = m_rStorage.m_pDiskWriter->GetItemsToProcessSize();
 }
 
-void StatGenerator::GenerateStats(ByteBuffer &rData, bool oAddDescription)
+void StatGenerator::GenerateStats(bbuff *pBuff, bool oAddDescription)
 {
     char rStartTime[512];    
     tm localTime;
@@ -274,7 +274,7 @@ void StatGenerator::GenerateStats(ByteBuffer &rData, bool oAddDescription)
     ss << "]";
     
     //fill packet response
-    rData << ss.str();
+    bbuff_append(pBuff, ss.str().c_str(), ss.str().length());
 }
 
 
