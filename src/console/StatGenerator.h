@@ -17,7 +17,7 @@ public:
     explicit StatGenerator(Storage &rStorage);
     static void Init();
     
-    void GenerateStats(ByteBuffer &rData, bool oAddDescription);
+    void GenerateStats(bbuff *pBuff, bool oAddDescription);
     
 private:
 	//disable copy constructor and assign

@@ -226,13 +226,13 @@ void ClientSocket::OutPacket(uint16 opcode, size_t len, const void* data)
 	}
 }
 
-OUTPACKET_RESULT ClientSocket::StartStreamSend(const Packet &rPacket, size_t dataSize)
+OUTPACKET_RESULT ClientSocket::StartStreamSend(const StackPacket &rPacket, size_t dataSize)
 {
 	if(!IsConnected())
 		return OUTPACKET_RESULT_NOT_CONNECTED;
     
 	BurstBegin();
-	if(m_writeBuffer.GetSpace() < (rPacket.size() + sizeof(PackerHeader)))
+	if(m_writeBuffer.GetSpace() < (rPacket.GetSize() + sizeof(PackerHeader)))
 	{
 		BurstEnd();
 		return OUTPACKET_RESULT_NO_ROOM_IN_BUFFER;
@@ -241,15 +241,15 @@ OUTPACKET_RESULT ClientSocket::StartStreamSend(const Packet &rPacket, size_t dat
     //create header
 	PackerHeader rHeader;
 	rHeader.m_opcode = rPacket.GetOpcode();
-	rHeader.m_size = static_cast<uint32>(dataSize + rPacket.size());
+	rHeader.m_size = static_cast<uint32>(dataSize + rPacket.GetSize());
     
 	// Pass the header to our send buffer
 	bool rv = BurstSend((const uint8*)&rHeader, sizeof(PackerHeader));
     
 	// Pass the rest of the packet to our send buffer (if there is any)
-	if(rPacket.size() > 0 && rv)
+	if(rPacket.GetSize() > 0 && rv)
 	{
-		rv = BurstSend(rPacket.contents(), rPacket.size());
+		rv = BurstSend(rPacket.GetBufferPointer(), rPacket.GetSize());
 	}
     
 	if(rv)

@@ -78,7 +78,7 @@ void ClientSocketHolder::SendPacket(uint64 socketID, uint16 opcode, bbuff *pData
     }
 }
 
-OUTPACKET_RESULT ClientSocketHolder::StartStreamSend(uint64 socketID, const Packet &rPacket, size_t dataSize)
+OUTPACKET_RESULT ClientSocketHolder::StartStreamSend(uint64 socketID, const StackPacket &rPacket, size_t dataSize)
 {
     std::lock_guard<std::recursive_mutex> rGuard(m_lock);
     ClientSocketMap::iterator itr = m_clientSockets.find(socketID);

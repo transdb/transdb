@@ -29,7 +29,7 @@ public:
     void SendPacket(uint64 socketID, uint16 opcode, bbuff *pData);
    
     //stream supoort
-    OUTPACKET_RESULT StartStreamSend(uint64 socketID, const Packet &rPacket, size_t dataSize);
+    OUTPACKET_RESULT StartStreamSend(uint64 socketID, const StackPacket &rPacket, size_t dataSize);
     OUTPACKET_RESULT StreamSend(uint64 socketID, const void *dataChunk, size_t chunkSize);
     
     //for stats

@@ -623,7 +623,8 @@ public:
         }
         
         //init stream send
-        Packet rResponse(S_MSG_GET_FREESPACE, 32);
+        uint8 buff[32];
+        StackPacket rResponse(S_MSG_GET_FREESPACE, buff, sizeof(buff));
         rResponse << token;
         rResponse << flags;
         result = g_rClientSocketHolder.StartStreamSend(m_socketID, rResponse, rDump.size());
