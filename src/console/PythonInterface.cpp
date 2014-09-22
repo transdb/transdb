@@ -488,13 +488,13 @@ void PythonInterface::OnShutdown()
     ThreadContext::OnShutdown();
 }
 
-std::string PythonInterface::executePythonScript(Storage *pStorage,
-                                                 LRUCache *pLRUCache,
-                                                 HANDLE hDataFileHandle,
-                                                 const uint8 *pScriptData,
-                                                 size_t scriptDataSize)
+void PythonInterface::executePythonScript(Storage *pStorage,
+                                          LRUCache *pLRUCache,
+                                          HANDLE hDataFileHandle,
+                                          const uint8 *pScriptData,
+                                          size_t scriptDataSize,
+                                          bbuff *pResult_Out)
 {
-    std::string sResult;
     //check if python is running
     if(m_pythonScriptRunning)
     {
@@ -517,7 +517,9 @@ std::string PythonInterface::executePythonScript(Storage *pStorage,
         PyObject *pResult = PyObject_CallObject(pFunction, pArgs);
 
         //create copy of result and return
-        sResult = std::string(PyString_AsString(pResult));
+        char *pStringResult = PyString_AsString(pResult);
+        size_t resultSize = PyString_Size(pResult);
+        bbuff_append(pResult_Out, (const void*)pStringResult, resultSize);
         
         //cleanup
         Py_DECREF(pFunction);
@@ -532,9 +534,9 @@ std::string PythonInterface::executePythonScript(Storage *pStorage,
     }
     else
     {
-        sResult = "Python is not running enable python interface in config.";
+        static const char *pError = "Python is not running enable python interface in config.";
+        bbuff_append(pResult_Out, (const void*)pError, strlen(pError));
     }
-    return std::move(sResult);
 }
 
 

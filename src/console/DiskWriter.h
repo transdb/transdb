@@ -45,6 +45,11 @@ typedef enum E_DISKWRITETASK_TYPE
 
 struct DiskWriterTask
 {
+    explicit DiskWriterTask(uint64 socketID, EDT eTaskType, ByteBuffer &rData) :  m_socketID(socketID), m_eTaskType(eTaskType), m_rData(std::move(rData))
+    {
+        
+    }
+    
     uint64      m_socketID;
     EDT         m_eTaskType;
     ByteBuffer  m_rData;

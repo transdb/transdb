@@ -16,7 +16,7 @@ public:
     
     void reloadScript();
     void callOnShutdownPythonMethod();
-    std::string executePythonScript(Storage *pStorage, LRUCache *pLRUCache, HANDLE hDataFileHandle, const uint8 *pScriptData, size_t scriptDataSize);
+    void executePythonScript(Storage *pStorage, LRUCache *pLRUCache, HANDLE hDataFileHandle, const uint8 *pScriptData, size_t scriptDataSize, bbuff *pResult_Out);
     
     //IConfigListener
     void onConfigReload();

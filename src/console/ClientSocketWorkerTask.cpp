@@ -265,81 +265,81 @@ void ClientSocketWorkerTask::HandleDeleteData(ClientSocketTaskData &rClientSocke
 
 void ClientSocketWorkerTask::HandleGetAllX(ClientSocketTaskData &rClientSocketTaskData)
 {
-    uint32 token;
-    uint32 flags;
-    uint32 sortFlags;
-    OUTPACKET_RESULT result;
-    size_t XKeysSize;
-    
-    //vector
-    XKeyVec rXKeyVec;
-    
-    //read data from packet
-    rClientSocketTaskData >> token >> flags >> sortFlags;
-    
-    //load all keys
-    m_rStorage.GetAllX(rXKeyVec, sortFlags);
-    
-    //calc size
-    XKeysSize = rXKeyVec.size() * sizeof(XKeyVec::value_type);
-    
-    //init stream send
-    uint8 buff[32];
-    StackPacket rResponse(S_MSG_GET_ALL_X, buff, sizeof(buff));
-    rResponse << token;
-    rResponse << flags;
-    result = g_rClientSocketHolder.StartStreamSend(rClientSocketTaskData.socketID(), rResponse, XKeysSize);
-    //socket disconnection or something go to next socket
-    if(result != OUTPACKET_RESULT_SUCCESS)
-    {
-        Log.Error(__FUNCTION__, "StartStreamSend - Socket ID: " I64FMTD " disconnected.", rClientSocketTaskData.socketID());
-        return;
-    }
-    
-    //send all chunks
-    size_t chunkSize = g_cfg.SocketWriteBufferSize / 2;
-    ByteBuffer rChunk(chunkSize);
-    uint32 sendCounter = 0;
-    //
-    for(size_t i = 0;i < rXKeyVec.size();++i)
-    {
-        //add data to chunk
-        rChunk << rXKeyVec[i];
-        
-        //if chunk full or we are on end, perform send
-        if(rChunk.size() >= chunkSize || (i == (rXKeyVec.size() - 1)))
-        {
-            //send chunk
-        trySendAgain:
-            result = g_rClientSocketHolder.StreamSend(rClientSocketTaskData.socketID(), rChunk.contents(), rChunk.size());
-            if(result == OUTPACKET_RESULT_SUCCESS)
-            {
-                //clear chunk
-                rChunk.resize(0);
-                //send is ok continue with sending
-                continue;
-            }
-            else if(result == OUTPACKET_RESULT_NO_ROOM_IN_BUFFER)
-            {
-                if(sendCounter > 100)
-                {
-                    Log.Error(__FUNCTION__, "StreamSend no room in send buffer.");
-                    break;
-                }
-                
-                //socket buffer is full wait
-                Wait(100);
-                ++sendCounter;
-                goto trySendAgain;
-            }
-            else
-            {
-                //error interupt sending
-                Log.Error(__FUNCTION__, "StreamSend error: %u", (uint32)result);
-                break;
-            }
-        }
-    }
+//    uint32 token;
+//    uint32 flags;
+//    uint32 sortFlags;
+//    OUTPACKET_RESULT result;
+//    size_t XKeysSize;
+//    
+//    //vector
+//    XKeyVec rXKeyVec;
+//    
+//    //read data from packet
+//    rClientSocketTaskData >> token >> flags >> sortFlags;
+//    
+//    //load all keys
+//    m_rStorage.GetAllX(rXKeyVec, sortFlags);
+//    
+//    //calc size
+//    XKeysSize = rXKeyVec.size() * sizeof(XKeyVec::value_type);
+//    
+//    //init stream send
+//    uint8 buff[32];
+//    StackPacket rResponse(S_MSG_GET_ALL_X, buff, sizeof(buff));
+//    rResponse << token;
+//    rResponse << flags;
+//    result = g_rClientSocketHolder.StartStreamSend(rClientSocketTaskData.socketID(), rResponse, XKeysSize);
+//    //socket disconnection or something go to next socket
+//    if(result != OUTPACKET_RESULT_SUCCESS)
+//    {
+//        Log.Error(__FUNCTION__, "StartStreamSend - Socket ID: " I64FMTD " disconnected.", rClientSocketTaskData.socketID());
+//        return;
+//    }
+//    
+//    //send all chunks
+//    size_t chunkSize = g_cfg.SocketWriteBufferSize / 2;
+//    ByteBuffer rChunk(chunkSize);
+//    uint32 sendCounter = 0;
+//    //
+//    for(size_t i = 0;i < rXKeyVec.size();++i)
+//    {
+//        //add data to chunk
+//        rChunk << rXKeyVec[i];
+//        
+//        //if chunk full or we are on end, perform send
+//        if(rChunk.size() >= chunkSize || (i == (rXKeyVec.size() - 1)))
+//        {
+//            //send chunk
+//        trySendAgain:
+//            result = g_rClientSocketHolder.StreamSend(rClientSocketTaskData.socketID(), rChunk.contents(), rChunk.size());
+//            if(result == OUTPACKET_RESULT_SUCCESS)
+//            {
+//                //clear chunk
+//                rChunk.resize(0);
+//                //send is ok continue with sending
+//                continue;
+//            }
+//            else if(result == OUTPACKET_RESULT_NO_ROOM_IN_BUFFER)
+//            {
+//                if(sendCounter > 100)
+//                {
+//                    Log.Error(__FUNCTION__, "StreamSend no room in send buffer.");
+//                    break;
+//                }
+//                
+//                //socket buffer is full wait
+//                Wait(100);
+//                ++sendCounter;
+//                goto trySendAgain;
+//            }
+//            else
+//            {
+//                //error interupt sending
+//                Log.Error(__FUNCTION__, "StreamSend error: %u", (uint32)result);
+//                break;
+//            }
+//        }
+//    }
 }
 
 void ClientSocketWorkerTask::HandleGetAllY(ClientSocketTaskData &rClientSocketTaskData)
@@ -801,15 +801,7 @@ void ClientSocketWorkerTask::HandleExecutePythonScript(ClientSocketTaskData &rCl
     uint32 flags;
     size_t dataSize;
     uint8 *pData;
-    
-    //for send
-    const uint8 *pSendData;
-    size_t sendDataSize;
-    OUTPACKET_RESULT result;
-    
-	//for compresion
-	int compressionStatus = Z_ERRNO;
-	ByteBuffer rBuffOut;
+    static const size_t packetSize = sizeof(token)+sizeof(flags);
     
     //read data from packet
     rClientSocketTaskData >> token >> flags;
@@ -818,95 +810,48 @@ void ClientSocketWorkerTask::HandleExecutePythonScript(ClientSocketTaskData &rCl
     //get data size
     dataSize = rClientSocketTaskData.size() - rClientSocketTaskData.rpos();
     pData = (uint8*)(rClientSocketTaskData.contents() + rClientSocketTaskData.rpos());
+
+    //buffer for python script result
+    bbuff *pBuff = bbuff_create();
+    
+    //prepare packet
+    bbuff_reserve(pBuff, packetSize);
+    bbuff_append(pBuff, &token, sizeof(token));
+    bbuff_append(pBuff, &flags, sizeof(flags));
     
     //execute
-    std::string sResult = m_rPythonInterface.executePythonScript(&m_rStorage, m_pLRUCache, m_rDataFileHandle, pData, dataSize);
+    m_rPythonInterface.executePythonScript(&m_rStorage, m_pLRUCache, m_rDataFileHandle, pData, dataSize, pBuff);
     
-    //compress data
-    if(sResult.size() > (uint32)g_cfg.DataSizeForCompression)
+    //calc where data start and what size it has
+    uint8 *pResultDataBegin = pBuff->storage + packetSize;
+    size_t resultSize = pBuff->size - packetSize;
+    
+    //try to compress
+    if(resultSize > (size_t)g_cfg.DataSizeForCompression)
     {
-        compressionStatus = CommonFunctions::compressGzip(g_cfg.GzipCompressionLevel, (const uint8*)sResult.data(), sResult.size(), rBuffOut, g_cfg.ZlibBufferSize);
+        bbuff *pBuffOut = bbuff_create();
+        int compressionStatus = CCommon_compressGzip(g_cfg.GzipCompressionLevel, pResultDataBegin, resultSize, pBuffOut, g_cfg.ZlibBufferSize);
         if(compressionStatus == Z_OK)
         {
-            Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", sResult.size(), rBuffOut.size());
             flags = ePF_COMPRESSED;
-            sResult.clear();
+            //modify flags
+            bbuff_put(pBuff, sizeof(token), &flags, sizeof(flags));
+            //prepare space and rewrite noncompressed data
+            bbuff_resize(pBuff, pBuffOut->size + packetSize);
+            bbuff_put(pBuff, packetSize, pBuffOut->storage, pBuffOut->size);
         }
         else
         {
             Log.Error(__FUNCTION__, "Data compression failed.");
         }
+        bbuff_destroy(pBuffOut);
     }
     
-    //set tmp variables we dont want create tmp copy of result
-    if(compressionStatus == Z_OK)
-    {
-        pSendData = rBuffOut.contents();
-        sendDataSize = rBuffOut.size();
-    }
-    else
-    {
-        pSendData = (const uint8*)sResult.data();
-        sendDataSize = sResult.size();
-    }
+    //send back
+    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), S_MSG_EXEC_PYTHON_SCRIPT, pBuff);
     
-    //init stream send
-    uint8 buff[32];
-    StackPacket rResponse(S_MSG_EXEC_PYTHON_SCRIPT, buff, sizeof(buff));
-    rResponse << token;
-    rResponse << flags;
-    result = g_rClientSocketHolder.StartStreamSend(rClientSocketTaskData.socketID(), rResponse, sendDataSize);
-    //socket disconnection or something go to next socket
-    if(result != OUTPACKET_RESULT_SUCCESS)
-    {
-        Log.Error(__FUNCTION__, "StartStreamSend - Socket ID: " I64FMTD " disconnected.", rClientSocketTaskData.socketID());
-        return;
-    }
-    
-    //send all chunks
-    size_t chunkSize = g_cfg.SocketWriteBufferSize / 2;
-    Vector<uint8> rChunk;
-    rChunk.resize(chunkSize);
-    size_t rpos = 0;
-
-    size_t remainingData;
-    size_t readDataSize;
-    uint32 sendCounter = 0;
-    while(rpos < sendDataSize)
-    {
-        remainingData = sendDataSize - rpos;
-        readDataSize = std::min(remainingData, rChunk.size());
-        memcpy(rChunk.data(), pSendData + rpos, readDataSize);
-        rpos += readDataSize;
-        
-        //send chunk
-    trySendAgain:
-        result = g_rClientSocketHolder.StreamSend(rClientSocketTaskData.socketID(), (const void*)rChunk.data(), readDataSize);
-        if(result == OUTPACKET_RESULT_SUCCESS)
-        {
-            //send is ok continue with sending
-            continue;
-        }
-        else if(result == OUTPACKET_RESULT_NO_ROOM_IN_BUFFER)
-        {
-            if(sendCounter > 100)
-            {
-                Log.Error(__FUNCTION__, "StreamSend no room in send buffer.");
-                break;
-            }
-            
-            //socket buffer is full wait
-            Wait(100);
-            ++sendCounter;
-            goto trySendAgain;
-        }
-        else
-        {
-            //error interupt sending
-            Log.Error(__FUNCTION__, "StreamSend error: %u", (uint32)result);
-            break;
-        }
-    }
+    //clear memory
+    bbuff_destroy(pBuff);
 }
 
 
