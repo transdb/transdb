@@ -60,11 +60,38 @@ void ClientSocketHolder::SendPacket(uint64 socketID, const StackPacket &rPacket)
 
 void ClientSocketHolder::SendPacket(uint64 socketID, uint16 opcode, bbuff *pData)
 {
-    std::lock_guard<std::recursive_mutex> rGuard(m_lock);
-    ClientSocketMap::iterator itr = m_clientSockets.find(socketID);
-    if(itr != m_clientSockets.end())
+    //stream send
+    if(pData->size > g_cfg.SocketWriteBufferSize)
     {
-        itr->second->OutPacket(opcode, pData->size, pData->storage);
+        //calc chunk size
+        size_t chunkSize = g_cfg.SocketWriteBufferSize / 2;
+        
+        //send packet header
+        {
+            std::lock_guard<std::recursive_mutex> rGuard(m_lock);
+            ClientSocketMap::iterator itr = m_clientSockets.find(socketID);
+            if(itr != m_clientSockets.end())
+            {
+                //create packet header
+                PackerHeader rHeader;
+                rHeader.m_opcode = opcode;
+                rHeader.m_size = (uint32)pData->size;
+                itr->second->SendRawData(&rHeader, sizeof(rHeader));
+            }
+        }
+        
+        //start sending chunks
+        
+        
+    }
+    else
+    {
+        std::lock_guard<std::recursive_mutex> rGuard(m_lock);
+        ClientSocketMap::iterator itr = m_clientSockets.find(socketID);
+        if(itr != m_clientSockets.end())
+        {
+            itr->second->OutPacket(opcode, pData->size, pData->storage);
+        }
     }
 }
 
