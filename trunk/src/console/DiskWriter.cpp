@@ -69,13 +69,8 @@ void DiskWriter::QueueTask(uint64 socketID, EDT eTaskType, ByteBuffer &rData)
     //lock
     std::lock_guard<std::mutex> rGuard(m_rDiskWriteTasksLock);
     
-    //create task
-    DiskWriterTask rDiskWriterTask;
-    rDiskWriterTask.m_socketID = socketID;
-    rDiskWriterTask.m_eTaskType = eTaskType;
-    rDiskWriterTask.m_rData = std::move(rData);
     //add to quue
-    m_rDiskWriteTasks.push_back(rDiskWriterTask);
+    m_rDiskWriteTasks.emplace_back(socketID, eTaskType, rData);
 }
 
 INLINE static bool _S_SortWriteInfoForWrite(const WriteInfo &rWriteInfo1, const WriteInfo &rWriteInfo2)
@@ -533,10 +528,10 @@ void DiskWriter::ProcessTasks()
     }
 }
 
-static uint32 _S_DiskWriter_GetFreeSpaceDump(ByteBuffer &rBuff,
-                                             FreeSpaceBlockMap &rFreeSpaceBlockMap,
-                                             int64 dataFileSize,
-                                             bool fullDump)
+static void _S_DiskWriter_GetFreeSpaceDump(bbuff *pDump,
+                                           FreeSpaceBlockMap &rFreeSpaceBlockMap,
+                                           int64 dataFileSize,
+                                           bool fullDump)
 {
     //prealloc buffer
     if(fullDump == true)
@@ -547,44 +542,31 @@ static uint32 _S_DiskWriter_GetFreeSpaceDump(ByteBuffer &rBuff,
             reserveSize += sizeof(int64);
             reserveSize += itr->second.size() * sizeof(int64);
         }
-        rBuff.reserve(reserveSize + sizeof(uint64));
+        bbuff_reserve(pDump, pDump->wpos + reserveSize + sizeof(uint64));
+    }
+    else
+    {
+        bbuff_reserve(pDump, pDump->wpos + rFreeSpaceBlockMap.size() * sizeof(uint64) * 2 + 16);
     }
     
     //data file size
-    rBuff << uint64(dataFileSize);
+    bbuff_append(pDump, &dataFileSize, sizeof(dataFileSize));
     //freeSpace size
-    rBuff << uint64(rFreeSpaceBlockMap.size());
+    uint64 freeSpaceSize = rFreeSpaceBlockMap.size();
+    bbuff_append(pDump, &freeSpaceSize, sizeof(freeSpaceSize));
     //
     for(FreeSpaceBlockMap::iterator itr = rFreeSpaceBlockMap.begin();itr != rFreeSpaceBlockMap.end();++itr)
     {
-        rBuff << uint64(itr->first);
-        rBuff << uint64(itr->second.size());
+        //append block size
+        bbuff_append(pDump, &itr->first, sizeof(itr->first));
+        //append block count
+        uint64 blockCount = itr->second.size();
+        bbuff_append(pDump, &blockCount, sizeof(blockCount));
         if(fullDump == true)
         {
-            rBuff.append(itr->second.data(), itr->second.size() * sizeof(uint64));
+            bbuff_append(pDump, itr->second.data(), itr->second.size() * sizeof(uint64));
         }
     }
-    
-	//try to compress
-	if(rBuff.size() > (size_t)g_cfg.DataSizeForCompression)
-	{
-        ByteBuffer rBuffOut;
-		int compressionStatus = CommonFunctions::compressGzip(g_cfg.GzipCompressionLevel, rBuff.contents(), rBuff.size(), rBuffOut, g_cfg.ZlibBufferSize);
-		if(compressionStatus == Z_OK)
-		{
-			Log.Debug(__FUNCTION__, "Data compressed. Original size: %u, new size: %u", rBuff.size(), rBuffOut.size());
-            //add compressed data
-            rBuff.clear();
-            rBuff.append(rBuffOut);
-            return ePF_COMPRESSED;
-		}
-        else
-        {
-            Log.Error(__FUNCTION__, "Data compression failed.");
-        }
-	}
-    
-    return ePF_NULL;
 }
 
 class DumpFreeSpaceThread : public ThreadContext
@@ -593,7 +575,7 @@ public:
     explicit DumpFreeSpaceThread(uint64 socketID,
                                  int64 dataFileSize,
                                  ByteBuffer &rData,
-                                 const FreeSpaceBlockMap &rFreeSpace) : m_socketID(socketID), m_dataFileSize(dataFileSize), m_rData(rData), m_rFreeSpace(rFreeSpace)
+                                 const FreeSpaceBlockMap &rFreeSpace) : m_socketID(socketID), m_dataFileSize(dataFileSize), m_rData(std::move(rData)), m_rFreeSpace(rFreeSpace)
     {
         
     }
@@ -606,77 +588,59 @@ public:
         uint32 token;
         uint32 flags;
         uint32 dumpFlags;
-        ByteBuffer rDump;
-        OUTPACKET_RESULT result;
+        static const size_t packetSize = sizeof(token)+sizeof(flags);
         
         //unpack data
         m_rData >> token >> flags >> dumpFlags;
         
+        //create buffer
+        bbuff *pDump = bbuff_create();
+        
+        //prepare packet
+        bbuff_reserve(pDump, packetSize);
+        bbuff_append(pDump, &token, sizeof(token));
+        bbuff_append(pDump, &flags, sizeof(flags));
+        
         //dump
         if(dumpFlags == eSFSDF_FULL)
         {
-            flags = _S_DiskWriter_GetFreeSpaceDump(rDump, m_rFreeSpace, m_dataFileSize, true);
+            _S_DiskWriter_GetFreeSpaceDump(pDump, m_rFreeSpace, m_dataFileSize, true);
         }
         else
         {
-            flags = _S_DiskWriter_GetFreeSpaceDump(rDump, m_rFreeSpace, m_dataFileSize, false);
+            _S_DiskWriter_GetFreeSpaceDump(pDump, m_rFreeSpace, m_dataFileSize, false);
         }
         
-        //init stream send
-        uint8 buff[32];
-        StackPacket rResponse(S_MSG_GET_FREESPACE, buff, sizeof(buff));
-        rResponse << token;
-        rResponse << flags;
-        result = g_rClientSocketHolder.StartStreamSend(m_socketID, rResponse, rDump.size());
-        //socket disconnection or something go to next socket
-        if(result != OUTPACKET_RESULT_SUCCESS)
-        {
-            Log.Error(__FUNCTION__, "StartStreamSend - Socket ID: " I64FMTD " disconnected.", m_socketID);
-            return true;
-        }
+        //calc where data start and what size it has
+        uint8 *pDumpDataBegin = pDump->storage + packetSize;
+        size_t dumpSize = pDump->size - packetSize;
         
-        //send all chunks
-        size_t chunkSize = g_cfg.SocketWriteBufferSize / 2;
-        Vector<uint8> rChunk;
-        rChunk.resize(chunkSize);
-        
-        size_t remainingData;
-        size_t readDataSize;
-        uint32 sendCounter = 0;
-        while(rDump.rpos() < rDump.size())
+        //try to compress
+        if(dumpSize > (size_t)g_cfg.DataSizeForCompression)
         {
-            remainingData = rDump.size() - rDump.rpos();
-            readDataSize = std::min(remainingData, rChunk.size());
-            rDump.read(rChunk.data(), readDataSize);
-            //send chunk
-        trySendAgain:
-            result = g_rClientSocketHolder.StreamSend(m_socketID, (const void*)rChunk.data(), readDataSize);
-            if(result == OUTPACKET_RESULT_SUCCESS)
+            bbuff *pBuffOut = bbuff_create();
+            int compressionStatus = CCommon_compressGzip(g_cfg.GzipCompressionLevel, pDumpDataBegin, dumpSize, pBuffOut, g_cfg.ZlibBufferSize);
+            if(compressionStatus == Z_OK)
             {
-                //send is ok continue with sending
-                continue;
-            }
-            else if(result == OUTPACKET_RESULT_NO_ROOM_IN_BUFFER)
-            {
-                if(sendCounter > 100)
-                {
-                    Log.Error(__FUNCTION__, "StreamSend no room in send buffer.");
-                    break;
-                }
-                
-                //socket buffer is full wait
-                Wait(100);
-                ++sendCounter;
-                goto trySendAgain;
+                flags = ePF_COMPRESSED;
+                //modify flags
+                bbuff_put(pDump, sizeof(token), &flags, sizeof(flags));
+                //prepare space and rewrite noncompressed data
+                bbuff_resize(pDump, pBuffOut->size + packetSize);
+                bbuff_put(pDump, packetSize, pBuffOut->storage, pBuffOut->size);
             }
             else
             {
-                //error interupt sending
-                Log.Error(__FUNCTION__, "StreamSend error: %u", (uint32)result);
-                break;
+                Log.Error(__FUNCTION__, "Data compression failed.");
             }
+            bbuff_destroy(pBuffOut);
         }
         
+        //send data
+        g_rClientSocketHolder.SendPacket(m_socketID, S_MSG_GET_FREESPACE, pDump);
+        
+        //clear memory
+        bbuff_destroy(pDump);
         return true;
     }
     

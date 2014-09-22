@@ -22,16 +22,11 @@ public:
     void RemoveSocket(ClientSocket *pClientSocket);
     
     //send packet
-    void SendPacket(uint64 socketID, const Packet &rPacket);
     void SendPacket(uint64 socketID, const StackPacket &rPacket);
     
     //send packet for CByteBuffer
     void SendPacket(uint64 socketID, uint16 opcode, bbuff *pData);
-   
-    //stream supoort
-    OUTPACKET_RESULT StartStreamSend(uint64 socketID, const StackPacket &rPacket, size_t dataSize);
-    OUTPACKET_RESULT StreamSend(uint64 socketID, const void *dataChunk, size_t chunkSize);
-    
+       
     //for stats
     uint64 GetAllSocketPacketQueueSize();
     

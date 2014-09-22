@@ -204,10 +204,8 @@ void ClientSocket::OnDisconnect()
 
 void ClientSocket::OutPacket(uint16 opcode, size_t len, const void* data)
 {
-    OUTPACKET_RESULT result;
     //try to send
-    result = _OutPacket(opcode, len, data);
-    Log.Debug(__FUNCTION__, "_OutPacket result: %u", (uint32)result);
+    OUTPACKET_RESULT result = _OutPacket(opcode, len, data);
     if(result == SocketEnums::OUTPACKET_RESULT_SUCCESS)
         return;
     
@@ -421,11 +419,12 @@ void ClientSocket::HandleGetActivityID(ClientSocketBuffer &rPacket)
     flags = _S_read<uint32>(rPacket, rpos);
     
     //send
-    Packet rResponse(S_MSG_GET_ACTIVITY_ID, 32);
+    uint8 buff[64];
+    StackPacket rResponse(S_MSG_GET_ACTIVITY_ID, buff, sizeof(buff));
     rResponse << token;
     rResponse << flags;
     rResponse << g_cfg.ActivityID;
-    OutPacket(rResponse.GetOpcode(), rResponse.size(), (const void*)rResponse.contents());
+    OutPacket(rResponse.GetOpcode(), rResponse.GetSize(), rResponse.GetBufferPointer());
 }
 
 void ClientSocket::SendPing()
