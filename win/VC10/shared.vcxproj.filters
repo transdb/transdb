@@ -93,8 +93,23 @@
     <ClCompile Include="..\..\src\shared\Packets\http_parser.c">
       <Filter>Packets</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\shared\Containers\avl.c">
-      <Filter>Containers</Filter>
+    <ClCompile Include="..\..\src\shared\clib\base64\base64.c">
+      <Filter>clib\base64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared\clib\Buffers\CByteBuffer.c">
+      <Filter>clib\Buffers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared\clib\Containers\avl.c">
+      <Filter>clib\Containers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared\clib\Containers\CVector.c">
+      <Filter>clib\Containers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared\clib\CCommon.c">
+      <Filter>clib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared\clib\Crc32\crc32_sse.c">
+      <Filter>clib\Crc32</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -104,7 +119,6 @@
     <ClInclude Include="..\..\src\shared\Enums.h" />
     <ClInclude Include="..\..\src\shared\Singleton.h" />
     <ClInclude Include="..\..\src\shared\Structs.h" />
-    <ClInclude Include="..\..\src\shared\crc32.h" />
     <ClInclude Include="..\..\src\shared\Auth\Crypt.h">
       <Filter>Auth</Filter>
     </ClInclude>
@@ -185,14 +199,10 @@
     </ClInclude>
     <ClInclude Include="..\..\src\shared\CrashHandler.h" />
     <ClInclude Include="..\..\src\shared\StackWalker.h" />
-    <ClInclude Include="..\..\src\shared\cpuid.h" />
     <ClInclude Include="..\..\src\shared\Containers\HashMap.h">
       <Filter>Containers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\shared\Containers\SortedVector.h">
-      <Filter>Containers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\shared\Containers\UniqueVector.h">
       <Filter>Containers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\shared\Containers\Vector.h">
@@ -237,8 +247,29 @@
     <ClInclude Include="..\..\src\shared\Packets\http_parser.h">
       <Filter>Packets</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\shared\Containers\avl.h">
-      <Filter>Containers</Filter>
+    <ClInclude Include="..\..\src\shared\clib\base64\base64.h">
+      <Filter>clib\base64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\clib\Buffers\CByteBuffer.h">
+      <Filter>clib\Buffers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\clib\Containers\avl.h">
+      <Filter>clib\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\clib\Containers\CVector.h">
+      <Filter>clib\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\clib\Log\CLog.h">
+      <Filter>clib\Log</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\clib\CCommon.h">
+      <Filter>clib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\clib\cpuid.h">
+      <Filter>clib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\clib\Crc32\crc32_sse.h">
+      <Filter>clib\Crc32</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -271,6 +302,24 @@
     </Filter>
     <Filter Include="IO">
       <UniqueIdentifier>{859f9142-6675-4cad-b7ec-ca646158956e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="clib">
+      <UniqueIdentifier>{0ee56cd5-b6c2-4480-a524-561abeb7648e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="clib\base64">
+      <UniqueIdentifier>{21ac650c-2bfb-4376-9e30-fa80a7b95b8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="clib\Buffers">
+      <UniqueIdentifier>{2fcfd9b5-8109-4d64-85c9-d9bf0d45d816}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="clib\Containers">
+      <UniqueIdentifier>{beb6919c-e089-425a-bb68-9dc3b68a2a51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="clib\Crc32">
+      <UniqueIdentifier>{a1e6e151-585f-4a42-b1db-1c53236af191}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="clib\Log">
+      <UniqueIdentifier>{02061919-c911-4ab8-9192-4db0ec127a09}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

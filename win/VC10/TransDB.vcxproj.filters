@@ -1,8 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="..\..\src\console\Block.cpp" />
-    <ClCompile Include="..\..\src\console\BlockManager.cpp" />
     <ClCompile Include="..\..\src\console\ClientSocket.cpp" />
     <ClCompile Include="..\..\src\console\Launcher.cpp" />
     <ClCompile Include="..\..\src\console\main.cpp" />
@@ -19,10 +17,10 @@
     <ClCompile Include="..\..\src\console\PythonInterface.cpp" />
     <ClCompile Include="..\..\src\console\CfgDefines.cpp" />
     <ClCompile Include="..\..\src\console\StatGenerator.cpp" />
+    <ClCompile Include="..\..\src\console\Block.c" />
+    <ClCompile Include="..\..\src\console\BlockManager.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\console\Block.h" />
-    <ClInclude Include="..\..\src\console\BlockManager.h" />
     <ClInclude Include="..\..\src\console\ClientSocket.h" />
     <ClInclude Include="..\..\src\console\Launcher.h" />
     <ClInclude Include="..\..\src\console\StdAfx.h" />
@@ -40,6 +38,8 @@
     <ClInclude Include="..\..\src\console\PythonInterface.h" />
     <ClInclude Include="..\..\src\console\CfgDefines.h" />
     <ClInclude Include="..\..\src\console\StatGenerator.h" />
+    <ClInclude Include="..\..\src\console\Block.h" />
+    <ClInclude Include="..\..\src\console\BlockManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="TransDB.rc" />

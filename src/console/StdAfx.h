@@ -34,7 +34,7 @@
 //clib
 #include "../shared/clib/CCommon.h"
 #include "../shared/clib/Buffers/CByteBuffer.h"
-#include "../shared/clib/Crc32/crc32.h"
+#include "../shared/clib/Crc32/crc32_sse.h"
 
 //Intel TBB
 #define TBB_PREVIEW_MEMORY_POOL 1
