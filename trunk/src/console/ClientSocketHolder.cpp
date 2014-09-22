@@ -64,7 +64,7 @@ void ClientSocketHolder::SendPacket(uint64 socketID, uint16 opcode, bbuff *pData
     if(pData->size > g_cfg.SocketWriteBufferSize)
     {
         //calc chunk size
-        size_t chunkSize = g_cfg.SocketWriteBufferSize / 2;
+//        size_t chunkSize = g_cfg.SocketWriteBufferSize / 2;
         
         //send packet header
         {
