@@ -224,43 +224,7 @@ void ClientSocket::OutPacket(uint16 opcode, size_t len, const void* data)
 	}
 }
 
-OUTPACKET_RESULT ClientSocket::StartStreamSend(const StackPacket &rPacket, size_t dataSize)
-{
-	if(!IsConnected())
-		return OUTPACKET_RESULT_NOT_CONNECTED;
-    
-	BurstBegin();
-	if(m_writeBuffer.GetSpace() < (rPacket.GetSize() + sizeof(PackerHeader)))
-	{
-		BurstEnd();
-		return OUTPACKET_RESULT_NO_ROOM_IN_BUFFER;
-	}
-    
-    //create header
-	PackerHeader rHeader;
-	rHeader.m_opcode = rPacket.GetOpcode();
-	rHeader.m_size = static_cast<uint32>(dataSize + rPacket.GetSize());
-    
-	// Pass the header to our send buffer
-	bool rv = BurstSend((const uint8*)&rHeader, sizeof(PackerHeader));
-    
-	// Pass the rest of the packet to our send buffer (if there is any)
-	if(rPacket.GetSize() > 0 && rv)
-	{
-		rv = BurstSend(rPacket.GetBufferPointer(), rPacket.GetSize());
-	}
-    
-	if(rv)
-	{
-		BurstPush();
-	}
-    
-	BurstEnd();
-    
-    return rv ? OUTPACKET_RESULT_SUCCESS : OUTPACKET_RESULT_SOCKET_ERROR;
-}
-
-OUTPACKET_RESULT ClientSocket::StreamSend(const void *dataChunk, size_t chunkSize)
+OUTPACKET_RESULT ClientSocket::SendRawData(const void *dataChunk, size_t chunkSize)
 {
 	if(!IsConnected())
 		return OUTPACKET_RESULT_NOT_CONNECTED;

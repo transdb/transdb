@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-#include "../shared/clib/CDefines.h"
+//#include "../shared/clib/CDefines.h"
     
 typedef struct _ConfigDefines
 {

@@ -206,7 +206,6 @@
 		8D69152616510D56002D4A28 /* ClientSocketWorkerTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ClientSocketWorkerTask.h; sourceTree = "<group>"; };
 		8D7251B015E6178400E9E1EB /* Block.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Block.h; sourceTree = "<group>"; };
 		8D7251B315E6211600E9E1EB /* Block.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Block.c; sourceTree = "<group>"; usesTabs = 0; };
-		8D73E3DC19C0A1BC00C1FAFB /* CDefines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CDefines.h; sourceTree = "<group>"; };
 		8D7C24DF19C7260300AB87B5 /* cpuid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cpuid.h; sourceTree = "<group>"; };
 		8D8F155B1635741600A72AD7 /* MemoryAllocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MemoryAllocator.h; sourceTree = "<group>"; };
 		8D922B9C15F49DD300F8AAF7 /* ClientSocketHolder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ClientSocketHolder.h; sourceTree = "<group>"; };
@@ -528,7 +527,6 @@
 				8DACDCF319C0636E00B1E092 /* Buffers */,
 				8D9AF24319C07D1C007F88E8 /* CCommon.c */,
 				8D9AF24219C07D13007F88E8 /* CCommon.h */,
-				8D73E3DC19C0A1BC00C1FAFB /* CDefines.h */,
 				8DACDCEE19C0631600B1E092 /* Containers */,
 				8D7C24DF19C7260300AB87B5 /* cpuid.h */,
 				8D31341D19C72722006FC720 /* Crc32 */,
