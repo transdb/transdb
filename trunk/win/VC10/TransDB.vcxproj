@@ -19,8 +19,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\console\Block.cpp" />
-    <ClCompile Include="..\..\src\console\BlockManager.cpp" />
+    <ClCompile Include="..\..\src\console\Block.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\src\console\BlockManager.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\src\console\CfgDefines.cpp" />
     <ClCompile Include="..\..\src\console\ClientSocket.cpp" />
     <ClCompile Include="..\..\src\console\ClientSocketHolder.cpp" />

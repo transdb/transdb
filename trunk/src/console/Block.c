@@ -273,7 +273,7 @@ void Block_GetRecords(uint8 *pBlock, bbuff *pData)
             else
             {
                 //calc decompressed record size
-                recordSize = pData->wpos - wpos;
+                recordSize = (uint16)(pData->wpos - wpos);
                 //change record size
                 bbuff_put(pData, wpos - sizeof(recordSize), &recordSize, sizeof(recordSize));
                 //stats

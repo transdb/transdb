@@ -29,9 +29,14 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\shared\Auth\Crypt.cpp" />
     <ClCompile Include="..\..\src\shared\CallBack.cpp" />
+    <ClCompile Include="..\..\src\shared\clib\base64\base64.c" />
+    <ClCompile Include="..\..\src\shared\clib\Buffers\CByteBuffer.c" />
+    <ClCompile Include="..\..\src\shared\clib\CCommon.c" />
+    <ClCompile Include="..\..\src\shared\clib\Containers\avl.c" />
+    <ClCompile Include="..\..\src\shared\clib\Containers\CVector.c" />
+    <ClCompile Include="..\..\src\shared\clib\Crc32\crc32_sse.c" />
     <ClCompile Include="..\..\src\shared\CommonFunctions.cpp" />
     <ClCompile Include="..\..\src\shared\Config\Config.cpp" />
-    <ClCompile Include="..\..\src\shared\Containers\avl.c" />
     <ClCompile Include="..\..\src\shared\CrashHandler.cpp" />
     <ClCompile Include="..\..\src\shared\Defines.cpp" />
     <ClCompile Include="..\..\src\shared\IO\IO.cpp" />
@@ -66,16 +71,20 @@
   <ItemGroup>
     <ClInclude Include="..\..\src\shared\Auth\Crypt.h" />
     <ClInclude Include="..\..\src\shared\CallBack.h" />
+    <ClInclude Include="..\..\src\shared\clib\base64\base64.h" />
+    <ClInclude Include="..\..\src\shared\clib\Buffers\CByteBuffer.h" />
+    <ClInclude Include="..\..\src\shared\clib\CCommon.h" />
+    <ClInclude Include="..\..\src\shared\clib\Containers\avl.h" />
+    <ClInclude Include="..\..\src\shared\clib\Containers\CVector.h" />
+    <ClInclude Include="..\..\src\shared\clib\cpuid.h" />
+    <ClInclude Include="..\..\src\shared\clib\Crc32\crc32_sse.h" />
+    <ClInclude Include="..\..\src\shared\clib\Log\CLog.h" />
     <ClInclude Include="..\..\src\shared\CommonFunctions.h" />
     <ClInclude Include="..\..\src\shared\Config\Config.h" />
-    <ClInclude Include="..\..\src\shared\Containers\avl.h" />
     <ClInclude Include="..\..\src\shared\Containers\HashMap.h" />
     <ClInclude Include="..\..\src\shared\Containers\SortedVector.h" />
-    <ClInclude Include="..\..\src\shared\Containers\UniqueVector.h" />
     <ClInclude Include="..\..\src\shared\Containers\Vector.h" />
-    <ClInclude Include="..\..\src\shared\cpuid.h" />
     <ClInclude Include="..\..\src\shared\CrashHandler.h" />
-    <ClInclude Include="..\..\src\shared\crc32.h" />
     <ClInclude Include="..\..\src\shared\Defines.h" />
     <ClInclude Include="..\..\src\shared\Enums.h" />
     <ClInclude Include="..\..\src\shared\IO\IO.h" />

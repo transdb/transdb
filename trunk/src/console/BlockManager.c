@@ -6,16 +6,11 @@
 //  Copyright (c) 2012 Miroslav Kudrnac. All rights reserved.
 //
 
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-#include <stdio.h>
-#include <alloca.h>
 #include "tbb/scalable_allocator.h"
 #include "../shared/zlib/zlib.h"
 #include "../shared/clib/CCommon.h"
 #include "../shared/clib/Log/CLog.h"
-#include "../shared/clib/Crc32/crc32.h"
+#include "../shared/clib/Crc32/crc32_sse.h"
 #include "CfgDefines.h"
 #include "Block.h"
 #include "BlockManager.h"
@@ -191,7 +186,7 @@ uint32 blman_write_record(blman *self, uint64 recordkey, const uint8 *record, ui
         {
             //replace record ptr and set new record size
             record = rCompressedRecord;
-            recordsize = outSize;
+            recordsize = (uint16)outSize;
             g_stats.NumOfRecordCompressions++;
         }
         else
@@ -400,7 +395,11 @@ void blman_defragment_data(blman *self)
 uint32 blman_get_blocks_crc32(blman *self)
 {
     //C99 - VLA
-	uint32 crc32Array[self->blockCount];
+#ifndef WIN32
+	uint32 *crc32Array[self->blockCount];
+#else
+	uint32 *crc32Array = alloca(sizeof(uint32) * self->blockCount);
+#endif
 
 	for (uint16 i = 0; i < self->blockCount; ++i)
 	{

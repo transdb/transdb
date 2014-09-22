@@ -14,7 +14,6 @@ class DiskWriter;
 class Storage : public ThreadContext
 {   
     friend class DiskWriter;
-    friend class BlockManager;
     friend class StatGenerator;
     friend class ClientSocketWorkerTask;
     
