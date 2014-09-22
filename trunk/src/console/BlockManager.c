@@ -396,7 +396,7 @@ uint32 blman_get_blocks_crc32(blman *self)
 {
     //C99 - VLA
 #ifndef WIN32
-	uint32 *crc32Array[self->blockCount];
+	uint32 crc32Array[self->blockCount];
 #else
 	uint32 *crc32Array = alloca(sizeof(uint32) * self->blockCount);
 #endif
