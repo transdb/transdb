@@ -110,7 +110,7 @@ void blman_dealloc_blocks(blman *self)
 
     //clear indexes
     avl_destroy(self->blockIndex, &blidxnode_destroy);
-    self->blockIndex = avl_create(&blockindex_cmp, NULL, NULL);
+    self->blockIndex = avl_create(&blockindex_cmp, NULL, &my_avl_allocator);
 }
 
 blman *blman_create(uint8 *blocks, uint16 blockCount)
