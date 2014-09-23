@@ -52,7 +52,7 @@ struct StatsDescription
     const char *m_pDescription;
 };
 
-static const StatsDescription g_StatsDescriptionArray[] =
+static const StatsDescription m_StatsDescriptionArray[] =
 {
     {"svn_version",                         "Source code SVN revision"},
     {"tbb_version",                         "Intel thread building blocks version"},
@@ -72,7 +72,7 @@ static const StatsDescription g_StatsDescriptionArray[] =
     {"block_mempool_size",                  "Amount of memory used by blocks"},
     {"recordindex_mempool_size",            "Amount of memory used by RecordIndexes"},
     {"block_manager_mempool_size",          "Amount of memory used by BlockManagers"},
-    {"socket_send_packet_queue",            "Amount fo packets wating for send"},
+    {"socket_send_packet_queue",            "Amount of packets wating for send"},
     {"socket_tasks_queue",                  "Size of task queue used for write operations"},
     {"socket_read_tasks_queue",             "Size of task queue used for read operations"},
     {"socket_data_received",                "Amount of bytes reveived through socket"},
@@ -92,12 +92,12 @@ static const StatsDescription g_StatsDescriptionArray[] =
 
 INLINE static const char *GetDecription(const char *pKey)
 {
-    size_t araySize = sizeof(g_StatsDescriptionArray) / sizeof(StatsDescription);
+    size_t araySize = sizeof(m_StatsDescriptionArray) / sizeof(StatsDescription);
     for(size_t i = 0;i < araySize;++i)
     {
-        if(strcmp(pKey, g_StatsDescriptionArray[i].m_pKey) == 0)
+        if(strcmp(pKey, m_StatsDescriptionArray[i].m_pKey) == 0)
         {
-            return g_StatsDescriptionArray[i].m_pDescription;
+            return m_StatsDescriptionArray[i].m_pDescription;
         }
     }
     return "<no decription>";
