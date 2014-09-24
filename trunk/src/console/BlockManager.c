@@ -85,7 +85,7 @@ void blman_realloc_blocks(blman *self)
     self->blockCount += 1;
 
     //realloc block array
-    void *pNewBlocks = scalable_aligned_realloc(self->blocks, self->blockCount * BLOCK_SIZE, 512);
+    void *pNewBlocks = scalable_aligned_realloc(self->blocks, self->blockCount * BLOCK_SIZE, g_DataFileMallocAlignment);
     assert(pNewBlocks);
     
     //set new pointer
