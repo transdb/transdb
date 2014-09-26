@@ -358,7 +358,7 @@ void ClientSocket::HandlePong(bbuff *pData)
     m_lastPong = UNIXTIME;
     
 	// Dynamically change nagle buffering status based on latency.
-	if(m_latency >= g_cfg.NagleLatency)
+	if(m_latency >= (uint32)g_cfg.NagleLatency)
 	{
 		if(!m_nagleEnabled)
 		{
