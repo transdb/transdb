@@ -85,7 +85,7 @@ bool ClientSocketWorkerTask::run()
     }
     
     //data from queue
-	ClientSocketTaskData *pClientSocketTaskData;
+	ClientSocketTaskData rTaskData;
     
     try
     {
@@ -99,9 +99,9 @@ bool ClientSocketWorkerTask::run()
             //get task data from queue - abort throws Exception
             try {
                 if(m_readerThread)
-                    m_rClientSocketWorker.m_rReadTaskDataQueue.pop(pClientSocketTaskData);
+                    m_rClientSocketWorker.m_rReadTaskDataQueue.pop(rTaskData);
                 else
-                    m_rClientSocketWorker.m_rTaskDataQueue.pop(pClientSocketTaskData);
+                    m_rClientSocketWorker.m_rTaskDataQueue.pop(rTaskData);
             }
             catch(tbb::user_abort&) {
                 Log.Notice(__FUNCTION__, "Task aborted. ReadTask: %u", (uint32)m_readerThread);
@@ -109,22 +109,21 @@ bool ClientSocketWorkerTask::run()
             }
 
             //process task
-            if(pClientSocketTaskData->opcode() < OP_NUM && m_ClientSocketWorkerTaskHandlers[pClientSocketTaskData->opcode()] != NULL)
+            if(rTaskData.m_opcode < OP_NUM && m_ClientSocketWorkerTaskHandlers[rTaskData.m_opcode] != NULL)
             {
-                Log.Debug(__FUNCTION__, "Processing packet opcode: (0x%.4X)", pClientSocketTaskData->opcode());
-                (void)(this->*m_ClientSocketWorkerTaskHandlers[pClientSocketTaskData->opcode()])(*pClientSocketTaskData);
+                Log.Debug(__FUNCTION__, "Processing packet opcode: (0x%.4X)", rTaskData.m_opcode);
+                (void)(this->*m_ClientSocketWorkerTaskHandlers[rTaskData.m_opcode])(rTaskData);
             }
             else
             {
-                Log.Warning(__FUNCTION__, "Unknown opcode (0x%.4X)", pClientSocketTaskData->opcode());
+                Log.Warning(__FUNCTION__, "Unknown opcode (0x%.4X)", rTaskData.m_opcode);
             }
             
             //check memory
             m_rStorage.CheckMemory(*m_pLRUCache);
                         
-            //call ~ctor + dealloc task data
-            pClientSocketTaskData->~ClientSocketTaskData();
-			m_rClientSocketWorker.m_pFixedPool->free(pClientSocketTaskData);
+            //dealloc task data
+            bbuff_destroy(rTaskData.m_pData);
         }
     }
     catch(...)
@@ -137,37 +136,41 @@ bool ClientSocketWorkerTask::run()
     return true;
 }
 
-void ClientSocketWorkerTask::HandleWriteData(ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleWriteData(ClientSocketTaskData &rTaskData)
 {
     uint32 token;
     uint32 flags;
-    uint64 userID;
-    uint64 timeStamp;
+    uint64 X;
+    uint64 Y;
     uint8 *pRecord;
     uint16 recordSize;
     uint32 writeStatus;
     
-    //TODO: check overflow
     //read data from packet
-    rClientSocketTaskData >> token >> flags >> userID >> timeStamp;
-    recordSize = (uint16)(rClientSocketTaskData.size() - rClientSocketTaskData.rpos());
-    pRecord = (uint8*)(rClientSocketTaskData.contents() + rClientSocketTaskData.rpos());
+    bbuff_read(rTaskData.m_pData, &token, sizeof(token));
+    bbuff_read(rTaskData.m_pData, &flags, sizeof(flags));
+    bbuff_read(rTaskData.m_pData, &X, sizeof(X));
+    bbuff_read(rTaskData.m_pData, &Y, sizeof(Y));
+    
+    //TODO: check overflow
+    recordSize = (uint16)(rTaskData.m_pData->size - rTaskData.m_pData->rpos);
+    pRecord = (uint8*)(rTaskData.m_pData->storage + rTaskData.m_pData->rpos);
     
     //write data with result
-    writeStatus = m_rStorage.WriteData(m_rDataFileHandle, *m_pLRUCache, userID, timeStamp, pRecord, recordSize);
+    writeStatus = m_rStorage.WriteData(m_rDataFileHandle, *m_pLRUCache, X, Y, pRecord, recordSize);
     
     //send back data
     uint8 buff[32];
     StackPacket rResponse(S_MSG_WRITE_DATA, buff, sizeof(buff));
     rResponse << token;
     rResponse << flags;
-    rResponse << userID;
-    rResponse << timeStamp;
+    rResponse << X;
+    rResponse << Y;
     rResponse << writeStatus;
-    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
+    g_rClientSocketHolder.SendPacket(rTaskData.m_socketID, rResponse);
 }
 
-void ClientSocketWorkerTask::HandleReadData(ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleReadData(ClientSocketTaskData &rTaskData)
 {
     uint32 token;
     uint32 flags;
@@ -176,7 +179,10 @@ void ClientSocketWorkerTask::HandleReadData(ClientSocketTaskData &rClientSocketT
     static const size_t packetSize = sizeof(token)+sizeof(flags)+sizeof(X)+sizeof(Y);
     
     //read data from packet
-    rClientSocketTaskData >> token >> flags >> X >> Y;
+    bbuff_read(rTaskData.m_pData, &token, sizeof(token));
+    bbuff_read(rTaskData.m_pData, &flags, sizeof(flags));
+    bbuff_read(rTaskData.m_pData, &X, sizeof(X));
+    bbuff_read(rTaskData.m_pData, &Y, sizeof(Y));
     
     //buffer for read data
     bbuff *pReadData = bbuff_create();
@@ -227,30 +233,33 @@ void ClientSocketWorkerTask::HandleReadData(ClientSocketTaskData &rClientSocketT
 	}
     
     //send back
-    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), S_MSG_READ_DATA, pReadData);
+    g_rClientSocketHolder.SendPacket(rTaskData.m_socketID, S_MSG_READ_DATA, pReadData);
     
     //clear memory
     bbuff_destroy(pReadData);
 }
 
-void ClientSocketWorkerTask::HandleDeleteData(ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleDeleteData(ClientSocketTaskData &rTaskData)
 {
     uint32 token;
     uint32 flags;
-    uint64 userID;
-    uint64 timeStamp;
+    uint64 X;
+    uint64 Y;
     
     //read data from packet
-    rClientSocketTaskData >> token >> flags >> userID >> timeStamp;
+    bbuff_read(rTaskData.m_pData, &token, sizeof(token));
+    bbuff_read(rTaskData.m_pData, &flags, sizeof(flags));
+    bbuff_read(rTaskData.m_pData, &X, sizeof(X));
+    bbuff_read(rTaskData.m_pData, &Y, sizeof(Y));
     
     //read data - if timeStamp == 0 then delete all datas under userID
-    if(timeStamp == 0)
+    if(Y == 0)
     {
-        m_rStorage.DeleteData(*m_pLRUCache, userID);
+        m_rStorage.DeleteData(*m_pLRUCache, X);
     }
     else
     {
-        m_rStorage.DeleteData(m_rDataFileHandle, *m_pLRUCache, userID, timeStamp);
+        m_rStorage.DeleteData(m_rDataFileHandle, *m_pLRUCache, X, Y);
     }
     
     //send back data
@@ -258,102 +267,27 @@ void ClientSocketWorkerTask::HandleDeleteData(ClientSocketTaskData &rClientSocke
     StackPacket rResponse(S_MSG_DELETE_DATA, buff, sizeof(buff));
     rResponse << token;
     rResponse << flags;
-    rResponse << userID;
-    rResponse << timeStamp;
-    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
+    rResponse << X;
+    rResponse << Y;
+    g_rClientSocketHolder.SendPacket(rTaskData.m_socketID, rResponse);
 }
 
-void ClientSocketWorkerTask::HandleGetAllX(ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleGetAllX(ClientSocketTaskData &rTaskData)
 {
-//    uint32 token;
-//    uint32 flags;
-//    uint32 sortFlags;
-//    OUTPACKET_RESULT result;
-//    size_t XKeysSize;
-//    
-//    //vector
-//    XKeyVec rXKeyVec;
-//    
-//    //read data from packet
-//    rClientSocketTaskData >> token >> flags >> sortFlags;
-//    
-//    //load all keys
-//    m_rStorage.GetAllX(rXKeyVec, sortFlags);
-//    
-//    //calc size
-//    XKeysSize = rXKeyVec.size() * sizeof(XKeyVec::value_type);
-//    
-//    //init stream send
-//    uint8 buff[32];
-//    StackPacket rResponse(S_MSG_GET_ALL_X, buff, sizeof(buff));
-//    rResponse << token;
-//    rResponse << flags;
-//    result = g_rClientSocketHolder.StartStreamSend(rClientSocketTaskData.socketID(), rResponse, XKeysSize);
-//    //socket disconnection or something go to next socket
-//    if(result != OUTPACKET_RESULT_SUCCESS)
-//    {
-//        Log.Error(__FUNCTION__, "StartStreamSend - Socket ID: " I64FMTD " disconnected.", rClientSocketTaskData.socketID());
-//        return;
-//    }
-//    
-//    //send all chunks
-//    size_t chunkSize = g_cfg.SocketWriteBufferSize / 2;
-//    ByteBuffer rChunk(chunkSize);
-//    uint32 sendCounter = 0;
-//    //
-//    for(size_t i = 0;i < rXKeyVec.size();++i)
-//    {
-//        //add data to chunk
-//        rChunk << rXKeyVec[i];
-//        
-//        //if chunk full or we are on end, perform send
-//        if(rChunk.size() >= chunkSize || (i == (rXKeyVec.size() - 1)))
-//        {
-//            //send chunk
-//        trySendAgain:
-//            result = g_rClientSocketHolder.StreamSend(rClientSocketTaskData.socketID(), rChunk.contents(), rChunk.size());
-//            if(result == OUTPACKET_RESULT_SUCCESS)
-//            {
-//                //clear chunk
-//                rChunk.resize(0);
-//                //send is ok continue with sending
-//                continue;
-//            }
-//            else if(result == OUTPACKET_RESULT_NO_ROOM_IN_BUFFER)
-//            {
-//                if(sendCounter > 100)
-//                {
-//                    Log.Error(__FUNCTION__, "StreamSend no room in send buffer.");
-//                    break;
-//                }
-//                
-//                //socket buffer is full wait
-//                Wait(100);
-//                ++sendCounter;
-//                goto trySendAgain;
-//            }
-//            else
-//            {
-//                //error interupt sending
-//                Log.Error(__FUNCTION__, "StreamSend error: %u", (uint32)result);
-//                break;
-//            }
-//        }
-//    }
+    //TODO: implement
 }
 
-void ClientSocketWorkerTask::HandleGetAllY(ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleGetAllY(ClientSocketTaskData &rTaskData)
 {
     uint32 token;
     uint32 flags;
     uint64 X;
     static const size_t packetSize = sizeof(token)+sizeof(flags)+sizeof(X);
     
-    //buffer for y keys
-    ByteBuffer rY;
-    
     //read data from packet
-    rClientSocketTaskData >> token >> flags >> X;
+    bbuff_read(rTaskData.m_pData, &token, sizeof(token));
+    bbuff_read(rTaskData.m_pData, &flags, sizeof(flags));
+    bbuff_read(rTaskData.m_pData, &X, sizeof(X));
     
     //buffer for all Y
     bbuff *pY = bbuff_create();
@@ -396,20 +330,21 @@ void ClientSocketWorkerTask::HandleGetAllY(ClientSocketTaskData &rClientSocketTa
 	}
     
     //send back
-    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), S_MSG_GET_ALL_Y, pY);
+    g_rClientSocketHolder.SendPacket(rTaskData.m_socketID, S_MSG_GET_ALL_Y, pY);
     
     //clear memory
     bbuff_destroy(pY);
 }
 
-void ClientSocketWorkerTask::HandleStatus(ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleStatus(ClientSocketTaskData &rTaskData)
 {
     uint32 token;
     uint32 flags;
     static const size_t packetSize = sizeof(token)+sizeof(flags);
     
     //read data from packet
-    rClientSocketTaskData >> token >> flags;
+    bbuff_read(rTaskData.m_pData, &token, sizeof(token));
+    bbuff_read(rTaskData.m_pData, &flags, sizeof(flags));
     
     //buffer for stats
     bbuff *pBuff = bbuff_create();
@@ -448,27 +383,30 @@ void ClientSocketWorkerTask::HandleStatus(ClientSocketTaskData &rClientSocketTas
 	}
     
     //send back
-    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), S_MSG_STATUS, pBuff);
+    g_rClientSocketHolder.SendPacket(rTaskData.m_socketID, S_MSG_STATUS, pBuff);
     
     //clear memory
     bbuff_destroy(pBuff);
 }
 
-void ClientSocketWorkerTask::HandleDeleteX(ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleDeleteX(ClientSocketTaskData &rTaskData)
 {
     uint32 token;
     uint32 flags;
     uint8 *pXs;
     size_t XSize;
 
+    //TODO: use bbuff
 	//for decompresion
 	ByteBuffer rBuffOut;
     
-    //TODO: check overflow
     //read data from packet
-    rClientSocketTaskData >> token >> flags;
-    XSize = rClientSocketTaskData.size() - rClientSocketTaskData.rpos();
-    pXs = (uint8*)(rClientSocketTaskData.contents() + rClientSocketTaskData.rpos());
+    bbuff_read(rTaskData.m_pData, &token, sizeof(token));
+    bbuff_read(rTaskData.m_pData, &flags, sizeof(flags));
+    
+    //TODO: check overflow
+    XSize = rTaskData.m_pData->size - rTaskData.m_pData->rpos;
+    pXs = (uint8*)(rTaskData.m_pData->storage + rTaskData.m_pData->rpos);
     
     //decompress
     if(flags & ePF_COMPRESSED)
@@ -508,24 +446,26 @@ void ClientSocketWorkerTask::HandleDeleteX(ClientSocketTaskData &rClientSocketTa
     StackPacket rResponse(S_MSG_DELETE_X, buff, sizeof(buff));
     rResponse << token;
     rResponse << flags;
-    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
+    g_rClientSocketHolder.SendPacket(rTaskData.m_socketID, rResponse);
 }
 
-void ClientSocketWorkerTask::HandleDefragmentData(ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleDefragmentData(ClientSocketTaskData &rTaskData)
 {
     uint32 token;
     uint32 flags;
     uint8 *pXs;
     size_t XSize;
     
-	//for compresion
-	ByteBuffer rBuffOut;
+    //for compresion
+    ByteBuffer rBuffOut;
+    
+    //read data from packet
+    bbuff_read(rTaskData.m_pData, &token, sizeof(token));
+    bbuff_read(rTaskData.m_pData, &flags, sizeof(flags));
     
     //TODO: check overflow
-    //read data from packet
-    rClientSocketTaskData >> token >> flags;
-    XSize = rClientSocketTaskData.size() - rClientSocketTaskData.rpos();
-    pXs = (uint8*)(rClientSocketTaskData.contents() + rClientSocketTaskData.rpos());
+    XSize = rTaskData.m_pData->size - rTaskData.m_pData->rpos;
+    pXs = (uint8*)(rTaskData.m_pData->storage + rTaskData.m_pData->rpos);
     
     //decompress
     if(flags & ePF_COMPRESSED)
@@ -565,25 +505,27 @@ void ClientSocketWorkerTask::HandleDefragmentData(ClientSocketTaskData &rClientS
     StackPacket rResponse(S_MSG_DEFRAMENT_DATA, buff, sizeof(buff));
     rResponse << token;
     rResponse << flags;
-    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
+    g_rClientSocketHolder.SendPacket(rTaskData.m_socketID, rResponse);
 }
 
-void ClientSocketWorkerTask::HandleGetFreeSpace(ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleGetFreeSpace(ClientSocketTaskData &rTaskData)
 {
     uint32 token;
     uint32 flags;
     uint32 dumpFlags; //0 - full dump, 1 - only counts
     
     //read data from packet
-    rClientSocketTaskData >> token >> flags >> dumpFlags;
+    bbuff_read(rTaskData.m_pData, &token, sizeof(token));
+    bbuff_read(rTaskData.m_pData, &flags, sizeof(flags));
+    bbuff_read(rTaskData.m_pData, &dumpFlags, sizeof(dumpFlags));
     
     //get data
-    m_rStorage.GetFreeSpaceDump(rClientSocketTaskData.socketID(), token, flags, dumpFlags);
+    m_rStorage.GetFreeSpaceDump(rTaskData.m_socketID, token, flags, dumpFlags);
     
     //Response will be send from DiskWriter
 }
 
-void ClientSocketWorkerTask::HandleWriteDataNum(ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleWriteDataNum(ClientSocketTaskData &rTaskData)
 {
     uint32 token;
     uint32 flags;
@@ -593,16 +535,19 @@ void ClientSocketWorkerTask::HandleWriteDataNum(ClientSocketTaskData &rClientSoc
     ByteBuffer rData;
     uint32 writeStatus = 0;
     
+    //TODO: use bbuff
 	//for decompresion
 	ByteBuffer rBuffOut;
     
     //read data from packet
-    rClientSocketTaskData >> token >> flags >> X;
+    bbuff_read(rTaskData.m_pData, &token, sizeof(token));
+    bbuff_read(rTaskData.m_pData, &flags, sizeof(flags));
+    bbuff_read(rTaskData.m_pData, &X, sizeof(X));
     
     //TODO: check overflow
     //get data size
-    dataSize = rClientSocketTaskData.size() - rClientSocketTaskData.rpos();
-    pData = (uint8*)(rClientSocketTaskData.contents() + rClientSocketTaskData.rpos());
+    dataSize = rTaskData.m_pData->size - rTaskData.m_pData->rpos;
+    pData = (uint8*)(rTaskData.m_pData->storage + rTaskData.m_pData->rpos);
     
     //decompress
     if(flags & ePF_COMPRESSED)
@@ -652,17 +597,18 @@ void ClientSocketWorkerTask::HandleWriteDataNum(ClientSocketTaskData &rClientSoc
     rResponse << flags;
     rResponse << X;
     rResponse << writeStatus;
-    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), rResponse);
+    g_rClientSocketHolder.SendPacket(rTaskData.m_socketID, rResponse);
 }
 
-void ClientSocketWorkerTask::HandleReadLog(ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleReadLog(ClientSocketTaskData &rTaskData)
 {
     uint32 token;
     uint32 flags;
     static const size_t packetSize = sizeof(token)+sizeof(flags);
     
     //read data from packet
-    rClientSocketTaskData >> token >> flags;
+    bbuff_read(rTaskData.m_pData, &token, sizeof(token));
+    bbuff_read(rTaskData.m_pData, &flags, sizeof(flags));
     
     //buffer for log
     bbuff *pBuff = bbuff_create();
@@ -701,20 +647,21 @@ void ClientSocketWorkerTask::HandleReadLog(ClientSocketTaskData &rClientSocketTa
     }
     
     //send back
-    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), S_MSG_READ_LOG, pBuff);
+    g_rClientSocketHolder.SendPacket(rTaskData.m_socketID, S_MSG_READ_LOG, pBuff);
     
     //clear memory
     bbuff_destroy(pBuff);
 }
 
-void ClientSocketWorkerTask::HandleReadConfig(ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleReadConfig(ClientSocketTaskData &rTaskData)
 {
     uint32 token;
     uint32 flags;
     static const size_t packetSize = sizeof(token)+sizeof(flags);
     
     //read data from packet
-    rClientSocketTaskData >> token >> flags;
+    bbuff_read(rTaskData.m_pData, &token, sizeof(token));
+    bbuff_read(rTaskData.m_pData, &flags, sizeof(flags));
     
     //buffer for config
     bbuff *pBuff = bbuff_create();
@@ -775,27 +722,28 @@ void ClientSocketWorkerTask::HandleReadConfig(ClientSocketTaskData &rClientSocke
     }
     
     //send back
-    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), S_MSG_READ_CONFIG, pBuff);
+    g_rClientSocketHolder.SendPacket(rTaskData.m_socketID, S_MSG_READ_CONFIG, pBuff);
     
     //clear memory
     bbuff_destroy(pBuff);
 }
 
-void ClientSocketWorkerTask::HandleDefragmentFreeSpace(ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleDefragmentFreeSpace(ClientSocketTaskData &rTaskData)
 {
     uint32 token;
     uint32 flags;
     
     //read data from packet
-    rClientSocketTaskData >> token >> flags;
+    bbuff_read(rTaskData.m_pData, &token, sizeof(token));
+    bbuff_read(rTaskData.m_pData, &flags, sizeof(flags));
     
     //process
-    m_rStorage.DefragmentFreeSpace(rClientSocketTaskData.socketID(), token, flags);
+    m_rStorage.DefragmentFreeSpace(rTaskData.m_socketID, token, flags);
     
     //Response will be send from DiskWriter
 }
 
-void ClientSocketWorkerTask::HandleExecutePythonScript(ClientSocketTaskData &rClientSocketTaskData)
+void ClientSocketWorkerTask::HandleExecutePythonScript(ClientSocketTaskData &rTaskData)
 {
     uint32 token;
     uint32 flags;
@@ -804,12 +752,13 @@ void ClientSocketWorkerTask::HandleExecutePythonScript(ClientSocketTaskData &rCl
     static const size_t packetSize = sizeof(token)+sizeof(flags);
     
     //read data from packet
-    rClientSocketTaskData >> token >> flags;
+    bbuff_read(rTaskData.m_pData, &token, sizeof(token));
+    bbuff_read(rTaskData.m_pData, &flags, sizeof(flags));
 
     //TODO: check overflow
     //get data size
-    dataSize = rClientSocketTaskData.size() - rClientSocketTaskData.rpos();
-    pData = (uint8*)(rClientSocketTaskData.contents() + rClientSocketTaskData.rpos());
+    dataSize = rTaskData.m_pData->size - rTaskData.m_pData->rpos;
+    pData = (uint8*)(rTaskData.m_pData->storage + rTaskData.m_pData->rpos);
 
     //buffer for python script result
     bbuff *pBuff = bbuff_create();
@@ -848,7 +797,7 @@ void ClientSocketWorkerTask::HandleExecutePythonScript(ClientSocketTaskData &rCl
     }
     
     //send back
-    g_rClientSocketHolder.SendPacket(rClientSocketTaskData.socketID(), S_MSG_EXEC_PYTHON_SCRIPT, pBuff);
+    g_rClientSocketHolder.SendPacket(rTaskData.m_socketID, S_MSG_EXEC_PYTHON_SCRIPT, pBuff);
     
     //clear memory
     bbuff_destroy(pBuff);

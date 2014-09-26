@@ -12,8 +12,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-//#include "../shared/clib/CDefines.h"
     
 typedef struct _ConfigDefines
 {
@@ -45,6 +43,7 @@ typedef struct _ConfigDefines
     uint32  SocketWriteBufferSize;
     int     PingTimeout;
     int     PingSendInterval;
+    int     NagleLatency;
     int     MaxParallelTasks;
     int     MaxParallelReadTasks;
     int     MaxTasksInQueue;

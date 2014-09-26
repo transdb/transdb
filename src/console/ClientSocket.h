@@ -19,8 +19,6 @@ struct PackerHeader
 };
 #pragma pack(pop)
 
-typedef Vector<uint8> ClientSocketBuffer;
-
 class ClientSocket : public Socket
 {
     typedef std::queue<Packet*>     PacketQueue;
@@ -34,10 +32,10 @@ public:
 	void OnDisconnect();
     
     //handlers
-    void QueuePacket(ClientSocketBuffer &rPacket);
-    void QueueReadPacket(ClientSocketBuffer &rPacket);
-    void HandlePong(ClientSocketBuffer &rPacket);
-    void HandleGetActivityID(ClientSocketBuffer &rPacket);
+    void QueueWritePacket(bbuff*);
+    void QueueReadPacket(bbuff*);
+    void HandlePong(bbuff*);
+    void HandleGetActivityID(bbuff*);
     
     //queue
     void ProcessQueue();
@@ -70,7 +68,7 @@ private:
     bool                    m_nagleEnabled;
     volatile PacketQueue    m_packetQueue;
     std::mutex              m_packetQueueLock;
-    ClientSocketBuffer      m_rClientSocketBuffer;
+    bbuff*                  m_pReceiveBuff;
 };
 
 #endif

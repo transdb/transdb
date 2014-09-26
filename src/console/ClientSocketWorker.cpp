@@ -43,18 +43,12 @@ ClientSocketWorker *ClientSocketWorker::create()
     return pClientSocketWorker;
 }
 
-ClientSocketWorker::ClientSocketWorker() : m_pStorage(NULL), m_pPythonInterface(NULL), m_pConfigWatcher(NULL), m_exception(false), m_pFixedPool(NULL), m_pFixedPoolMem(NULL)
+ClientSocketWorker::ClientSocketWorker() : m_pStorage(NULL), m_pPythonInterface(NULL), m_pConfigWatcher(NULL), m_exception(false)
 {
-    
 }
 
 ClientSocketWorker::~ClientSocketWorker()
 {
-	//destroy pool
-	delete m_pFixedPool;
-	m_pFixedPool = NULL;
-	::free(m_pFixedPoolMem);
-	m_pFixedPoolMem = NULL;
 }
 
 //init storage, load index and data file
@@ -99,22 +93,6 @@ bool ClientSocketWorker::InitPythonInterface()
 //starts worker threads
 bool ClientSocketWorker::InitWorkerThreads()
 {
-	size_t poolSize;
-
-	//allocate pool 2 times bigger than needed, for mem pool overhead, min size 8MB
-	poolSize = ((g_cfg.MaxTasksInQueue + g_cfg.MaxReadTasksInQueue) * sizeof(ClientSocketTaskData)) * 2;
-    poolSize = std::max<size_t>(poolSize, 8*1024*1024);
-    Log.Notice(__FUNCTION__, "Creating ClientSocketWorker memory pool size: " I64FMTD, poolSize);
-    
-	m_pFixedPoolMem = ::malloc(poolSize);
-    if(m_pFixedPoolMem == NULL)
-    {
-        Log.Error(__FUNCTION__, "ClientSocketWorker memory pool create failed - no free memory.");
-        return false;
-    }
-    //create tbb fixed pool
-	m_pFixedPool = new tbb::fixed_pool(m_pFixedPoolMem, poolSize);
-
 	//set queue limit
 	m_rTaskDataQueue.set_capacity(g_cfg.MaxTasksInQueue);
     //set read queue limit
@@ -181,38 +159,20 @@ void ClientSocketWorker::DestroyStorage()
     m_pStorage = NULL;
 }
 
-void ClientSocketWorker::QueuePacket(uint16 opcode, uint64 socketID, ClientSocketBuffer &rPacket)
+void ClientSocketWorker::QueuePacket(uint16 opcode, uint64 socketID, bbuff *pData, bool writeTask)
 {
-	void *pClientSocketTaskDataMem;
-    ClientSocketTaskData *pClientSocketTaskData;    
+    //create struct with task data
+    ClientSocketTaskData rTaskData;
+    rTaskData.m_opcode = opcode;
+    rTaskData.m_socketID = socketID;
+    rTaskData.m_pData = bbuff_create();
+    bbuff_append(rTaskData.m_pData, pData->storage, pData->size);
     
-    //alloc memory + create struct with task data
-	pClientSocketTaskDataMem = m_pFixedPool->malloc(sizeof(ClientSocketTaskData));
-	if(pClientSocketTaskDataMem == NULL)
-	{
-		Log.Error(__FUNCTION__, "pClientSocketTaskDataMem == NULL");
-		throw std::bad_alloc();
-	}
-
-    pClientSocketTaskData = new(pClientSocketTaskDataMem) ClientSocketTaskData(opcode, socketID, rPacket);
-	m_rTaskDataQueue.push(pClientSocketTaskData);
-}
-
-void ClientSocketWorker::QueueReadPacket(uint16 opcode, uint64 socketID, ClientSocketBuffer &rPacket)
-{
-	void *pClientSocketTaskDataMem;
-    ClientSocketTaskData *pClientSocketTaskData;
-    
-    //alloc memory + create struct with task data
-	pClientSocketTaskDataMem = m_pFixedPool->malloc(sizeof(ClientSocketTaskData));
-	if(pClientSocketTaskDataMem == NULL)
-	{
-		Log.Error(__FUNCTION__, "pClientSocketTaskDataMem == NULL");
-		throw std::bad_alloc();
-	}
-    
-    pClientSocketTaskData = new(pClientSocketTaskDataMem) ClientSocketTaskData(opcode, socketID, rPacket);
-	m_rReadTaskDataQueue.push(pClientSocketTaskData);
+    //split by type of task
+    if(writeTask)
+        m_rTaskDataQueue.push(rTaskData);
+    else
+        m_rReadTaskDataQueue.push(rTaskData);
 }
 
 size_t ClientSocketWorker::GetQueueSize()
