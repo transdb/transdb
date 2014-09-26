@@ -13,7 +13,6 @@
 extern "C" {
 #endif
     
-//#include "../shared/clib/CDefines.h"
 #include "../shared/clib/Buffers/CByteBuffer.h"
 
 //disable alignment

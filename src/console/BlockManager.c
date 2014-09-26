@@ -58,12 +58,9 @@ int blockindex_cmp(const void *avl_a, const void *avl_b, void *avl_param)
     const blidxnode *a = (blidxnode*)avl_a;
     const blidxnode *b = (blidxnode*)avl_b;
     
-    if(a->m_key < b->m_key)
-        return +1;
-    else if(a->m_key > b->m_key)
-        return -1;
-    else
-        return 0;
+    //sort asc
+    int diff = memcmp(&a->m_key, &b->m_key, sizeof(uint64));
+    return diff;
 }
 
 void blman_delete_record_by_node(blman *self, blidxnode *node)
