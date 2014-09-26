@@ -45,6 +45,7 @@ void init_config_default_values(ConfigDefines *self)
     self->SocketWriteBufferSize     = 32;
     self->PingTimeout               = 60;
     self->PingSendInterval          = 15;
+    self->NagleLatency              = 250;
     self->MaxParallelTasks          = 4;
     self->MaxParallelReadTasks      = 4;
     self->MaxTasksInQueue           = 64;
@@ -187,6 +188,7 @@ void LoadConfig()
     GET_CONFIG_INT_VALUE(&status, "PublicSocket", "WriteBufferSize", &writeBufferSize);
     GET_CONFIG_INT_VALUE(&status, "PublicSocket", "PingTimeout", &g_cfg.PingTimeout);
     GET_CONFIG_INT_VALUE(&status, "PublicSocket", "PingSendInterval", &g_cfg.PingSendInterval);
+    GET_CONFIG_INT_VALUE(&status, "PublicSocket", "NagleLatency", &g_cfg.NagleLatency);
     GET_CONFIG_INT_VALUE(&status, "PublicSocket", "MaxParallelTasks", &g_cfg.MaxParallelTasks);
     GET_CONFIG_INT_VALUE(&status, "PublicSocket", "MaxParallelReadTasks", &g_cfg.MaxParallelReadTasks);
     GET_CONFIG_INT_VALUE(&status, "PublicSocket", "MaxTasksInQueue", &g_cfg.MaxTasksInQueue);

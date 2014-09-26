@@ -8,33 +8,33 @@
 
 #include "StdAfx.h"
 
-typedef void (ClientSocket::*ClientSocketHandler)(ClientSocketBuffer&);
+typedef void (ClientSocket::*ClientSocketHandler)(bbuff*);
 static const ClientSocketHandler m_ClientSocketHandlers[OP_NUM] =
 {
     NULL,                                       //C_NULL_OP
-	&ClientSocket::QueuePacket,                 //C_MSG_WRITE_DATA              = 1,
+	&ClientSocket::QueueWritePacket,            //C_MSG_WRITE_DATA              = 1,
 	NULL,										//S_MSG_WRITE_DATA              = 2,
 	&ClientSocket::QueueReadPacket,             //C_MSG_READ_DATA               = 3,
 	NULL,										//S_MSG_READ_DATA               = 4,
-	&ClientSocket::QueuePacket,                 //C_MSG_DELETE_DATA             = 5,
+	&ClientSocket::QueueWritePacket,            //C_MSG_DELETE_DATA             = 5,
 	NULL,										//S_MSG_DELETE_DATA             = 6,
-    &ClientSocket::QueuePacket,                 //C_MSG_GET_ALL_X               = 7,
+    &ClientSocket::QueueWritePacket,            //C_MSG_GET_ALL_X               = 7,
     NULL,                                       //S_MSG_GET_ALL_X               = 8,
     &ClientSocket::HandlePong,                  //C_MSG_PONG                    = 9,
     NULL,                                       //S_MSG_PING                    = 10,
-    &ClientSocket::QueuePacket,                 //C_MSG_GET_ALL_Y               = 11,
+    &ClientSocket::QueueWritePacket,            //C_MSG_GET_ALL_Y               = 11,
     NULL,                                       //S_MSG_GET_ALL_Y               = 12,
 	&ClientSocket::QueueReadPacket,				//C_MSG_STATUS                  = 13,
 	NULL,										//S_MSG_STATUS                  = 14,
     &ClientSocket::HandleGetActivityID,         //C_MSG_GET_ACTIVITY_ID         = 15,
     NULL,                                       //S_MSG_GET_ACTIVITY_ID         = 16,
-    &ClientSocket::QueuePacket,                 //C_MSG_DELETE_X                = 17,
+    &ClientSocket::QueueWritePacket,            //C_MSG_DELETE_X                = 17,
     NULL,                                       //S_MSG_DELETE_X                = 18,
-    &ClientSocket::QueuePacket,                 //C_MSG_DEFRAMENT_DATA          = 19,
+    &ClientSocket::QueueWritePacket,            //C_MSG_DEFRAMENT_DATA          = 19,
     NULL,                                       //S_MSG_DEFRAMENT_DATA          = 20,
-    &ClientSocket::QueuePacket,                 //C_MSG_GET_FREESPACE           = 21,
+    &ClientSocket::QueueWritePacket,            //C_MSG_GET_FREESPACE           = 21,
     NULL,                                       //S_MSG_GET_FREESPACE           = 22,
-    &ClientSocket::QueuePacket,                 //C_MSG_WRITE_DATA_NUM          = 23,
+    &ClientSocket::QueueWritePacket,            //C_MSG_WRITE_DATA_NUM          = 23,
     NULL,                                       //S_MSG_WRITE_DATA_NUM          = 24,
     &ClientSocket::QueueReadPacket,             //C_MSG_READ_LOG                = 25,
     NULL,                                       //S_MSG_READ_LOG                = 26,
@@ -105,10 +105,11 @@ ClientSocket::ClientSocket(SOCKET fd) : Socket(fd, g_cfg.SocketReadBufferSize, g
     static std::atomic<uint64> rSocketID(0);
     //init default values
     m_socketID      = (rSocketID++);
+    m_latency       = 0;
     m_size          = 0;
     m_opcode        = 0;
-    m_latency       = 0;
     m_nagleEnabled  = false;
+    m_pReceiveBuff  = bbuff_create();
 }
 
 ClientSocket::~ClientSocket()
@@ -121,6 +122,9 @@ ClientSocket::~ClientSocket()
         pPacketQueue->pop();
         delete pPacket;
     }
+    
+    //destroy receive buffer
+    bbuff_destroy(m_pReceiveBuff);
     
     //remove from holder
     g_rClientSocketHolder.RemoveSocket(this);
@@ -149,23 +153,23 @@ void ClientSocket::OnRead()
                 //set variables
                 m_size = rHeader.m_size;
                 m_opcode = rHeader.m_opcode;
+                
+                //prepare buffer
+                bbuff_reserve(m_pReceiveBuff, m_size);
             }
             
+            //append data to internal buffer
+            size_t remainingBytes = m_size - m_pReceiveBuff->wpos;
+            size_t readBytes = std::min(remainingBytes, m_readBuffer.GetContiguiousBytes());
+            bbuff_append(m_pReceiveBuff, m_readBuffer.GetBufferStart(), readBytes);
+            m_readBuffer.Remove(readBytes);
+            
             //wait for whole packet
-            if(m_readBuffer.GetSize() < m_size)
+            if(m_pReceiveBuff->size < m_size)
                 return;
 
             //stats
             g_stats.ReceivedBytes += (m_size + sizeof(PackerHeader));
-            
-            //prepare buffer - will by std::move to ClientSocketTaskData
-            m_rClientSocketBuffer.resize(m_size);
-            
-            //fill buffer with data
-            if(m_size)
-            {
-                m_readBuffer.Read(&m_rClientSocketBuffer[0], m_size);
-            }
             
             //process packet
             if(m_opcode < OP_NUM && m_ClientSocketHandlers[m_opcode] != NULL)
@@ -173,7 +177,7 @@ void ClientSocket::OnRead()
                 //log
                 Log.Debug(__FUNCTION__, "Received packet opcode: (0x%.4X), name: %s, size: %u", m_opcode, g_OpcodeNames[m_opcode], m_size);
                 //process
-                (void)(this->*m_ClientSocketHandlers[m_opcode])(m_rClientSocketBuffer);
+                (void)(this->*m_ClientSocketHandlers[m_opcode])(m_pReceiveBuff);
             }
             else
             {
@@ -182,6 +186,7 @@ void ClientSocket::OnRead()
             
             //clear variables
             m_size = m_opcode = 0;
+            bbuff_clear(m_pReceiveBuff);
         }
     }
     catch(...)
@@ -331,28 +336,29 @@ OUTPACKET_RESULT ClientSocket::_OutPacket(uint16 opcode, size_t len, const void*
 	return rv ? OUTPACKET_RESULT_SUCCESS : OUTPACKET_RESULT_SOCKET_ERROR;
 }
 
-void ClientSocket::QueuePacket(ClientSocketBuffer &rPacket)
+void ClientSocket::QueueWritePacket(bbuff *pData)
 {
-    g_pClientSocketWorker->QueuePacket(m_opcode, m_socketID, rPacket);
+    g_pClientSocketWorker->QueuePacket(m_opcode, m_socketID, pData, true);
 }
 
-void ClientSocket::QueueReadPacket(ClientSocketBuffer &rPacket)
+void ClientSocket::QueueReadPacket(bbuff *pData)
 {
-    g_pClientSocketWorker->QueueReadPacket(m_opcode, m_socketID, rPacket);
+    g_pClientSocketWorker->QueuePacket(m_opcode, m_socketID, pData, false);
 }
 
-void ClientSocket::HandlePong(ClientSocketBuffer &rPacket)
+void ClientSocket::HandlePong(bbuff *pData)
 {
     uint64 tickCount;
-    size_t rpos = 0;
-    tickCount = _S_read<uint64>(rPacket, rpos);
+    
+    //read data from packet
+    bbuff_read(pData, &tickCount, sizeof(tickCount));
     
     //calc latency
     m_latency = static_cast<uint32>(GetTickCount64() - tickCount);
     m_lastPong = UNIXTIME;
     
 	// Dynamically change nagle buffering status based on latency.
-	if(m_latency >= 250)
+	if(m_latency >= g_cfg.NagleLatency)
 	{
 		if(!m_nagleEnabled)
 		{
@@ -372,15 +378,14 @@ void ClientSocket::HandlePong(ClientSocketBuffer &rPacket)
     Log.Debug(__FUNCTION__, "Received PONG latency: %u, Nagle buffering: %u.", m_latency, (uint32)m_nagleEnabled);
 }
 
-void ClientSocket::HandleGetActivityID(ClientSocketBuffer &rPacket)
+void ClientSocket::HandleGetActivityID(bbuff *pData)
 {
     uint32 token;
     uint32 flags;
-    size_t rpos = 0;
     
     //read data from packet
-    token = _S_read<uint32>(rPacket, rpos);
-    flags = _S_read<uint32>(rPacket, rpos);
+    bbuff_read(pData, &token, sizeof(token));
+    bbuff_read(pData, &flags, sizeof(flags));
     
     //send
     uint8 buff[64];
