@@ -165,7 +165,7 @@ void ClientSocketWorker::QueuePacket(uint16 opcode, uint64 socketID, bbuff *pDat
     ClientSocketTaskData rTaskData;
     rTaskData.m_opcode = opcode;
     rTaskData.m_socketID = socketID;
-    rTaskData.m_pData = bbuff_create();
+    bbuff_create(rTaskData.m_pData);
     bbuff_append(rTaskData.m_pData, pData->storage, pData->size);
     
     //split by type of task

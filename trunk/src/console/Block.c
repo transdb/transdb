@@ -6,7 +6,6 @@
 //  Copyright (c) 2012 Miroslav Kudrnac. All rights reserved.
 //
 
-#include <string.h>
 #include "../shared/clib/CCommon.h"
 #include "../shared/zlib/zlib.h"
 #include "CfgDefines.h"

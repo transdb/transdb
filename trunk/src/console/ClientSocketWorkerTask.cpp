@@ -185,7 +185,8 @@ void ClientSocketWorkerTask::HandleReadData(ClientSocketTaskData &rTaskData)
     bbuff_read(rTaskData.m_pData, &Y, sizeof(Y));
     
     //buffer for read data
-    bbuff *pReadData = bbuff_create();
+    bbuff *pReadData;
+    bbuff_create(pReadData);
     
     //prepare packet
     bbuff_reserve(pReadData, packetSize);
@@ -214,7 +215,8 @@ void ClientSocketWorkerTask::HandleReadData(ClientSocketTaskData &rTaskData)
 	//try to compress
 	if(readDataSize > (uint32)g_cfg.DataSizeForCompression)
 	{
-        bbuff *pBuffOut = bbuff_create();
+        bbuff *pBuffOut;
+        bbuff_create(pBuffOut);
         int compressionStatus = CCommon_compressGzip(g_cfg.GzipCompressionLevel, pReadDataBegin, readDataSize, pBuffOut, g_cfg.ZlibBufferSize);
         if(compressionStatus == Z_OK)
         {
@@ -290,7 +292,8 @@ void ClientSocketWorkerTask::HandleGetAllY(ClientSocketTaskData &rTaskData)
     bbuff_read(rTaskData.m_pData, &X, sizeof(X));
     
     //buffer for all Y
-    bbuff *pY = bbuff_create();
+    bbuff *pY;
+    bbuff_create(pY);
     
     //prepare packet
     bbuff_reserve(pY, packetSize);
@@ -311,7 +314,8 @@ void ClientSocketWorkerTask::HandleGetAllY(ClientSocketTaskData &rTaskData)
 	//try to compress
 	if(YSize > (size_t)g_cfg.DataSizeForCompression)
 	{
-        bbuff *pBuffOut = bbuff_create();
+        bbuff *pBuffOut;
+        bbuff_create(pBuffOut);
         int compressionStatus = CCommon_compressGzip(g_cfg.GzipCompressionLevel, pYDataBegin, YSize, pBuffOut, g_cfg.ZlibBufferSize);
         if(compressionStatus == Z_OK)
         {
@@ -347,7 +351,8 @@ void ClientSocketWorkerTask::HandleStatus(ClientSocketTaskData &rTaskData)
     bbuff_read(rTaskData.m_pData, &flags, sizeof(flags));
     
     //buffer for stats
-    bbuff *pBuff = bbuff_create();
+    bbuff *pBuff;
+    bbuff_create(pBuff);
     
     //prepare packet
     bbuff_reserve(pBuff, packetSize);
@@ -364,7 +369,8 @@ void ClientSocketWorkerTask::HandleStatus(ClientSocketTaskData &rTaskData)
 	//try to compress
 	if(StatsSize > (size_t)g_cfg.DataSizeForCompression)
 	{
-        bbuff *pBuffOut = bbuff_create();
+        bbuff *pBuffOut;
+        bbuff_create(pBuffOut);
         int compressionStatus = CCommon_compressGzip(g_cfg.GzipCompressionLevel, pStatsDataBegin, StatsSize, pBuffOut, g_cfg.ZlibBufferSize);
         if(compressionStatus == Z_OK)
         {
@@ -611,7 +617,8 @@ void ClientSocketWorkerTask::HandleReadLog(ClientSocketTaskData &rTaskData)
     bbuff_read(rTaskData.m_pData, &flags, sizeof(flags));
     
     //buffer for log
-    bbuff *pBuff = bbuff_create();
+    bbuff *pBuff;
+    bbuff_create(pBuff);
     
     //prepare packet
     bbuff_reserve(pBuff, packetSize);
@@ -628,7 +635,8 @@ void ClientSocketWorkerTask::HandleReadLog(ClientSocketTaskData &rTaskData)
     //try to compress
     if(logSize > (size_t)g_cfg.DataSizeForCompression)
     {
-        bbuff *pBuffOut = bbuff_create();
+        bbuff *pBuffOut;
+        bbuff_create(pBuffOut);
         int compressionStatus = CCommon_compressGzip(g_cfg.GzipCompressionLevel, pLogDataBegin, logSize, pBuffOut, g_cfg.ZlibBufferSize);
         if(compressionStatus == Z_OK)
         {
@@ -664,7 +672,8 @@ void ClientSocketWorkerTask::HandleReadConfig(ClientSocketTaskData &rTaskData)
     bbuff_read(rTaskData.m_pData, &flags, sizeof(flags));
     
     //buffer for config
-    bbuff *pBuff = bbuff_create();
+    bbuff *pBuff;
+    bbuff_create(pBuff);
     
     //prepare packet
     bbuff_reserve(pBuff, packetSize);
@@ -703,7 +712,8 @@ void ClientSocketWorkerTask::HandleReadConfig(ClientSocketTaskData &rTaskData)
     //try to compress
     if(cfgSize > (size_t)g_cfg.DataSizeForCompression)
     {
-        bbuff *pBuffOut = bbuff_create();
+        bbuff *pBuffOut;
+        bbuff_create(pBuffOut);
         int compressionStatus = CCommon_compressGzip(g_cfg.GzipCompressionLevel, pCfgDataBegin, cfgSize, pBuffOut, g_cfg.ZlibBufferSize);
         if(compressionStatus == Z_OK)
         {
@@ -761,7 +771,8 @@ void ClientSocketWorkerTask::HandleExecutePythonScript(ClientSocketTaskData &rTa
     pData = (uint8*)(rTaskData.m_pData->storage + rTaskData.m_pData->rpos);
 
     //buffer for python script result
-    bbuff *pBuff = bbuff_create();
+    bbuff *pBuff;
+    bbuff_create(pBuff);
     
     //prepare packet
     bbuff_reserve(pBuff, packetSize);
@@ -778,7 +789,8 @@ void ClientSocketWorkerTask::HandleExecutePythonScript(ClientSocketTaskData &rTa
     //try to compress
     if(resultSize > (size_t)g_cfg.DataSizeForCompression)
     {
-        bbuff *pBuffOut = bbuff_create();
+        bbuff *pBuffOut;
+        bbuff_create(pBuffOut);
         int compressionStatus = CCommon_compressGzip(g_cfg.GzipCompressionLevel, pResultDataBegin, resultSize, pBuffOut, g_cfg.ZlibBufferSize);
         if(compressionStatus == Z_OK)
         {
