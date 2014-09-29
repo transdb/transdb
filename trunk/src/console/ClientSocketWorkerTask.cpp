@@ -100,19 +100,8 @@ bool ClientSocketWorkerTask::run()
             }
             catch(tbb::user_abort&)
             {
-                //if there is no stop event abort was called for check memory
-                if(g_stopEvent)
-                {
-                    Log.Notice(__FUNCTION__, "Task aborted.");
-                    return true;
-                }
-                else
-                {
-                    //check memory
-                    m_rStorage.CheckMemory(*m_pLRUCache);
-                    Log.Debug(__FUNCTION__, "Recycled memory");
-                    continue;
-                }
+                Log.Notice(__FUNCTION__, "Task aborted.");
+                return true;
             }
 
             //process task
