@@ -78,9 +78,6 @@ void Launcher::run()
 			ThreadPool.ShowStats();
 #endif
 			ThreadPool.IntegrityCheck();
-            
-            //wakeup worker thread and it will call checkmemory and free unused memory
-            g_pClientSocketWorker->RecycleMemory();
 		}
 
 		/* since time() is an expensive system call, we only update it once per server loop */
