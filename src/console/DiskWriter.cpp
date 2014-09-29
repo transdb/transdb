@@ -594,7 +594,8 @@ public:
         m_rData >> token >> flags >> dumpFlags;
         
         //create buffer
-        bbuff *pDump = bbuff_create();
+        bbuff *pDump;
+        bbuff_create(pDump);
         
         //prepare packet
         bbuff_reserve(pDump, packetSize);
@@ -618,7 +619,8 @@ public:
         //try to compress
         if(dumpSize > (size_t)g_cfg.DataSizeForCompression)
         {
-            bbuff *pBuffOut = bbuff_create();
+            bbuff *pBuffOut;
+            bbuff_create(pBuffOut);
             int compressionStatus = CCommon_compressGzip(g_cfg.GzipCompressionLevel, pDumpDataBegin, dumpSize, pBuffOut, g_cfg.ZlibBufferSize);
             if(compressionStatus == Z_OK)
             {

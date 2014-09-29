@@ -109,7 +109,7 @@ ClientSocket::ClientSocket(SOCKET fd) : Socket(fd, g_cfg.SocketReadBufferSize, g
     m_size          = 0;
     m_opcode        = 0;
     m_nagleEnabled  = false;
-    m_pReceiveBuff  = bbuff_create();
+    bbuff_create(m_pReceiveBuff);
 }
 
 ClientSocket::~ClientSocket()

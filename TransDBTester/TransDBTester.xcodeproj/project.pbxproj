@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		8D2580FE19D40C3A00E8FD15 /* base64.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D2580EC19D40C3A00E8FD15 /* base64.c */; };
 		8D2580FF19D40C3A00E8FD15 /* base64.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D2580ED19D40C3A00E8FD15 /* base64.h */; };
-		8D25810019D40C3A00E8FD15 /* CByteBuffer.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D2580EF19D40C3A00E8FD15 /* CByteBuffer.c */; };
 		8D25810119D40C3A00E8FD15 /* CByteBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D2580F019D40C3A00E8FD15 /* CByteBuffer.h */; };
 		8D25810219D40C3A00E8FD15 /* CCommon.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D2580F119D40C3A00E8FD15 /* CCommon.c */; };
 		8D25810319D40C3A00E8FD15 /* CCommon.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D2580F219D40C3A00E8FD15 /* CCommon.h */; };
@@ -122,7 +121,6 @@
 /* Begin PBXFileReference section */
 		8D2580EC19D40C3A00E8FD15 /* base64.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = base64.c; sourceTree = "<group>"; };
 		8D2580ED19D40C3A00E8FD15 /* base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = base64.h; sourceTree = "<group>"; };
-		8D2580EF19D40C3A00E8FD15 /* CByteBuffer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CByteBuffer.c; sourceTree = "<group>"; };
 		8D2580F019D40C3A00E8FD15 /* CByteBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CByteBuffer.h; sourceTree = "<group>"; };
 		8D2580F119D40C3A00E8FD15 /* CCommon.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CCommon.c; sourceTree = "<group>"; };
 		8D2580F219D40C3A00E8FD15 /* CCommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CCommon.h; sourceTree = "<group>"; };
@@ -270,7 +268,6 @@
 		8D2580EE19D40C3A00E8FD15 /* Buffers */ = {
 			isa = PBXGroup;
 			children = (
-				8D2580EF19D40C3A00E8FD15 /* CByteBuffer.c */,
 				8D2580F019D40C3A00E8FD15 /* CByteBuffer.h */,
 			);
 			path = Buffers;
@@ -643,7 +640,6 @@
 				8DE8237315EF54B800F74908 /* SocketGarbageCollector.cpp in Sources */,
 				8DE8237515EF54B800F74908 /* SocketLinux.cpp in Sources */,
 				8DE8237715EF54B800F74908 /* SocketMac.cpp in Sources */,
-				8D25810019D40C3A00E8FD15 /* CByteBuffer.c in Sources */,
 				8DE8237915EF54B800F74908 /* SocketMgrLinux.cpp in Sources */,
 				8DE8237B15EF54B800F74908 /* SocketMgrMac.cpp in Sources */,
 				8D922D1E1935F1FF004EDA29 /* crc32.c in Sources */,

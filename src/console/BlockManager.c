@@ -354,7 +354,8 @@ void blman_defragment_data(blman *self)
         return;
     }
     //create bytebuffer
-    bbuff *records = bbuff_create();
+    bbuff *records;
+    bbuff_create(records);
 
     //read all data - key|recordSize|record|....Nx
     blman_read_records(self, records);

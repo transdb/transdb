@@ -59,7 +59,6 @@
 		8DAC6D51188D3BE3001851BB /* Vector.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DAC6D50188D3BE3001851BB /* Vector.h */; };
 		8DACDCF119C0631600B1E092 /* avl.c in Sources */ = {isa = PBXBuildFile; fileRef = 8DACDCEF19C0631600B1E092 /* avl.c */; };
 		8DACDCF219C0631600B1E092 /* avl.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DACDCF019C0631600B1E092 /* avl.h */; };
-		8DACDCF619C063A700B1E092 /* CByteBuffer.c in Sources */ = {isa = PBXBuildFile; fileRef = 8DACDCF519C063A700B1E092 /* CByteBuffer.c */; };
 		8DC9C51115F4F62B001058CC /* IndexBlock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DC9C51015F4F62B001058CC /* IndexBlock.cpp */; };
 		8DE1A22E1671ED9000159613 /* CrashHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DE1A22C1671ED9000159613 /* CrashHandler.cpp */; };
 		8DE1A22F1671ED9000159613 /* CrashHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DE1A22D1671ED9000159613 /* CrashHandler.h */; };
@@ -222,7 +221,6 @@
 		8DACDCEF19C0631600B1E092 /* avl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = avl.c; sourceTree = "<group>"; };
 		8DACDCF019C0631600B1E092 /* avl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = avl.h; sourceTree = "<group>"; };
 		8DACDCF419C0639500B1E092 /* CByteBuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CByteBuffer.h; sourceTree = "<group>"; };
-		8DACDCF519C063A700B1E092 /* CByteBuffer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CByteBuffer.c; sourceTree = "<group>"; };
 		8DB7891118A3902200560037 /* log.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = log.html; sourceTree = "<group>"; };
 		8DBB052319044F4200922E7E /* transdb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = transdb; path = ../cfg/transdb; sourceTree = "<group>"; };
 		8DBFC82E19B5BBDE00FCB8FB /* pythonScript.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = pythonScript.html; sourceTree = "<group>"; };
@@ -549,7 +547,6 @@
 		8DACDCF319C0636E00B1E092 /* Buffers */ = {
 			isa = PBXGroup;
 			children = (
-				8DACDCF519C063A700B1E092 /* CByteBuffer.c */,
 				8DACDCF419C0639500B1E092 /* CByteBuffer.h */,
 			);
 			path = Buffers;
@@ -894,7 +891,6 @@
 				8D33EE6F192B8FAE007F448C /* inftrees.c in Sources */,
 				8D99BEB315EE5C2200BCE873 /* Config.cpp in Sources */,
 				8D33EE71192B8FAE007F448C /* trees.c in Sources */,
-				8DACDCF619C063A700B1E092 /* CByteBuffer.c in Sources */,
 				8DFE27EA15E22C46007F75A3 /* Crypt.cpp in Sources */,
 				8DFE27EB15E22C46007F75A3 /* CallBack.cpp in Sources */,
 				8DFE27EC15E22C46007F75A3 /* CommonFunctions.cpp in Sources */,

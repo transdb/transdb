@@ -133,8 +133,11 @@ static PyObject *TransDB_ReadData(TransDB *self, PyObject *args, PyObject *kwds)
         return NULL;
     }
     
+    //create bbuff
+    bbuff *pData;
+    bbuff_create(pData);
+    
     //read data
-    bbuff *pData = bbuff_create();
     if(y != 0)
         self->m_pStorage->ReadData(self->m_rDataFileHandle, *self->m_pLRUCache, x, y, pData);
     else
@@ -195,8 +198,11 @@ static PyObject *TransDB_GetAllY(TransDB *self, PyObject *args, PyObject *kwds)
         return NULL;
     }
     
+    //create bbuff
+    bbuff *pY;
+    bbuff_create(pY);
+    
     //read all Y
-    bbuff *pY = bbuff_create();
     self->m_pStorage->GetAllY(self->m_rDataFileHandle, *self->m_pLRUCache, x, pY);
     
     //create Python bytearray and dealloc bytebuffer
