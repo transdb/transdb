@@ -9,19 +9,8 @@
 #ifndef __TransDB__ClientSocketWorker__
 #define __TransDB__ClientSocketWorker__
 
-struct ClientSocketTaskData
-{
-    uint16  m_opcode;
-    uint64  m_socketID;
-    bbuff*  m_pData;
-};
-
 class ClientSocketWorker
 {
-	typedef tbb::concurrent_bounded_queue<ClientSocketTaskData>        TaskDataQueue;
-
-	friend class ClientSocketWorkerTask;
-
 public:
     static ClientSocketWorker *create();
 	~ClientSocketWorker();
@@ -31,11 +20,13 @@ public:
     //write pending write to disk and destroy storage
     void DestroyStorage();
     //queue item
-    void QueuePacket(uint16 opcode, uint64 socketID, bbuff *pData, bool writeTask);
+    void QueuePacket(uint16 opcode, uint64 socketID, bbuff *pData, E_TQT eQueueType);
 	//get queue size
 	size_t GetQueueSize();
     //get read queue size
     size_t GetReadQueueSize();
+    //call abort for recycling memory
+    void RecycleMemory();
     //set exception
     INLINE void SetException(bool oValue)      { m_exception = oValue; }
 
@@ -56,8 +47,7 @@ private:
     Storage             *m_pStorage;
     PythonInterface     *m_pPythonInterface;
     ConfigWatcher       *m_pConfigWatcher;
-	TaskDataQueue       m_rTaskDataQueue;
-    TaskDataQueue       m_rReadTaskDataQueue;
+    TaskDataQueue       m_rTaskDataQueue[eTQT_Num];
     std::atomic<bool>   m_exception;
 };
 

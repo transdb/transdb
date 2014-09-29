@@ -338,12 +338,12 @@ OUTPACKET_RESULT ClientSocket::_OutPacket(uint16 opcode, size_t len, const void*
 
 void ClientSocket::QueueWritePacket(bbuff *pData)
 {
-    g_pClientSocketWorker->QueuePacket(m_opcode, m_socketID, pData, true);
+    g_pClientSocketWorker->QueuePacket(m_opcode, m_socketID, pData, eTQT_Write);
 }
 
 void ClientSocket::QueueReadPacket(bbuff *pData)
 {
-    g_pClientSocketWorker->QueuePacket(m_opcode, m_socketID, pData, false);
+    g_pClientSocketWorker->QueuePacket(m_opcode, m_socketID, pData, eTQT_Read);
 }
 
 void ClientSocket::HandlePong(bbuff *pData)

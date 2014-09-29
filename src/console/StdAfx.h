@@ -31,6 +31,8 @@
 #include "../shared/IO/IO.h"
 #include "../shared/CommonFunctions.h"
 
+#include "../shared/Containers/ConcurrentQueue.h"
+
 //clib
 #include "../shared/clib/CCommon.h"
 #include "../shared/clib/Buffers/CByteBuffer.h"
