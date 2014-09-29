@@ -221,6 +221,7 @@
 		8DACDCEF19C0631600B1E092 /* avl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = avl.c; sourceTree = "<group>"; };
 		8DACDCF019C0631600B1E092 /* avl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = avl.h; sourceTree = "<group>"; };
 		8DACDCF419C0639500B1E092 /* CByteBuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CByteBuffer.h; sourceTree = "<group>"; };
+		8DB0B37119D9884800B48B05 /* ConcurrentQueue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConcurrentQueue.h; sourceTree = "<group>"; };
 		8DB7891118A3902200560037 /* log.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = log.html; sourceTree = "<group>"; };
 		8DBB052319044F4200922E7E /* transdb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = transdb; path = ../cfg/transdb; sourceTree = "<group>"; };
 		8DBFC82E19B5BBDE00FCB8FB /* pythonScript.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = pythonScript.html; sourceTree = "<group>"; };
@@ -437,6 +438,7 @@
 				8D15F40118883B2400EC443F /* HashMap.h */,
 				8DAC6D50188D3BE3001851BB /* Vector.h */,
 				8D3E57DE188EA4CD00D54CBC /* SortedVector.h */,
+				8DB0B37119D9884800B48B05 /* ConcurrentQueue.h */,
 			);
 			path = Containers;
 			sourceTree = "<group>";

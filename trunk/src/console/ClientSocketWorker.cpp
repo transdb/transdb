@@ -94,15 +94,15 @@ bool ClientSocketWorker::InitPythonInterface()
 bool ClientSocketWorker::InitWorkerThreads()
 {
 	//set queue limit
-	m_rTaskDataQueue.set_capacity(g_cfg.MaxTasksInQueue);
+	m_rTaskDataQueue[eTQT_Write].set_capacity(g_cfg.MaxTasksInQueue);
     //set read queue limit
-    m_rReadTaskDataQueue.set_capacity(g_cfg.MaxReadTasksInQueue);
+    m_rTaskDataQueue[eTQT_Read].set_capacity(g_cfg.MaxReadTasksInQueue);
 
 	//start worker threads
     Log.Notice(__FUNCTION__, "Spawning writer threads...");
 	for(int i = 0;i < g_cfg.MaxParallelTasks;++i)
 	{
-		ThreadPool.ExecuteTask(new ClientSocketWorkerTask(*this, *m_pStorage, *m_pPythonInterface, *m_pConfigWatcher, false));
+		ThreadPool.ExecuteTask(new ClientSocketWorkerTask(m_rTaskDataQueue[eTQT_Write], *this, *m_pStorage, *m_pPythonInterface, *m_pConfigWatcher));
 	}
     Log.Notice(__FUNCTION__, "Spawning writer threads... done");
     
@@ -110,7 +110,7 @@ bool ClientSocketWorker::InitWorkerThreads()
     Log.Notice(__FUNCTION__, "Spawning reader threads...");
     for(int i = 0;i < g_cfg.MaxParallelReadTasks;++i)
     {
-        ThreadPool.ExecuteTask(new ClientSocketWorkerTask(*this, *m_pStorage, *m_pPythonInterface, *m_pConfigWatcher, true));
+        ThreadPool.ExecuteTask(new ClientSocketWorkerTask(m_rTaskDataQueue[eTQT_Read], *this, *m_pStorage, *m_pPythonInterface, *m_pConfigWatcher));
     }
     Log.Notice(__FUNCTION__, "Spawning reader threads... done");
     return true;
@@ -130,17 +130,17 @@ void ClientSocketWorker::DestroyWorkerThreads()
         waitSize = g_cfg.MaxParallelTasks * (-1);
         
         //process all tasks before shutdown
-        while(m_rTaskDataQueue.size() != waitSize)
+        while(m_rTaskDataQueue[eTQT_Write].size() != waitSize)
         {
-            Log.Notice(__FUNCTION__, "Waiting for: %d tasks to finish.", (int32)m_rTaskDataQueue.size());
+            Log.Notice(__FUNCTION__, "Waiting for: %d write tasks to finish.", (int32)m_rTaskDataQueue[eTQT_Write].size());
             std::this_thread::sleep_for(std::chrono::milliseconds(5000));
         }
         
         //read tasks
         waitSize = g_cfg.MaxParallelReadTasks * (-1);
-        while(m_rReadTaskDataQueue.size() !=  waitSize)
+        while(m_rTaskDataQueue[eTQT_Read].size() !=  waitSize)
         {
-            Log.Notice(__FUNCTION__, "Waiting for: %d read tasks to finish.", (int32)m_rReadTaskDataQueue.size());
+            Log.Notice(__FUNCTION__, "Waiting for: %d read tasks to finish.", (int32)m_rTaskDataQueue[eTQT_Read].size());
             std::this_thread::sleep_for(std::chrono::milliseconds(5000));
         }
         
@@ -148,8 +148,8 @@ void ClientSocketWorker::DestroyWorkerThreads()
     }
 
 	//wake up threads
-	m_rTaskDataQueue.abort();
-    m_rReadTaskDataQueue.abort();
+	m_rTaskDataQueue[eTQT_Read].abort();
+	m_rTaskDataQueue[eTQT_Write].abort();
 }
 
 //write pending write to disk and destroy storage
@@ -159,7 +159,7 @@ void ClientSocketWorker::DestroyStorage()
     m_pStorage = NULL;
 }
 
-void ClientSocketWorker::QueuePacket(uint16 opcode, uint64 socketID, bbuff *pData, bool writeTask)
+void ClientSocketWorker::QueuePacket(uint16 opcode, uint64 socketID, bbuff *pData, E_TQT eQueueType)
 {
     //create struct with task data
     ClientSocketTaskData rTaskData;
@@ -169,23 +169,24 @@ void ClientSocketWorker::QueuePacket(uint16 opcode, uint64 socketID, bbuff *pDat
     bbuff_append(rTaskData.m_pData, pData->storage, pData->size);
     
     //split by type of task
-    if(writeTask)
-        m_rTaskDataQueue.push(rTaskData);
-    else
-        m_rReadTaskDataQueue.push(rTaskData);
+    m_rTaskDataQueue[eQueueType].push(rTaskData);
 }
 
 size_t ClientSocketWorker::GetQueueSize()
 {
-	return m_rTaskDataQueue.size();
+	return m_rTaskDataQueue[eTQT_Write].size();
 }
 
 size_t ClientSocketWorker::GetReadQueueSize()
 {
-    return m_rReadTaskDataQueue.size();
+    return m_rTaskDataQueue[eTQT_Read].size();
 }
 
-
+void ClientSocketWorker::RecycleMemory()
+{
+    m_rTaskDataQueue[eTQT_Read].abort();
+    m_rTaskDataQueue[eTQT_Write].abort();
+}
 
 
 

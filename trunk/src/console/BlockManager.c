@@ -393,7 +393,7 @@ void blman_defragment_data(blman *self)
 uint32 blman_get_blocks_crc32(blman *self)
 {
     //C99 - VLA
-#ifndef WIN32
+#if !defined(WIN32) && !defined(__STDC_NO_VLA__)
 	uint32 crc32Array[self->blockCount];
 #else
 	uint32 *crc32Array = alloca(sizeof(uint32) * self->blockCount);

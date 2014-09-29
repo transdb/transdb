@@ -46,17 +46,17 @@ static const ClientSocketWorkerTaskHandler m_ClientSocketWorkerTaskHandlers[OP_N
     NULL,                                               //C_MSG_EXEC_PYTHON_SCRIPT      = 32,
 };
 
-ClientSocketWorkerTask::ClientSocketWorkerTask(ClientSocketWorker &rClientSocketWorker,
+ClientSocketWorkerTask::ClientSocketWorkerTask(TaskDataQueue &rTaskDataQueue,
+                                               ClientSocketWorker &rClientSocketWorker,
                                                Storage &rStorage,
                                                PythonInterface &rPythonInterface,
-                                               ConfigWatcher &rConfigWatcher,
-                                               bool readerTask) : m_rClientSocketWorker(rClientSocketWorker),
-                                                                  m_rStorage(rStorage),
-                                                                  m_rPythonInterface(rPythonInterface),
-                                                                  m_rConfigWatcher(rConfigWatcher),
-                                                                  m_pLRUCache(new LRUCache("ClientSocketWorkerTask", g_cfg.LRUCacheMemReserve / sizeof(CRec))),
-                                                                  m_rDataFileHandle(INVALID_HANDLE_VALUE),
-                                                                  m_readerThread(readerTask)
+                                               ConfigWatcher &rConfigWatcher) : m_rTaskDataQueue(rTaskDataQueue),
+                                                                                m_rClientSocketWorker(rClientSocketWorker),
+                                                                                m_rStorage(rStorage),
+                                                                                m_rPythonInterface(rPythonInterface),
+                                                                                m_rConfigWatcher(rConfigWatcher),
+                                                                                m_pLRUCache(new LRUCache("ClientSocketWorkerTask", g_cfg.LRUCacheMemReserve / sizeof(CRec))),
+                                                                                m_rDataFileHandle(INVALID_HANDLE_VALUE)
 {
 
 }
@@ -70,10 +70,7 @@ ClientSocketWorkerTask::~ClientSocketWorkerTask()
 
 bool ClientSocketWorkerTask::run()
 {
-    if(m_readerThread)
-        CommonFunctions::SetThreadName("Read ClientSocketWorkerTask thread");
-    else
-        CommonFunctions::SetThreadName("Write ClientSocketWorkerTask thread");
+    CommonFunctions::SetThreadName("ClientSocketWorkerTask thread");
 
     //open file per thread - read only
     IOHandleGuard rIOHandleGuard(m_rDataFileHandle);
@@ -97,15 +94,25 @@ bool ClientSocketWorkerTask::run()
         while(m_threadRunning)
         {
             //get task data from queue - abort throws Exception
-            try {
-                if(m_readerThread)
-                    m_rClientSocketWorker.m_rReadTaskDataQueue.pop(rTaskData);
-                else
-                    m_rClientSocketWorker.m_rTaskDataQueue.pop(rTaskData);
+            try
+            {
+                m_rTaskDataQueue.pop(rTaskData);
             }
-            catch(tbb::user_abort&) {
-                Log.Notice(__FUNCTION__, "Task aborted. ReadTask: %u", (uint32)m_readerThread);
-                return true;
+            catch(tbb::user_abort&)
+            {
+                //if there is no stop event abort was called for check memory
+                if(g_stopEvent)
+                {
+                    Log.Notice(__FUNCTION__, "Task aborted.");
+                    return true;
+                }
+                else
+                {
+                    //check memory
+                    m_rStorage.CheckMemory(*m_pLRUCache);
+                    Log.Debug(__FUNCTION__, "Recycled memory");
+                    continue;
+                }
             }
 
             //process task
