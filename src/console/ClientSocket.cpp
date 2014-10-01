@@ -174,9 +174,7 @@ void ClientSocket::OnRead()
             //process packet
             if(m_opcode < OP_NUM && m_ClientSocketHandlers[m_opcode] != NULL)
             {
-                //log
                 Log.Debug(__FUNCTION__, "Received packet opcode: (0x%.4X), name: %s, size: %u", m_opcode, g_OpcodeNames[m_opcode], m_size);
-                //process
                 (void)(this->*m_ClientSocketHandlers[m_opcode])(m_pReceiveBuff);
             }
             else

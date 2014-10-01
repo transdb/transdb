@@ -48,6 +48,7 @@ typedef struct _ConfigDefines
     int     MaxParallelReadTasks;
     int     MaxTasksInQueue;
     int     MaxReadTasksInQueue;
+    int     TaskQueueTimeout;
 
     //python
     bool    PythonEnable;

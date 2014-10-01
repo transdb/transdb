@@ -50,6 +50,7 @@ void init_config_default_values(ConfigDefines *self)
     self->MaxParallelReadTasks      = 4;
     self->MaxTasksInQueue           = 64;
     self->MaxReadTasksInQueue       = 64;
+    self->TaskQueueTimeout          = 10;
     
     //python
     self->PythonEnable              = true;    
@@ -193,7 +194,7 @@ void LoadConfig()
     GET_CONFIG_INT_VALUE(&status, "PublicSocket", "MaxParallelReadTasks", &g_cfg.MaxParallelReadTasks);
     GET_CONFIG_INT_VALUE(&status, "PublicSocket", "MaxTasksInQueue", &g_cfg.MaxTasksInQueue);
     GET_CONFIG_INT_VALUE(&status, "PublicSocket", "MaxReadTasksInQueue", &g_cfg.MaxReadTasksInQueue);
-    GET_CONFIG_INT_VALUE(&status, "PublicSocket", "WebSocketPort", &g_cfg.WebSocketPort);
+    GET_CONFIG_INT_VALUE(&status, "PublicSocket", "TaskQueueTimeout", &g_cfg.TaskQueueTimeout);
     GET_CONFIG_INT_VALUE(&status, "Log", "Level", &logLevel);
 	GET_CONFIG_INT_VALUE(&status, "Compression", "Level", &g_cfg.GzipCompressionLevel);
 	GET_CONFIG_INT_VALUE(&status, "Compression", "BufferSize", &g_cfg.ZlibBufferSize);
