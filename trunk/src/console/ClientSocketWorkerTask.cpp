@@ -92,7 +92,7 @@ bool ClientSocketWorkerTask::run()
         {
             ClientSocketTaskData rTaskData;
             //get task data from queue
-            if(m_rTaskDataQueue.get(rTaskData, true, 10))
+            if(m_rTaskDataQueue.get(rTaskData, true, g_cfg.TaskQueueTimeout))
             {
                 //process task
                 if(rTaskData.m_opcode < OP_NUM && m_ClientSocketWorkerTaskHandlers[rTaskData.m_opcode] != NULL)
