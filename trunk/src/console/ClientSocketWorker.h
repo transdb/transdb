@@ -25,8 +25,6 @@ public:
 	size_t GetQueueSize();
     //get read queue size
     size_t GetReadQueueSize();
-    //call abort for recycling memory
-    void RecycleMemory();
     //set exception
     INLINE void SetException(bool oValue)      { m_exception = oValue; }
 

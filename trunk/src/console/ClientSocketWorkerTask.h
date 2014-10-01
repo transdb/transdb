@@ -25,7 +25,7 @@ struct ClientSocketTaskData
 
 /** Queue for task
  */
-typedef tbb::concurrent_bounded_queue<ClientSocketTaskData> TaskDataQueue;
+typedef ConcurrentQueue<ClientSocketTaskData> TaskDataQueue;
 
 /** To avoid if
  */

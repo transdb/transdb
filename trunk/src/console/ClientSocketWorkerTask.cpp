@@ -81,9 +81,6 @@ bool ClientSocketWorkerTask::run()
         return true;
     }
     
-    //data from queue
-	ClientSocketTaskData rTaskData;
-    
     try
     {
 #ifdef WIN32
@@ -93,33 +90,27 @@ bool ClientSocketWorkerTask::run()
         //main thread loop
         while(m_threadRunning)
         {
-            //get task data from queue - abort throws Exception
-            try
+            ClientSocketTaskData rTaskData;
+            //get task data from queue
+            if(m_rTaskDataQueue.get(rTaskData, true, 10))
             {
-                m_rTaskDataQueue.pop(rTaskData);
-            }
-            catch(tbb::user_abort&)
-            {
-                Log.Notice(__FUNCTION__, "Task aborted.");
-                return true;
-            }
-
-            //process task
-            if(rTaskData.m_opcode < OP_NUM && m_ClientSocketWorkerTaskHandlers[rTaskData.m_opcode] != NULL)
-            {
-                Log.Debug(__FUNCTION__, "Processing packet opcode: (0x%.4X)", rTaskData.m_opcode);
-                (void)(this->*m_ClientSocketWorkerTaskHandlers[rTaskData.m_opcode])(rTaskData);
-            }
-            else
-            {
-                Log.Warning(__FUNCTION__, "Unknown opcode (0x%.4X)", rTaskData.m_opcode);
+                //process task
+                if(rTaskData.m_opcode < OP_NUM && m_ClientSocketWorkerTaskHandlers[rTaskData.m_opcode] != NULL)
+                {
+                    Log.Debug(__FUNCTION__, "Processing packet opcode: (0x%.4X)", rTaskData.m_opcode);
+                    (void)(this->*m_ClientSocketWorkerTaskHandlers[rTaskData.m_opcode])(rTaskData);
+                }
+                else
+                {
+                    Log.Warning(__FUNCTION__, "Unknown opcode (0x%.4X)", rTaskData.m_opcode);
+                }
+                
+                //dealloc task data
+                bbuff_destroy(rTaskData.m_pData);
             }
             
             //check memory
             m_rStorage.CheckMemory(*m_pLRUCache);
-                        
-            //dealloc task data
-            bbuff_destroy(rTaskData.m_pData);
         }
     }
     catch(...)
