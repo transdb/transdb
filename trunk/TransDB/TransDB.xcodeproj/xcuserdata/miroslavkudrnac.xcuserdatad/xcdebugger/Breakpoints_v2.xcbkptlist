@@ -61,7 +61,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "578"
             endingLineNumber = "578"
-            landmarkName = "Storage::DefragmentDataInternal(RecordIndexMap::accessor &amp;rWriteAccessor)"
+            landmarkName = "Storage::DefragmentData(HANDLE rDataFileHandle, LRUCache &amp;rLRUCache, uint64 x)"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>

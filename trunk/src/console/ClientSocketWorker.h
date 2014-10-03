@@ -42,10 +42,10 @@ private:
 	//disable copy constructor and assign
 	DISALLOW_COPY_AND_ASSIGN(ClientSocketWorker);
     
-    Storage             *m_pStorage;
-    PythonInterface     *m_pPythonInterface;
-    ConfigWatcher       *m_pConfigWatcher;
-    TaskDataQueue       m_rTaskDataQueue[eTQT_Num];
+    Storage*            m_pStorage;
+    PythonInterface*    m_pPythonInterface;
+    ConfigWatcher*      m_pConfigWatcher;
+    TaskDataQueue*      m_pTaskDataQueue[eTQT_Num];
     std::atomic<bool>   m_exception;
 };
 

@@ -45,10 +45,16 @@ ClientSocketWorker *ClientSocketWorker::create()
 
 ClientSocketWorker::ClientSocketWorker() : m_pStorage(NULL), m_pPythonInterface(NULL), m_pConfigWatcher(NULL), m_exception(false)
 {
+    //set write queue limit
+    m_pTaskDataQueue[eTQT_Write] = new TaskDataQueue(g_cfg.MaxTasksInQueue);
+    //set read queue limit
+    m_pTaskDataQueue[eTQT_Read] = new TaskDataQueue(g_cfg.MaxReadTasksInQueue);
 }
 
 ClientSocketWorker::~ClientSocketWorker()
 {
+    delete m_pTaskDataQueue[eTQT_Write];
+    delete m_pTaskDataQueue[eTQT_Read];
 }
 
 //init storage, load index and data file
@@ -93,16 +99,11 @@ bool ClientSocketWorker::InitPythonInterface()
 //starts worker threads
 bool ClientSocketWorker::InitWorkerThreads()
 {
-	//set queue limit
-	m_rTaskDataQueue[eTQT_Write].set_capacity(g_cfg.MaxTasksInQueue);
-    //set read queue limit
-    m_rTaskDataQueue[eTQT_Read].set_capacity(g_cfg.MaxReadTasksInQueue);
-
-	//start worker threads
+    //start worker threads
     Log.Notice(__FUNCTION__, "Spawning writer threads...");
 	for(int i = 0;i < g_cfg.MaxParallelTasks;++i)
 	{
-		ThreadPool.ExecuteTask(new ClientSocketWorkerTask(m_rTaskDataQueue[eTQT_Write], *this, *m_pStorage, *m_pPythonInterface, *m_pConfigWatcher));
+		ThreadPool.ExecuteTask(new ClientSocketWorkerTask(*m_pTaskDataQueue[eTQT_Write], *this, *m_pStorage, *m_pPythonInterface, *m_pConfigWatcher));
 	}
     Log.Notice(__FUNCTION__, "Spawning writer threads... done");
     
@@ -110,7 +111,7 @@ bool ClientSocketWorker::InitWorkerThreads()
     Log.Notice(__FUNCTION__, "Spawning reader threads...");
     for(int i = 0;i < g_cfg.MaxParallelReadTasks;++i)
     {
-        ThreadPool.ExecuteTask(new ClientSocketWorkerTask(m_rTaskDataQueue[eTQT_Read], *this, *m_pStorage, *m_pPythonInterface, *m_pConfigWatcher));
+        ThreadPool.ExecuteTask(new ClientSocketWorkerTask(*m_pTaskDataQueue[eTQT_Read], *this, *m_pStorage, *m_pPythonInterface, *m_pConfigWatcher));
     }
     Log.Notice(__FUNCTION__, "Spawning reader threads... done");
     return true;
@@ -148,8 +149,8 @@ void ClientSocketWorker::DestroyWorkerThreads()
 //    }
 //
 	//wake up threads
-	m_rTaskDataQueue[eTQT_Read].abort();
-	m_rTaskDataQueue[eTQT_Write].abort();
+	m_pTaskDataQueue[eTQT_Read]->abort();
+	m_pTaskDataQueue[eTQT_Write]->abort();
 }
 
 //write pending write to disk and destroy storage
@@ -169,17 +170,17 @@ void ClientSocketWorker::QueuePacket(uint16 opcode, uint64 socketID, bbuff *pDat
     bbuff_append(rTaskData.m_pData, pData->storage, pData->size);
     
     //split by type of task
-    m_rTaskDataQueue[eQueueType].put(rTaskData);
+    m_pTaskDataQueue[eQueueType]->put(rTaskData);
 }
 
 size_t ClientSocketWorker::GetQueueSize()
 {
-    return m_rTaskDataQueue[eTQT_Write].size();
+    return m_pTaskDataQueue[eTQT_Write]->qsize();
 }
 
 size_t ClientSocketWorker::GetReadQueueSize()
 {
-    return m_rTaskDataQueue[eTQT_Read].size();
+    return m_pTaskDataQueue[eTQT_Read]->qsize();
 }
 
 
