@@ -772,13 +772,11 @@ bool Storage::run()
     catch(std::runtime_error &rEx)
     {
         Log.Error(__FUNCTION__, "Runtime error stopping server. Description: %s", rEx.what());
-        g_pClientSocketWorker->SetException(true);
         g_stopEvent = true;
     }
     catch(...)
     {
         Log.Error(__FUNCTION__, "Fatal error stopping server.");
-        g_pClientSocketWorker->SetException(true);
         g_stopEvent = true;
     }
     

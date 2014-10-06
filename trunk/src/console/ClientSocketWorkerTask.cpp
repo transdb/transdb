@@ -92,7 +92,7 @@ bool ClientSocketWorkerTask::run()
         {
             ClientSocketTaskData rTaskData;
             //get task data from queue
-            if(m_rTaskDataQueue.get(rTaskData, true, g_cfg.TaskQueueTimeout))
+            if(m_rTaskDataQueue.get(rTaskData, g_cfg.TaskQueueTimeout))
             {
                 //process task
                 if(rTaskData.m_opcode < OP_NUM && m_ClientSocketWorkerTaskHandlers[rTaskData.m_opcode] != NULL)
@@ -116,7 +116,6 @@ bool ClientSocketWorkerTask::run()
     catch(...)
     {
         Log.Error(__FUNCTION__, "Fatal error stopping server.");
-        m_rClientSocketWorker.SetException(true);
         g_stopEvent = true;
     }
 

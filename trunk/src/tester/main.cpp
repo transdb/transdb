@@ -49,7 +49,7 @@ public:
         uint64 random;
 
         printf("%lu\n", time(NULL));
-        for(uint64 i = 0;i < 1;++i)
+        for(uint64 i = 0;i < 10;++i)
         {
             for(uint64 x = 1;x < 100;++x)
             {
