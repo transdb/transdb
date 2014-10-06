@@ -43,7 +43,7 @@ ClientSocketWorker *ClientSocketWorker::create()
     return pClientSocketWorker;
 }
 
-ClientSocketWorker::ClientSocketWorker() : m_pStorage(NULL), m_pPythonInterface(NULL), m_pConfigWatcher(NULL), m_exception(false)
+ClientSocketWorker::ClientSocketWorker() : m_pStorage(NULL), m_pPythonInterface(NULL), m_pConfigWatcher(NULL)
 {
     //set write queue limit
     m_pTaskDataQueue[eTQT_Write] = new TaskDataQueue(g_cfg.MaxTasksInQueue);
@@ -119,35 +119,6 @@ bool ClientSocketWorker::InitWorkerThreads()
 
 void ClientSocketWorker::DestroyWorkerThreads()
 {
-//    TaskDataQueue::size_type waitSize;
-//    
-//    //wait for task(s) finish only if there is no exception
-//    if(!m_exception)
-//    {
-//        //! Return number of pushes minus number of pops.
-//        /** Note that the result can be negative if there are pops waiting for the
-//         corresponding pushes.  The result can also exceed capacity() if there
-//         are push operations in flight. */
-//        waitSize = g_cfg.MaxParallelTasks * (-1);
-//        
-//        //process all tasks before shutdown
-//        while(m_rTaskDataQueue[eTQT_Write].size() != waitSize)
-//        {
-//            Log.Notice(__FUNCTION__, "Waiting for: %d write tasks to finish.", (int32)m_rTaskDataQueue[eTQT_Write].size());
-//            std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-//        }
-//        
-//        //read tasks
-//        waitSize = g_cfg.MaxParallelReadTasks * (-1);
-//        while(m_rTaskDataQueue[eTQT_Read].size() !=  waitSize)
-//        {
-//            Log.Notice(__FUNCTION__, "Waiting for: %d read tasks to finish.", (int32)m_rTaskDataQueue[eTQT_Read].size());
-//            std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-//        }
-//        
-//        Log.Notice(__FUNCTION__, "Tasks finished. Calling abort.");
-//    }
-//
 	//wake up threads
 	m_pTaskDataQueue[eTQT_Read]->abort();
 	m_pTaskDataQueue[eTQT_Write]->abort();
@@ -175,12 +146,12 @@ void ClientSocketWorker::QueuePacket(uint16 opcode, uint64 socketID, bbuff *pDat
 
 size_t ClientSocketWorker::GetQueueSize()
 {
-    return m_pTaskDataQueue[eTQT_Write]->qsize();
+    return m_pTaskDataQueue[eTQT_Write]->size();
 }
 
 size_t ClientSocketWorker::GetReadQueueSize()
 {
-    return m_pTaskDataQueue[eTQT_Read]->qsize();
+    return m_pTaskDataQueue[eTQT_Read]->size();
 }
 
 

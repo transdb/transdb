@@ -25,8 +25,6 @@ public:
 	size_t GetQueueSize();
     //get read queue size
     size_t GetReadQueueSize();
-    //set exception
-    INLINE void SetException(bool oValue)      { m_exception = oValue; }
 
 private:
     //private ctor
@@ -46,7 +44,6 @@ private:
     PythonInterface*    m_pPythonInterface;
     ConfigWatcher*      m_pConfigWatcher;
     TaskDataQueue*      m_pTaskDataQueue[eTQT_Num];
-    std::atomic<bool>   m_exception;
 };
 
 extern ClientSocketWorker *g_pClientSocketWorker;

@@ -190,7 +190,6 @@ void ClientSocket::OnRead()
     catch(...)
     {
         Log.Error(__FUNCTION__, "Fatal error stopping server.");
-        g_pClientSocketWorker->SetException(true);
         g_stopEvent = true;
     }
 }
