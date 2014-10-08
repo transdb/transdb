@@ -30,7 +30,6 @@
     <ClCompile Include="..\..\src\shared\Auth\Crypt.cpp" />
     <ClCompile Include="..\..\src\shared\CallBack.cpp" />
     <ClCompile Include="..\..\src\shared\clib\base64\base64.c" />
-    <ClCompile Include="..\..\src\shared\clib\Buffers\CByteBuffer.c" />
     <ClCompile Include="..\..\src\shared\clib\CCommon.c" />
     <ClCompile Include="..\..\src\shared\clib\Containers\avl.c" />
     <ClCompile Include="..\..\src\shared\clib\Containers\CVector.c" />
@@ -48,9 +47,11 @@
     <ClCompile Include="..\..\src\shared\Network\SocketMgrLinux.cpp" />
     <ClCompile Include="..\..\src\shared\Network\SocketMgrMac.cpp" />
     <ClCompile Include="..\..\src\shared\Network\SocketMgrWin32.cpp" />
+    <ClCompile Include="..\..\src\shared\Network\SocketMgrWinPhone.cpp" />
     <ClCompile Include="..\..\src\shared\Network\SocketOpsLinux.cpp" />
     <ClCompile Include="..\..\src\shared\Network\SocketOpsWin32.cpp" />
     <ClCompile Include="..\..\src\shared\Network\SocketWindows.cpp" />
+    <ClCompile Include="..\..\src\shared\Network\SocketWindowsPhone.cpp" />
     <ClCompile Include="..\..\src\shared\Packets\GeewaPacket.cpp" />
     <ClCompile Include="..\..\src\shared\Packets\http_parser.c" />
     <ClCompile Include="..\..\src\shared\StackWalker.cpp" />
@@ -102,8 +103,10 @@
     <ClInclude Include="..\..\src\shared\Network\SocketMgrLinux.h" />
     <ClInclude Include="..\..\src\shared\Network\SocketMgrMac.h" />
     <ClInclude Include="..\..\src\shared\Network\SocketMgrWin32.h" />
+    <ClInclude Include="..\..\src\shared\Network\SocketMgrWinPhone.h" />
     <ClInclude Include="..\..\src\shared\Network\SocketOps.h" />
     <ClInclude Include="..\..\src\shared\Network\SocketWindows.h" />
+    <ClInclude Include="..\..\src\shared\Network\SocketWindowsPhone.h" />
     <ClInclude Include="..\..\src\shared\Packets\ByteBuffer.h" />
     <ClInclude Include="..\..\src\shared\Packets\GeewaPacket.h" />
     <ClInclude Include="..\..\src\shared\Packets\http_parser.h" />

@@ -323,8 +323,8 @@ int main(int argc, const char * argv[])
 	}
 
 	//get root disk (C:\, D:\, etc.)
-	memcpy(g_cfg.DataFilePath, cDataRootPath, 3);
-	memcpy(g_cfg.IndexFilePath, cIndexRootPath, 3);
+	memcpy(cDataRootPath, g_cfg.DataFilePath, 3);
+	memcpy(cIndexRootPath, g_cfg.IndexFilePath, 3);
 
 	//get bytespersector for datafile
 	oGetDiskFreeSpaceStatus = GetDiskFreeSpace(cDataRootPath, &lpSectorsPerCluster, &lpBytesPerSector, &lpNumberOfFreeClusters, &lpTotalNumberOfClusters);
