@@ -176,15 +176,6 @@ struct StorageCrc32Check
             return;
         }
         
-        RecordIndexMap::accessor rWriteAccessor;
-        int64 blocksSize;
-        void *pBlocks;
-        uint32 crc32;
-        uint8 *pBlock;
-        size_t crc32ArraySize;
-        uint32 *pCrc32Array;
-        uint16 blockCount;
-        
         //log progress
         Log.Debug("Crc32 check", "Starting range from: " I64FMTD " to: " I64FMTD, range.begin(), range.end());
         
@@ -192,29 +183,34 @@ struct StorageCrc32Check
         {
             const WriteInfo &rWriteInfo = m_rWriteInfoVec[i];
             //get from map
+            RecordIndexMap::accessor rWriteAccessor;
             if(m_rRecordIndexMap.find(rWriteAccessor, rWriteInfo.m_key))
             {
                 //preallocate
-                blockCount = rWriteAccessor->second.m_blockCount;
-                blocksSize = blockCount * BLOCK_SIZE;
-                pBlocks = scalable_aligned_malloc(blocksSize, g_DataFileMallocAlignment);
+                uint16 blockCount = rWriteAccessor->second.m_blockCount;
+                int64 blocksSize = blockCount * BLOCK_SIZE;
+                void* pBlocks = scalable_aligned_malloc(blocksSize, g_DataFileMallocAlignment);
                 
                 //read all blocks in one IO
                 IO::fseek(rDataFileHandle, rWriteAccessor->second.m_recordStart, IO::IO_SEEK_SET);
                 IO::fread(pBlocks, blocksSize, rDataFileHandle);
                 
                 //calc crc32
-                crc32ArraySize = sizeof(uint32) * blockCount;
-                pCrc32Array = (uint32*)alloca(crc32ArraySize);
-                
+                size_t crc32ArraySize = sizeof(uint32) * blockCount;
+                //C99 - VLA
+#if !defined(WIN32) && !defined(__STDC_NO_VLA__)
+                uint32 crc32Array[blockCount];
+#else
+                uint32 *crc32Array = alloca(crc32ArraySize);
+#endif
                 for(uint16 i = 0;i < blockCount;++i)
                 {
-                    pBlock = ((uint8*)pBlocks + (BLOCK_SIZE * i));
-                    pCrc32Array[i] = crc32_compute(pBlock, BLOCK_SIZE);
+                    uint8 *pBlock = ((uint8*)pBlocks + (BLOCK_SIZE * i));
+                    crc32Array[i] = crc32_compute(pBlock, BLOCK_SIZE);
                 }
                 
                 //
-                crc32 = crc32_compute((BYTE*)pCrc32Array, crc32ArraySize);
+                uint32 crc32 = crc32_compute((BYTE*)crc32Array, crc32ArraySize);
                 //check crc32
                 if(rWriteAccessor->second.m_crc32 != crc32)
                 {
