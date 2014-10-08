@@ -19,36 +19,6 @@
     <ClCompile Include="..\..\src\shared\Threading\ThreadPool.cpp">
       <Filter>Threading</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\shared\Network\SocketGarbageCollector.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\shared\Network\SocketLinux.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\shared\Network\SocketMac.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\shared\Network\SocketMgrLinux.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\shared\Network\SocketMgrMac.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\shared\Network\SocketMgrWin32.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\shared\Network\SocketOpsLinux.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\shared\Network\SocketOpsWin32.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\shared\Network\SocketWindows.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\shared\Network\CircularBuffer.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\shared\CrashHandler.cpp" />
     <ClCompile Include="..\..\src\shared\StackWalker.cpp" />
     <ClCompile Include="..\..\src\shared\zlib\adler32.c">
@@ -108,10 +78,40 @@
     <ClCompile Include="..\..\src\shared\clib\Crc32\crc32_sse.c">
       <Filter>clib\Crc32</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\shared\Network\SocketWindowsPhone.cpp">
+    <ClCompile Include="..\..\src\shared\Network\CircularBuffer.cpp">
       <Filter>Network</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\shared\Network\SocketMgrWinPhone.cpp">
+    <ClCompile Include="..\..\src\shared\Network\SocketEPOLL.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared\Network\SocketGarbageCollector.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared\Network\SocketIOCP.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared\Network\SocketKEVENT.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared\Network\SocketMgrEPOLL.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared\Network\SocketMgrIOCP.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared\Network\SocketMgrKEVENT.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared\Network\SocketMgrSELECT.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared\Network\SocketOpsLinux.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared\Network\SocketOpsWin32.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared\Network\SocketSELECT.cpp">
       <Filter>Network</Filter>
     </ClCompile>
   </ItemGroup>
@@ -130,9 +130,6 @@
     </ClInclude>
     <ClInclude Include="..\..\src\shared\Logs\Log.h">
       <Filter>Logs</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\shared\Network\BaseSocket.h">
-      <Filter>Network</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\shared\Packets\ByteBuffer.h">
       <Filter>Packets</Filter>
@@ -157,45 +154,6 @@
     </ClInclude>
     <ClInclude Include="..\..\src\shared\Threading\LockingPtr.h">
       <Filter>Threading</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\shared\Network\ListenSocketLinux.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\shared\Network\ListenSocketWin32.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\shared\Network\SocketDefines.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\shared\Network\SocketWindows.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\shared\Network\SocketGarbageCollector.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\shared\Network\SocketLinux.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\shared\Network\SocketMac.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\shared\Network\SocketMgrLinux.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\shared\Network\SocketMgrMac.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\shared\Network\SocketMgrWin32.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\shared\Network\SocketOps.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\shared\Network\Network.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\shared\Network\CircularBuffer.h">
-      <Filter>Network</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\shared\Memory\MemoryAllocator.h">
       <Filter>Memory</Filter>
@@ -274,10 +232,52 @@
     <ClInclude Include="..\..\src\shared\clib\Crc32\crc32_sse.h">
       <Filter>clib\Crc32</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\shared\Network\SocketWindowsPhone.h">
+    <ClInclude Include="..\..\src\shared\Network\BaseSocket.h">
       <Filter>Network</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\shared\Network\SocketMgrWinPhone.h">
+    <ClInclude Include="..\..\src\shared\Network\CircularBuffer.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\Network\ListenSocketLinux.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\Network\ListenSocketWin32.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\Network\Network.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\Network\SocketDefines.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\Network\SocketEPOLL.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\Network\SocketGarbageCollector.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\Network\SocketIOCP.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\Network\SocketKEVENT.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\Network\SocketMgrEPOLL.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\Network\SocketMgrIOCP.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\Network\SocketMgrKEVENT.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\Network\SocketMgrSELECT.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\Network\SocketOps.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\Network\SocketSELECT.h">
       <Filter>Network</Filter>
     </ClInclude>
   </ItemGroup>

@@ -41,17 +41,17 @@
     <ClCompile Include="..\..\src\shared\IO\IO.cpp" />
     <ClCompile Include="..\..\src\shared\Logs\Log.cpp" />
     <ClCompile Include="..\..\src\shared\Network\CircularBuffer.cpp" />
+    <ClCompile Include="..\..\src\shared\Network\SocketEPOLL.cpp" />
     <ClCompile Include="..\..\src\shared\Network\SocketGarbageCollector.cpp" />
-    <ClCompile Include="..\..\src\shared\Network\SocketLinux.cpp" />
-    <ClCompile Include="..\..\src\shared\Network\SocketMac.cpp" />
-    <ClCompile Include="..\..\src\shared\Network\SocketMgrLinux.cpp" />
-    <ClCompile Include="..\..\src\shared\Network\SocketMgrMac.cpp" />
-    <ClCompile Include="..\..\src\shared\Network\SocketMgrWin32.cpp" />
-    <ClCompile Include="..\..\src\shared\Network\SocketMgrWinPhone.cpp" />
+    <ClCompile Include="..\..\src\shared\Network\SocketIOCP.cpp" />
+    <ClCompile Include="..\..\src\shared\Network\SocketKEVENT.cpp" />
+    <ClCompile Include="..\..\src\shared\Network\SocketMgrEPOLL.cpp" />
+    <ClCompile Include="..\..\src\shared\Network\SocketMgrIOCP.cpp" />
+    <ClCompile Include="..\..\src\shared\Network\SocketMgrKEVENT.cpp" />
+    <ClCompile Include="..\..\src\shared\Network\SocketMgrSELECT.cpp" />
     <ClCompile Include="..\..\src\shared\Network\SocketOpsLinux.cpp" />
     <ClCompile Include="..\..\src\shared\Network\SocketOpsWin32.cpp" />
-    <ClCompile Include="..\..\src\shared\Network\SocketWindows.cpp" />
-    <ClCompile Include="..\..\src\shared\Network\SocketWindowsPhone.cpp" />
+    <ClCompile Include="..\..\src\shared\Network\SocketSELECT.cpp" />
     <ClCompile Include="..\..\src\shared\Packets\GeewaPacket.cpp" />
     <ClCompile Include="..\..\src\shared\Packets\http_parser.c" />
     <ClCompile Include="..\..\src\shared\StackWalker.cpp" />
@@ -97,16 +97,16 @@
     <ClInclude Include="..\..\src\shared\Network\ListenSocketWin32.h" />
     <ClInclude Include="..\..\src\shared\Network\Network.h" />
     <ClInclude Include="..\..\src\shared\Network\SocketDefines.h" />
+    <ClInclude Include="..\..\src\shared\Network\SocketEPOLL.h" />
     <ClInclude Include="..\..\src\shared\Network\SocketGarbageCollector.h" />
-    <ClInclude Include="..\..\src\shared\Network\SocketLinux.h" />
-    <ClInclude Include="..\..\src\shared\Network\SocketMac.h" />
-    <ClInclude Include="..\..\src\shared\Network\SocketMgrLinux.h" />
-    <ClInclude Include="..\..\src\shared\Network\SocketMgrMac.h" />
-    <ClInclude Include="..\..\src\shared\Network\SocketMgrWin32.h" />
-    <ClInclude Include="..\..\src\shared\Network\SocketMgrWinPhone.h" />
+    <ClInclude Include="..\..\src\shared\Network\SocketIOCP.h" />
+    <ClInclude Include="..\..\src\shared\Network\SocketKEVENT.h" />
+    <ClInclude Include="..\..\src\shared\Network\SocketMgrEPOLL.h" />
+    <ClInclude Include="..\..\src\shared\Network\SocketMgrIOCP.h" />
+    <ClInclude Include="..\..\src\shared\Network\SocketMgrKEVENT.h" />
+    <ClInclude Include="..\..\src\shared\Network\SocketMgrSELECT.h" />
     <ClInclude Include="..\..\src\shared\Network\SocketOps.h" />
-    <ClInclude Include="..\..\src\shared\Network\SocketWindows.h" />
-    <ClInclude Include="..\..\src\shared\Network\SocketWindowsPhone.h" />
+    <ClInclude Include="..\..\src\shared\Network\SocketSELECT.h" />
     <ClInclude Include="..\..\src\shared\Packets\ByteBuffer.h" />
     <ClInclude Include="..\..\src\shared\Packets\GeewaPacket.h" />
     <ClInclude Include="..\..\src\shared\Packets\http_parser.h" />
@@ -279,7 +279,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_LIB;CONFIG_USE_IOCP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ExceptionHandling>Async</ExceptionHandling>
