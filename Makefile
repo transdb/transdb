@@ -2,10 +2,10 @@
 SHELL = /bin/sh
 CXX=g++
 CC=gcc
-CXXFLAGS= -std=c++11 -c -Wall -pedantic -Werror -O2 -DNDEBUG -DINTEL_SCALABLE_ALLOCATOR
-CXXFLAGSD= -std=c++11 -c -Wall -pedantic -Werror -DDEBUG -ggdb
-CFLAGS= -std=c99 -c -Wall -pedantic -Werror -O2 -DNDEBUG -DINTEL_SCALABLE_ALLOCATOR
-CFLAGSD= -std=c99 -c -Wall -c -Werror -DDEBUG -ggdb
+CXXFLAGS= -std=c++11 -c -Wall -pedantic -Werror -O2 -DNDEBUG -DINTEL_SCALABLE_ALLOCATOR -DCONFIG_USE_EPOLL
+CXXFLAGSD= -std=c++11 -c -Wall -pedantic -Werror -DDEBUG -DCONFIG_USE_EPOLL -ggdb
+CFLAGS= -std=c99 -c -Wall -pedantic -Werror -O2 -DNDEBUG -DINTEL_SCALABLE_ALLOCATOR -DCONFIG_USE_EPOLL
+CFLAGSD= -std=c99 -c -Wall -c -Werror -DDEBUG -DCONFIG_USE_EPOLL -ggdb
 INC=-I. $(shell python-config --includes)
 LIB=-ltbb -ltbbmalloc -lz $(shell python-config --libs)
 CXX_SRC_CONSOLE = $(shell find ./src/console/ -name *.cpp)
