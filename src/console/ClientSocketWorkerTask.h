@@ -10,7 +10,6 @@
 #define __TransDB__ClientSocketWorkerTask__
 
 class LRUCache;
-class ClientSocketTaskData;
 class ClientSocketWorker;
 class PythonInterface;
 

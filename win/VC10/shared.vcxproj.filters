@@ -96,9 +96,6 @@
     <ClCompile Include="..\..\src\shared\clib\base64\base64.c">
       <Filter>clib\base64</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\shared\clib\Buffers\CByteBuffer.c">
-      <Filter>clib\Buffers</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\shared\clib\Containers\avl.c">
       <Filter>clib\Containers</Filter>
     </ClCompile>
@@ -110,6 +107,12 @@
     </ClCompile>
     <ClCompile Include="..\..\src\shared\clib\Crc32\crc32_sse.c">
       <Filter>clib\Crc32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared\Network\SocketWindowsPhone.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared\Network\SocketMgrWinPhone.cpp">
+      <Filter>Network</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -270,6 +273,12 @@
     </ClInclude>
     <ClInclude Include="..\..\src\shared\clib\Crc32\crc32_sse.h">
       <Filter>clib\Crc32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\Network\SocketWindowsPhone.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\Network\SocketMgrWinPhone.h">
+      <Filter>Network</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
