@@ -40,16 +40,17 @@
 		8D33EE75192B8FAE007F448C /* zlib.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D33EE5E192B8FAE007F448C /* zlib.h */; };
 		8D33EE76192B8FAE007F448C /* zutil.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D33EE5F192B8FAE007F448C /* zutil.c */; };
 		8D33EE77192B8FAE007F448C /* zutil.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D33EE60192B8FAE007F448C /* zutil.h */; };
-		8D3AEE7419E556290034EA32 /* SocketMgrWinPhone.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D3AEE7219E556290034EA32 /* SocketMgrWinPhone.cpp */; };
-		8D3AEE7519E556290034EA32 /* SocketMgrWinPhone.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D3AEE7319E556290034EA32 /* SocketMgrWinPhone.h */; };
+		8D3AEE7419E556290034EA32 /* SocketMgrSELECT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D3AEE7219E556290034EA32 /* SocketMgrSELECT.cpp */; };
+		8D3AEE7519E556290034EA32 /* SocketMgrSELECT.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D3AEE7319E556290034EA32 /* SocketMgrSELECT.h */; };
+		8D3AEE7719E55AF10034EA32 /* SocketIOCP.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D3AEE7619E55AF10034EA32 /* SocketIOCP.h */; };
 		8D3E57DF188EA4CD00D54CBC /* SortedVector.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D3E57DE188EA4CD00D54CBC /* SortedVector.h */; };
 		8D58F78F19C715BB0091E959 /* CLog.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D58F78E19C715BB0091E959 /* CLog.h */; };
 		8D691523165101D7002D4A28 /* ClientSocketWorker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D691521165101D7002D4A28 /* ClientSocketWorker.cpp */; };
 		8D69152716510D56002D4A28 /* ClientSocketWorkerTask.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D69152516510D56002D4A28 /* ClientSocketWorkerTask.cpp */; };
-		8D7067D519E5517900148834 /* SocketWindows.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D7067D119E5517900148834 /* SocketWindows.cpp */; };
+		8D7067D519E5517900148834 /* SocketIOCP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D7067D119E5517900148834 /* SocketIOCP.cpp */; };
 		8D7067D619E5517900148834 /* SocketWindows.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D7067D219E5517900148834 /* SocketWindows.h */; };
-		8D7067D719E5517900148834 /* SocketWindowsPhone.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D7067D319E5517900148834 /* SocketWindowsPhone.cpp */; };
-		8D7067D819E5517900148834 /* SocketWindowsPhone.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D7067D419E5517900148834 /* SocketWindowsPhone.h */; };
+		8D7067D719E5517900148834 /* SocketSELECT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D7067D319E5517900148834 /* SocketSELECT.cpp */; };
+		8D7067D819E5517900148834 /* SocketSELECT.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D7067D419E5517900148834 /* SocketSELECT.h */; };
 		8D7251B415E6211600E9E1EB /* Block.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D7251B315E6211600E9E1EB /* Block.c */; };
 		8D7C24E019C7260300AB87B5 /* cpuid.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D7C24DF19C7260300AB87B5 /* cpuid.h */; };
 		8D8F15601635741600A72AD7 /* MemoryAllocator.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D8F155B1635741600A72AD7 /* MemoryAllocator.h */; };
@@ -89,11 +90,11 @@
 		8DFE27D415E22C35007F75A3 /* Network.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE276215E22BA8007F75A3 /* Network.h */; };
 		8DFE27D515E22C35007F75A3 /* SocketDefines.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE276315E22BA8007F75A3 /* SocketDefines.h */; };
 		8DFE27D615E22C35007F75A3 /* SocketGarbageCollector.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE276515E22BA8007F75A3 /* SocketGarbageCollector.h */; };
-		8DFE27D715E22C35007F75A3 /* SocketLinux.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE276715E22BA8007F75A3 /* SocketLinux.h */; };
-		8DFE27D815E22C35007F75A3 /* SocketMac.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE276915E22BA8007F75A3 /* SocketMac.h */; };
-		8DFE27D915E22C35007F75A3 /* SocketMgrLinux.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE276B15E22BA8007F75A3 /* SocketMgrLinux.h */; };
-		8DFE27DA15E22C35007F75A3 /* SocketMgrMac.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE276D15E22BA8007F75A3 /* SocketMgrMac.h */; };
-		8DFE27DB15E22C35007F75A3 /* SocketMgrWin32.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE276F15E22BA8007F75A3 /* SocketMgrWin32.h */; };
+		8DFE27D715E22C35007F75A3 /* SocketEPOLL.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE276715E22BA8007F75A3 /* SocketEPOLL.h */; };
+		8DFE27D815E22C35007F75A3 /* SocketKEVENT.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE276915E22BA8007F75A3 /* SocketKEVENT.h */; };
+		8DFE27D915E22C35007F75A3 /* SocketMgrEPOLL.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE276B15E22BA8007F75A3 /* SocketMgrEPOLL.h */; };
+		8DFE27DA15E22C35007F75A3 /* SocketMgrKEVENT.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE276D15E22BA8007F75A3 /* SocketMgrKEVENT.h */; };
+		8DFE27DB15E22C35007F75A3 /* SocketMgrIOCP.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE276F15E22BA8007F75A3 /* SocketMgrIOCP.h */; };
 		8DFE27DC15E22C35007F75A3 /* SocketOps.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE277015E22BA8007F75A3 /* SocketOps.h */; };
 		8DFE27DE15E22C35007F75A3 /* ByteBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE277615E22BA8007F75A3 /* ByteBuffer.h */; };
 		8DFE27DF15E22C35007F75A3 /* GeewaPacket.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE277815E22BA8007F75A3 /* GeewaPacket.h */; };
@@ -111,11 +112,11 @@
 		8DFE27EE15E22C46007F75A3 /* Log.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE275915E22BA8007F75A3 /* Log.cpp */; };
 		8DFE27EF15E22C46007F75A3 /* CircularBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE275E15E22BA8007F75A3 /* CircularBuffer.cpp */; };
 		8DFE27F015E22C46007F75A3 /* SocketGarbageCollector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE276415E22BA8007F75A3 /* SocketGarbageCollector.cpp */; };
-		8DFE27F115E22C46007F75A3 /* SocketLinux.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE276615E22BA8007F75A3 /* SocketLinux.cpp */; };
-		8DFE27F215E22C46007F75A3 /* SocketMac.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE276815E22BA8007F75A3 /* SocketMac.cpp */; };
-		8DFE27F315E22C46007F75A3 /* SocketMgrLinux.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE276A15E22BA8007F75A3 /* SocketMgrLinux.cpp */; };
-		8DFE27F415E22C46007F75A3 /* SocketMgrMac.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE276C15E22BA8007F75A3 /* SocketMgrMac.cpp */; };
-		8DFE27F515E22C46007F75A3 /* SocketMgrWin32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE276E15E22BA8007F75A3 /* SocketMgrWin32.cpp */; };
+		8DFE27F115E22C46007F75A3 /* SocketEPOLL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE276615E22BA8007F75A3 /* SocketEPOLL.cpp */; };
+		8DFE27F215E22C46007F75A3 /* SocketKEVENT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE276815E22BA8007F75A3 /* SocketKEVENT.cpp */; };
+		8DFE27F315E22C46007F75A3 /* SocketMgrEPOLL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE276A15E22BA8007F75A3 /* SocketMgrEPOLL.cpp */; };
+		8DFE27F415E22C46007F75A3 /* SocketMgrKEVENT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE276C15E22BA8007F75A3 /* SocketMgrKEVENT.cpp */; };
+		8DFE27F515E22C46007F75A3 /* SocketMgrIOCP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE276E15E22BA8007F75A3 /* SocketMgrIOCP.cpp */; };
 		8DFE27F615E22C46007F75A3 /* SocketOpsLinux.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE277115E22BA8007F75A3 /* SocketOpsLinux.cpp */; };
 		8DFE27F715E22C46007F75A3 /* SocketOpsWin32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE277215E22BA8007F75A3 /* SocketOpsWin32.cpp */; };
 		8DFE27F915E22C46007F75A3 /* GeewaPacket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE277715E22BA8007F75A3 /* GeewaPacket.cpp */; };
@@ -187,8 +188,9 @@
 		8D33EE5E192B8FAE007F448C /* zlib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = zlib.h; sourceTree = "<group>"; };
 		8D33EE5F192B8FAE007F448C /* zutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = zutil.c; sourceTree = "<group>"; };
 		8D33EE60192B8FAE007F448C /* zutil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = zutil.h; sourceTree = "<group>"; };
-		8D3AEE7219E556290034EA32 /* SocketMgrWinPhone.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketMgrWinPhone.cpp; sourceTree = "<group>"; };
-		8D3AEE7319E556290034EA32 /* SocketMgrWinPhone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocketMgrWinPhone.h; sourceTree = "<group>"; };
+		8D3AEE7219E556290034EA32 /* SocketMgrSELECT.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketMgrSELECT.cpp; sourceTree = "<group>"; };
+		8D3AEE7319E556290034EA32 /* SocketMgrSELECT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocketMgrSELECT.h; sourceTree = "<group>"; };
+		8D3AEE7619E55AF10034EA32 /* SocketIOCP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocketIOCP.h; sourceTree = "<group>"; };
 		8D3E57DE188EA4CD00D54CBC /* SortedVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SortedVector.h; sourceTree = "<group>"; };
 		8D3F749D190FC622002778F7 /* consts.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = consts.py; path = ../Python/consts.py; sourceTree = "<group>"; };
 		8D462C8518B790DE00142BBF /* common.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = common.py; path = ../Python/common.py; sourceTree = "<group>"; };
@@ -207,10 +209,10 @@
 		8D691522165101D7002D4A28 /* ClientSocketWorker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ClientSocketWorker.h; sourceTree = "<group>"; };
 		8D69152516510D56002D4A28 /* ClientSocketWorkerTask.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ClientSocketWorkerTask.cpp; sourceTree = "<group>"; };
 		8D69152616510D56002D4A28 /* ClientSocketWorkerTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ClientSocketWorkerTask.h; sourceTree = "<group>"; };
-		8D7067D119E5517900148834 /* SocketWindows.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketWindows.cpp; sourceTree = "<group>"; };
+		8D7067D119E5517900148834 /* SocketIOCP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketIOCP.cpp; sourceTree = "<group>"; };
 		8D7067D219E5517900148834 /* SocketWindows.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocketWindows.h; sourceTree = "<group>"; };
-		8D7067D319E5517900148834 /* SocketWindowsPhone.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketWindowsPhone.cpp; sourceTree = "<group>"; };
-		8D7067D419E5517900148834 /* SocketWindowsPhone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocketWindowsPhone.h; sourceTree = "<group>"; };
+		8D7067D319E5517900148834 /* SocketSELECT.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketSELECT.cpp; sourceTree = "<group>"; };
+		8D7067D419E5517900148834 /* SocketSELECT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocketSELECT.h; sourceTree = "<group>"; };
 		8D7251B015E6178400E9E1EB /* Block.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Block.h; sourceTree = "<group>"; };
 		8D7251B315E6211600E9E1EB /* Block.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Block.c; sourceTree = "<group>"; usesTabs = 0; };
 		8D7C24DF19C7260300AB87B5 /* cpuid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cpuid.h; sourceTree = "<group>"; };
@@ -269,16 +271,16 @@
 		8DFE276315E22BA8007F75A3 /* SocketDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocketDefines.h; sourceTree = "<group>"; };
 		8DFE276415E22BA8007F75A3 /* SocketGarbageCollector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketGarbageCollector.cpp; sourceTree = "<group>"; };
 		8DFE276515E22BA8007F75A3 /* SocketGarbageCollector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocketGarbageCollector.h; sourceTree = "<group>"; };
-		8DFE276615E22BA8007F75A3 /* SocketLinux.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketLinux.cpp; sourceTree = "<group>"; };
-		8DFE276715E22BA8007F75A3 /* SocketLinux.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocketLinux.h; sourceTree = "<group>"; };
-		8DFE276815E22BA8007F75A3 /* SocketMac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketMac.cpp; sourceTree = "<group>"; };
-		8DFE276915E22BA8007F75A3 /* SocketMac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocketMac.h; sourceTree = "<group>"; };
-		8DFE276A15E22BA8007F75A3 /* SocketMgrLinux.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketMgrLinux.cpp; sourceTree = "<group>"; };
-		8DFE276B15E22BA8007F75A3 /* SocketMgrLinux.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocketMgrLinux.h; sourceTree = "<group>"; };
-		8DFE276C15E22BA8007F75A3 /* SocketMgrMac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketMgrMac.cpp; sourceTree = "<group>"; };
-		8DFE276D15E22BA8007F75A3 /* SocketMgrMac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocketMgrMac.h; sourceTree = "<group>"; };
-		8DFE276E15E22BA8007F75A3 /* SocketMgrWin32.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketMgrWin32.cpp; sourceTree = "<group>"; };
-		8DFE276F15E22BA8007F75A3 /* SocketMgrWin32.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocketMgrWin32.h; sourceTree = "<group>"; };
+		8DFE276615E22BA8007F75A3 /* SocketEPOLL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketEPOLL.cpp; sourceTree = "<group>"; };
+		8DFE276715E22BA8007F75A3 /* SocketEPOLL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocketEPOLL.h; sourceTree = "<group>"; };
+		8DFE276815E22BA8007F75A3 /* SocketKEVENT.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketKEVENT.cpp; sourceTree = "<group>"; };
+		8DFE276915E22BA8007F75A3 /* SocketKEVENT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocketKEVENT.h; sourceTree = "<group>"; };
+		8DFE276A15E22BA8007F75A3 /* SocketMgrEPOLL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketMgrEPOLL.cpp; sourceTree = "<group>"; };
+		8DFE276B15E22BA8007F75A3 /* SocketMgrEPOLL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocketMgrEPOLL.h; sourceTree = "<group>"; };
+		8DFE276C15E22BA8007F75A3 /* SocketMgrKEVENT.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketMgrKEVENT.cpp; sourceTree = "<group>"; };
+		8DFE276D15E22BA8007F75A3 /* SocketMgrKEVENT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocketMgrKEVENT.h; sourceTree = "<group>"; };
+		8DFE276E15E22BA8007F75A3 /* SocketMgrIOCP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketMgrIOCP.cpp; sourceTree = "<group>"; };
+		8DFE276F15E22BA8007F75A3 /* SocketMgrIOCP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocketMgrIOCP.h; sourceTree = "<group>"; };
 		8DFE277015E22BA8007F75A3 /* SocketOps.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocketOps.h; sourceTree = "<group>"; };
 		8DFE277115E22BA8007F75A3 /* SocketOpsLinux.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketOpsLinux.cpp; sourceTree = "<group>"; };
 		8DFE277215E22BA8007F75A3 /* SocketOpsWin32.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketOpsWin32.cpp; sourceTree = "<group>"; };
@@ -669,26 +671,27 @@
 				8DFE276115E22BA8007F75A3 /* ListenSocketWin32.h */,
 				8DFE276215E22BA8007F75A3 /* Network.h */,
 				8DFE276315E22BA8007F75A3 /* SocketDefines.h */,
+				8DFE276615E22BA8007F75A3 /* SocketEPOLL.cpp */,
+				8DFE276715E22BA8007F75A3 /* SocketEPOLL.h */,
 				8DFE276415E22BA8007F75A3 /* SocketGarbageCollector.cpp */,
 				8DFE276515E22BA8007F75A3 /* SocketGarbageCollector.h */,
-				8DFE276615E22BA8007F75A3 /* SocketLinux.cpp */,
-				8DFE276715E22BA8007F75A3 /* SocketLinux.h */,
-				8DFE276815E22BA8007F75A3 /* SocketMac.cpp */,
-				8DFE276915E22BA8007F75A3 /* SocketMac.h */,
-				8DFE276A15E22BA8007F75A3 /* SocketMgrLinux.cpp */,
-				8DFE276B15E22BA8007F75A3 /* SocketMgrLinux.h */,
-				8DFE276C15E22BA8007F75A3 /* SocketMgrMac.cpp */,
-				8DFE276D15E22BA8007F75A3 /* SocketMgrMac.h */,
-				8DFE276E15E22BA8007F75A3 /* SocketMgrWin32.cpp */,
-				8DFE276F15E22BA8007F75A3 /* SocketMgrWin32.h */,
-				8D3AEE7219E556290034EA32 /* SocketMgrWinPhone.cpp */,
-				8D3AEE7319E556290034EA32 /* SocketMgrWinPhone.h */,
+				8D7067D119E5517900148834 /* SocketIOCP.cpp */,
+				8D3AEE7619E55AF10034EA32 /* SocketIOCP.h */,
+				8DFE276815E22BA8007F75A3 /* SocketKEVENT.cpp */,
+				8DFE276915E22BA8007F75A3 /* SocketKEVENT.h */,
+				8DFE276A15E22BA8007F75A3 /* SocketMgrEPOLL.cpp */,
+				8DFE276B15E22BA8007F75A3 /* SocketMgrEPOLL.h */,
+				8DFE276E15E22BA8007F75A3 /* SocketMgrIOCP.cpp */,
+				8DFE276F15E22BA8007F75A3 /* SocketMgrIOCP.h */,
+				8DFE276C15E22BA8007F75A3 /* SocketMgrKEVENT.cpp */,
+				8DFE276D15E22BA8007F75A3 /* SocketMgrKEVENT.h */,
+				8D3AEE7219E556290034EA32 /* SocketMgrSELECT.cpp */,
+				8D3AEE7319E556290034EA32 /* SocketMgrSELECT.h */,
 				8DFE277015E22BA8007F75A3 /* SocketOps.h */,
 				8DFE277115E22BA8007F75A3 /* SocketOpsLinux.cpp */,
 				8DFE277215E22BA8007F75A3 /* SocketOpsWin32.cpp */,
-				8D7067D119E5517900148834 /* SocketWindows.cpp */,
-				8D7067D319E5517900148834 /* SocketWindowsPhone.cpp */,
-				8D7067D419E5517900148834 /* SocketWindowsPhone.h */,
+				8D7067D319E5517900148834 /* SocketSELECT.cpp */,
+				8D7067D419E5517900148834 /* SocketSELECT.h */,
 			);
 			path = Network;
 			sourceTree = "<group>";
@@ -758,7 +761,7 @@
 				8DFE27CB15E22C35007F75A3 /* Config.h in Headers */,
 				8DFE27CC15E22C35007F75A3 /* Defines.h in Headers */,
 				8DFE27CD15E22C35007F75A3 /* Enums.h in Headers */,
-				8D3AEE7519E556290034EA32 /* SocketMgrWinPhone.h in Headers */,
+				8D3AEE7519E556290034EA32 /* SocketMgrSELECT.h in Headers */,
 				8DFE27CE15E22C35007F75A3 /* Log.h in Headers */,
 				8D33EE77192B8FAE007F448C /* zutil.h in Headers */,
 				8DFE27D015E22C35007F75A3 /* BaseSocket.h in Headers */,
@@ -774,21 +777,22 @@
 				8DFE27D515E22C35007F75A3 /* SocketDefines.h in Headers */,
 				8DACDCF219C0631600B1E092 /* avl.h in Headers */,
 				8D33EE64192B8FAE007F448C /* crc32.h in Headers */,
-				8D7067D819E5517900148834 /* SocketWindowsPhone.h in Headers */,
+				8D7067D819E5517900148834 /* SocketSELECT.h in Headers */,
 				8DFE27D615E22C35007F75A3 /* SocketGarbageCollector.h in Headers */,
 				8D33EE48192B8C95007F448C /* IO.h in Headers */,
 				8D937B5819C19A070011032A /* base64.h in Headers */,
-				8DFE27D715E22C35007F75A3 /* SocketLinux.h in Headers */,
+				8DFE27D715E22C35007F75A3 /* SocketEPOLL.h in Headers */,
 				8D33EE68192B8FAE007F448C /* gzguts.h in Headers */,
-				8DFE27D815E22C35007F75A3 /* SocketMac.h in Headers */,
+				8DFE27D815E22C35007F75A3 /* SocketKEVENT.h in Headers */,
 				8D33EE66192B8FAE007F448C /* deflate.h in Headers */,
+				8D3AEE7719E55AF10034EA32 /* SocketIOCP.h in Headers */,
 				8D15F40218883B2400EC443F /* HashMap.h in Headers */,
 				8D7C24E019C7260300AB87B5 /* cpuid.h in Headers */,
-				8DFE27D915E22C35007F75A3 /* SocketMgrLinux.h in Headers */,
-				8DFE27DA15E22C35007F75A3 /* SocketMgrMac.h in Headers */,
+				8DFE27D915E22C35007F75A3 /* SocketMgrEPOLL.h in Headers */,
+				8DFE27DA15E22C35007F75A3 /* SocketMgrKEVENT.h in Headers */,
 				8D33EE75192B8FAE007F448C /* zlib.h in Headers */,
 				8DAC6D51188D3BE3001851BB /* Vector.h in Headers */,
-				8DFE27DB15E22C35007F75A3 /* SocketMgrWin32.h in Headers */,
+				8DFE27DB15E22C35007F75A3 /* SocketMgrIOCP.h in Headers */,
 				8DFE27DC15E22C35007F75A3 /* SocketOps.h in Headers */,
 				8D33EE6E192B8FAE007F448C /* inflate.h in Headers */,
 				8DFE27DE15E22C35007F75A3 /* ByteBuffer.h in Headers */,
@@ -901,7 +905,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8D7067D719E5517900148834 /* SocketWindowsPhone.cpp in Sources */,
+				8D7067D719E5517900148834 /* SocketSELECT.cpp in Sources */,
 				8DACDCF119C0631600B1E092 /* avl.c in Sources */,
 				8D33EE69192B8FAE007F448C /* infback.c in Sources */,
 				8D33EE6F192B8FAE007F448C /* inftrees.c in Sources */,
@@ -918,17 +922,17 @@
 				8D33EE65192B8FAE007F448C /* deflate.c in Sources */,
 				8D9AF24019C079FC007F88E8 /* CVector.c in Sources */,
 				8DFE27F015E22C46007F75A3 /* SocketGarbageCollector.cpp in Sources */,
-				8D7067D519E5517900148834 /* SocketWindows.cpp in Sources */,
-				8DFE27F115E22C46007F75A3 /* SocketLinux.cpp in Sources */,
+				8D7067D519E5517900148834 /* SocketIOCP.cpp in Sources */,
+				8DFE27F115E22C46007F75A3 /* SocketEPOLL.cpp in Sources */,
 				8D937B5719C19A070011032A /* base64.c in Sources */,
-				8DFE27F215E22C46007F75A3 /* SocketMac.cpp in Sources */,
-				8DFE27F315E22C46007F75A3 /* SocketMgrLinux.cpp in Sources */,
+				8DFE27F215E22C46007F75A3 /* SocketKEVENT.cpp in Sources */,
+				8DFE27F315E22C46007F75A3 /* SocketMgrEPOLL.cpp in Sources */,
 				8D33EE76192B8FAE007F448C /* zutil.c in Sources */,
-				8D3AEE7419E556290034EA32 /* SocketMgrWinPhone.cpp in Sources */,
+				8D3AEE7419E556290034EA32 /* SocketMgrSELECT.cpp in Sources */,
 				8D33EE61192B8FAE007F448C /* adler32.c in Sources */,
 				8D33EE67192B8FAE007F448C /* gzclose.c in Sources */,
-				8DFE27F415E22C46007F75A3 /* SocketMgrMac.cpp in Sources */,
-				8DFE27F515E22C46007F75A3 /* SocketMgrWin32.cpp in Sources */,
+				8DFE27F415E22C46007F75A3 /* SocketMgrKEVENT.cpp in Sources */,
+				8DFE27F515E22C46007F75A3 /* SocketMgrIOCP.cpp in Sources */,
 				8D33EE6A192B8FAE007F448C /* inffast.c in Sources */,
 				8DFE27F615E22C46007F75A3 /* SocketOpsLinux.cpp in Sources */,
 				8D33EE62192B8FAE007F448C /* compress.c in Sources */,
@@ -955,7 +959,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
-					CONFIG_USE_SELECT,
+					CONFIG_USE_KQUEUE,
 					"$(inherited)",
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
