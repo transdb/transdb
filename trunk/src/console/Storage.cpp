@@ -197,12 +197,8 @@ struct StorageCrc32Check
                 
                 //calc crc32
                 size_t crc32ArraySize = sizeof(uint32) * blockCount;
-                //C99 - VLA
-#if !defined(WIN32) && !defined(__STDC_NO_VLA__)
-                uint32 crc32Array[blockCount];
-#else
-                uint32 *crc32Array = alloca(crc32ArraySize);
-#endif
+                uint32 *crc32Array = (uint32*)alloca(crc32ArraySize);
+                
                 for(uint16 i = 0;i < blockCount;++i)
                 {
                     uint8 *pBlock = ((uint8*)pBlocks + (BLOCK_SIZE * i));
