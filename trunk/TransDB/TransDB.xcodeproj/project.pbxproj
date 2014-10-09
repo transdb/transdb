@@ -44,6 +44,8 @@
 		8D3AEE7519E556290034EA32 /* SocketMgrSELECT.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D3AEE7319E556290034EA32 /* SocketMgrSELECT.h */; };
 		8D3AEE7719E55AF10034EA32 /* SocketIOCP.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D3AEE7619E55AF10034EA32 /* SocketIOCP.h */; };
 		8D3E57DF188EA4CD00D54CBC /* SortedVector.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D3E57DE188EA4CD00D54CBC /* SortedVector.h */; };
+		8D42416619E7318E0009C821 /* socketpair.c in Sources */ = {isa = PBXBuildFile; fileRef = 8D42416419E7318E0009C821 /* socketpair.c */; };
+		8D42416719E7318E0009C821 /* socketpair.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D42416519E7318E0009C821 /* socketpair.h */; };
 		8D58F78F19C715BB0091E959 /* CLog.h in Headers */ = {isa = PBXBuildFile; fileRef = 8D58F78E19C715BB0091E959 /* CLog.h */; };
 		8D691523165101D7002D4A28 /* ClientSocketWorker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D691521165101D7002D4A28 /* ClientSocketWorker.cpp */; };
 		8D69152716510D56002D4A28 /* ClientSocketWorkerTask.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8D69152516510D56002D4A28 /* ClientSocketWorkerTask.cpp */; };
@@ -193,6 +195,8 @@
 		8D3AEE7619E55AF10034EA32 /* SocketIOCP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocketIOCP.h; sourceTree = "<group>"; };
 		8D3E57DE188EA4CD00D54CBC /* SortedVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SortedVector.h; sourceTree = "<group>"; };
 		8D3F749D190FC622002778F7 /* consts.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = consts.py; path = ../Python/consts.py; sourceTree = "<group>"; };
+		8D42416419E7318E0009C821 /* socketpair.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = socketpair.c; sourceTree = "<group>"; };
+		8D42416519E7318E0009C821 /* socketpair.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = socketpair.h; sourceTree = "<group>"; };
 		8D462C8518B790DE00142BBF /* common.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = common.py; path = ../Python/common.py; sourceTree = "<group>"; };
 		8D50482818FBDB6B007381C1 /* packets.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = packets.py; path = ../Python/packets.py; sourceTree = "<group>"; };
 		8D58E9401891432500D68538 /* loadtransDB.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = loadtransDB.py; path = ../Python/loadtransDB.py; sourceTree = "<group>"; };
@@ -442,6 +446,15 @@
 			path = zlib;
 			sourceTree = "<group>";
 		};
+		8D42416319E7318E0009C821 /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				8D42416419E7318E0009C821 /* socketpair.c */,
+				8D42416519E7318E0009C821 /* socketpair.h */,
+			);
+			path = Network;
+			sourceTree = "<group>";
+		};
 		8D48B9B31666062B005156B2 /* Containers */ = {
 			isa = PBXGroup;
 			children = (
@@ -541,6 +554,7 @@
 				8D7C24DF19C7260300AB87B5 /* cpuid.h */,
 				8D31341D19C72722006FC720 /* Crc32 */,
 				8D58F78D19C715AB0091E959 /* Log */,
+				8D42416319E7318E0009C821 /* Network */,
 			);
 			path = clib;
 			sourceTree = "<group>";
@@ -780,6 +794,7 @@
 				8D7067D819E5517900148834 /* SocketSELECT.h in Headers */,
 				8DFE27D615E22C35007F75A3 /* SocketGarbageCollector.h in Headers */,
 				8D33EE48192B8C95007F448C /* IO.h in Headers */,
+				8D42416719E7318E0009C821 /* socketpair.h in Headers */,
 				8D937B5819C19A070011032A /* base64.h in Headers */,
 				8DFE27D715E22C35007F75A3 /* SocketEPOLL.h in Headers */,
 				8D33EE68192B8FAE007F448C /* gzguts.h in Headers */,
@@ -907,6 +922,7 @@
 			files = (
 				8D7067D719E5517900148834 /* SocketSELECT.cpp in Sources */,
 				8DACDCF119C0631600B1E092 /* avl.c in Sources */,
+				8D42416619E7318E0009C821 /* socketpair.c in Sources */,
 				8D33EE69192B8FAE007F448C /* infback.c in Sources */,
 				8D33EE6F192B8FAE007F448C /* inftrees.c in Sources */,
 				8D99BEB315EE5C2200BCE873 /* Config.cpp in Sources */,
@@ -959,7 +975,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
-					CONFIG_USE_KQUEUE,
+					CONFIG_USE_SELECT,
 					"$(inherited)",
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
