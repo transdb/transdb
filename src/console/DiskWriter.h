@@ -61,11 +61,11 @@ class DiskWriter
     friend class IndexBlock;
     
 public:
-    typedef HashMap<uint64, WriteInfo, ScalableHashMapNodeAllocator<uint64, WriteInfo> >    DirtyXQueue;
-    typedef Vector<WriteInfo, uint64>                                                       DirtyXProcess;
-    typedef HashMap<uint64, RecordIndex>                                                    RIDelQueue;
+    typedef HashMap<uint64, WriteInfo>          DirtyXQueue;
+    typedef Vector<WriteInfo, uint64>           DirtyXProcess;
+    typedef HashMap<uint64, RecordIndex>        RIDelQueue;
     //DiskWriterTask
-    typedef std::vector<DiskWriterTask>                                                     DiskWriteTasksVec;
+    typedef std::vector<DiskWriterTask>         DiskWriteTasksVec;
     
     //destructor
     ~DiskWriter();
