@@ -18,7 +18,7 @@ typedef struct CacheRecord
 
 class LRUCache
 {
-    typedef HashMap<uint64, CRec*, ScalableHashMapNodeAllocator<uint64, CRec*> >      LRUMap;
+    typedef HashMap<uint64, CRec*>      LRUMap;
     
 public:   
 	explicit LRUCache(const char *pName, uint64 cacheSize);
