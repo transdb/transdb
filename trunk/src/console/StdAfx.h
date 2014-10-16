@@ -35,7 +35,6 @@
 #include "../shared/clib/Crc32/crc32_sse.h"
 
 //Intel TBB
-#include "tbb/scalable_allocator.h"
 #include "tbb/concurrent_hash_map.h"
 #include "tbb/concurrent_vector.h"
 #include "tbb/parallel_sort.h"

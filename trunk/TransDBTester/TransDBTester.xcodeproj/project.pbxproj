@@ -72,8 +72,6 @@
 		8DDEFCB719E6D2FC00367411 /* SocketOps.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DDEFC9919E6D2FC00367411 /* SocketOps.h */; };
 		8DDEFCB819E6D2FC00367411 /* SocketOpsLinux.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DDEFC9A19E6D2FC00367411 /* SocketOpsLinux.cpp */; };
 		8DDEFCB919E6D2FC00367411 /* SocketOpsWin32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DDEFC9B19E6D2FC00367411 /* SocketOpsWin32.cpp */; };
-		8DDEFCBA19E6D2FC00367411 /* socketpair.c in Sources */ = {isa = PBXBuildFile; fileRef = 8DDEFC9C19E6D2FC00367411 /* socketpair.c */; };
-		8DDEFCBB19E6D2FC00367411 /* socketpair.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DDEFC9D19E6D2FC00367411 /* socketpair.h */; };
 		8DDEFCBC19E6D2FC00367411 /* SocketSELECT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DDEFC9E19E6D2FC00367411 /* SocketSELECT.cpp */; };
 		8DDEFCBD19E6D2FC00367411 /* SocketSELECT.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DDEFC9F19E6D2FC00367411 /* SocketSELECT.h */; };
 		8DE8235E15EF54B800F74908 /* Crypt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8DE8232115EF54B800F74908 /* Crypt.cpp */; };
@@ -191,8 +189,6 @@
 		8DDEFC9919E6D2FC00367411 /* SocketOps.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocketOps.h; sourceTree = "<group>"; };
 		8DDEFC9A19E6D2FC00367411 /* SocketOpsLinux.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketOpsLinux.cpp; sourceTree = "<group>"; };
 		8DDEFC9B19E6D2FC00367411 /* SocketOpsWin32.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketOpsWin32.cpp; sourceTree = "<group>"; };
-		8DDEFC9C19E6D2FC00367411 /* socketpair.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = socketpair.c; sourceTree = "<group>"; };
-		8DDEFC9D19E6D2FC00367411 /* socketpair.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = socketpair.h; sourceTree = "<group>"; };
 		8DDEFC9E19E6D2FC00367411 /* SocketSELECT.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SocketSELECT.cpp; sourceTree = "<group>"; };
 		8DDEFC9F19E6D2FC00367411 /* SocketSELECT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SocketSELECT.h; sourceTree = "<group>"; };
 		8DE8231615EF544700F74908 /* libshared.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libshared.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -466,8 +462,6 @@
 				8DDEFC9919E6D2FC00367411 /* SocketOps.h */,
 				8DDEFC9A19E6D2FC00367411 /* SocketOpsLinux.cpp */,
 				8DDEFC9B19E6D2FC00367411 /* SocketOpsWin32.cpp */,
-				8DDEFC9C19E6D2FC00367411 /* socketpair.c */,
-				8DDEFC9D19E6D2FC00367411 /* socketpair.h */,
 				8DDEFC9E19E6D2FC00367411 /* SocketSELECT.cpp */,
 				8DDEFC9F19E6D2FC00367411 /* SocketSELECT.h */,
 			);
@@ -567,7 +561,6 @@
 				8DDEFCA519E6D2FC00367411 /* Network.h in Headers */,
 				8DE8238B15EF54B800F74908 /* Singleton.h in Headers */,
 				8DDEFCA619E6D2FC00367411 /* SocketDefines.h in Headers */,
-				8DDEFCBB19E6D2FC00367411 /* socketpair.h in Headers */,
 				8DE8238D15EF54B800F74908 /* LockingPtr.h in Headers */,
 				8DE8239015EF54B800F74908 /* ThreadContext.h in Headers */,
 				8DDEFCA019E6D2FC00367411 /* BaseSocket.h in Headers */,
@@ -654,7 +647,6 @@
 				8DE8236015EF54B800F74908 /* CallBack.cpp in Sources */,
 				8DE8236215EF54B800F74908 /* CommonFunctions.cpp in Sources */,
 				8D922D201935F1FF004EDA29 /* deflate.c in Sources */,
-				8DDEFCBA19E6D2FC00367411 /* socketpair.c in Sources */,
 				8DE8236415EF54B800F74908 /* Config.cpp in Sources */,
 				8DE8236615EF54B800F74908 /* Defines.cpp in Sources */,
 				8D922D2A1935F1FF004EDA29 /* inftrees.c in Sources */,

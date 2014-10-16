@@ -189,7 +189,7 @@ struct StorageCrc32Check
                 //preallocate
                 uint16 blockCount = rWriteAccessor->second.m_blockCount;
                 int64 blocksSize = blockCount * BLOCK_SIZE;
-                void* pBlocks = scalable_aligned_malloc(blocksSize, g_DataFileMallocAlignment);
+                void* pBlocks = _ALIGNED_MALLOC(blocksSize, g_DataFileMallocAlignment);
                 
                 //read all blocks in one IO
                 IO::fseek(rDataFileHandle, rWriteAccessor->second.m_recordStart, IO::IO_SEEK_SET);
@@ -214,7 +214,7 @@ struct StorageCrc32Check
                 }
                 
                 //release memory
-                scalable_aligned_free(pBlocks);
+                _ALIGNED_FREE(pBlocks);
             }
         }
         
@@ -502,7 +502,7 @@ void Storage::GetAllX(XKeyVec &rXKeyVec, uint32 sortFlags)
     uint32 blockCount = static_cast<uint32>(fileSize / INDEX_BLOCK_SIZE);
     
     //alloc buffer
-    void *pData = scalable_aligned_malloc(fileSize, g_IndexFileMallocAlignment);
+    void *pData = _ALIGNED_MALLOC(fileSize, g_IndexFileMallocAlignment);
     if(pData == NULL)
     {
         Log.Error(__FUNCTION__, "Cannot allocate memory for index block file.");
@@ -537,7 +537,7 @@ void Storage::GetAllX(XKeyVec &rXKeyVec, uint32 sortFlags)
     }
     
     //free
-    scalable_aligned_free(pData);
+    _ALIGNED_FREE(pData);
 }
 
 void Storage::GetAllY(HANDLE rDataFileHandle, LRUCache &rLRUCache, uint64 x, bbuff *pY)
@@ -685,7 +685,7 @@ bool Storage::CheckBlockManager(const HANDLE &rDataFileHandle, const uint64 &x, 
         
 		//preallocate
         int64 blocksSize = rWriteAccessor->second.m_blockCount * BLOCK_SIZE;
-		void *pBlocks = scalable_aligned_malloc(blocksSize, g_DataFileMallocAlignment);
+		void *pBlocks = _ALIGNED_MALLOC(blocksSize, g_DataFileMallocAlignment);
         
         //read all blocks in one IO
         IO::fseek(rDataFileHandle, rWriteAccessor->second.m_recordStart, IO::IO_SEEK_SET);

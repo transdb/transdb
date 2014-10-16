@@ -55,17 +55,17 @@ void LRUCache::put(uint64 x)
     if(m_pMap->get(x, pCRec))
     {
         ChangeChain(pCRec);
-        scalable_free(pCRec);
+        _FREE(pCRec);
     }
 
     //init 1st
     if(m_first != NULL)
     {
-        pCRec = (CRec*)scalable_malloc(sizeof(CRec));
+        pCRec = (CRec*)_MALLOC(sizeof(CRec));
     }
     else
     {
-        m_first = (CRec*)scalable_malloc(sizeof(CRec));
+        m_first = (CRec*)_MALLOC(sizeof(CRec));
         pCRec = m_first;
     }
     
@@ -95,7 +95,7 @@ bool LRUCache::remove(uint64 x)
         ChangeChain(pCRecFind);
 
 		//delete
-        scalable_free(pCRecFind);
+        _FREE(pCRecFind);
 		m_pMap->remove(x);
         return true;
 	}

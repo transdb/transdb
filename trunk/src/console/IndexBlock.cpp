@@ -106,7 +106,7 @@ E_IIS IndexBlock::Init(HANDLE hFile,
     
     if(fileSize != 0)
     {
-        void *pData = scalable_aligned_malloc(fileSize, g_IndexFileMallocAlignment);
+        void *pData = _ALIGNED_MALLOC(fileSize, g_IndexFileMallocAlignment);
         if(pData == NULL)
         {
             Log.Error(__FUNCTION__, "Cannot allocate memory for index block file.");
@@ -145,7 +145,7 @@ E_IIS IndexBlock::Init(HANDLE hFile,
         }
         
         //release memory
-        scalable_aligned_free(pData);
+        _ALIGNED_FREE(pData);
 	}
     
     //save to temporary variable when index file is corrpted we will not loose old data from memory
@@ -250,7 +250,7 @@ void IndexBlock::WriteRecordIndexToDisk(HANDLE hFile, RecordIndexMap::accessor &
         if(m_freeBlocks.empty())
         {
             //create new block
-            pDiskBlock = (uint8*)scalable_aligned_malloc(INDEX_BLOCK_SIZE, g_IndexFileMallocAlignment);
+            pDiskBlock = (uint8*)_ALIGNED_MALLOC(INDEX_BLOCK_SIZE, g_IndexFileMallocAlignment);
             memset(pDiskBlock, 0, INDEX_BLOCK_SIZE);
             
             //add to cache
@@ -407,7 +407,7 @@ uint8 *IndexBlock::GetCachedDiskBlock(HANDLE hFile, int64 blockDiskPosition, uin
             itr = m_rDiskBlockCache.find((uint32)blockToDelete);
             if(itr != m_rDiskBlockCache.end())
             {
-                scalable_aligned_free((void*)itr->second);
+                _ALIGNED_FREE(itr->second);
                 m_rDiskBlockCache.erase(itr);
             }
             //remove from LRUCache
@@ -419,7 +419,7 @@ uint8 *IndexBlock::GetCachedDiskBlock(HANDLE hFile, int64 blockDiskPosition, uin
     }
     
     //allocate new block
-	pDiskBlock = (uint8*)scalable_aligned_malloc(INDEX_BLOCK_SIZE, g_IndexFileMallocAlignment);
+	pDiskBlock = (uint8*)_ALIGNED_MALLOC(INDEX_BLOCK_SIZE, g_IndexFileMallocAlignment);
     
     //read from disk
     IO::fseek(hFile, blockDiskPosition, IO::IO_SEEK_SET);
