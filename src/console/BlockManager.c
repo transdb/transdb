@@ -6,7 +6,6 @@
 //  Copyright (c) 2012 Miroslav Kudrnac. All rights reserved.
 //
 
-#include "tbb/scalable_allocator.h"
 #include "../shared/zlib/zlib.h"
 #include "../shared/clib/CCommon.h"
 #include "../shared/clib/Log/CLog.h"
@@ -24,13 +23,13 @@ typedef struct _Node
 
 void *my_avl_malloc(struct libavl_allocator *self, size_t libavl_size)
 {
-    void *p = scalable_malloc(libavl_size);
+    void *p = _MALLOC(libavl_size);
     return p;
 }
 
 void my_avl_free(struct libavl_allocator *self, void *libavl_block)
 {
-    scalable_free(libavl_block);
+    _FREE(libavl_block);
 }
 
 //custom allocator
@@ -42,7 +41,7 @@ struct libavl_allocator my_avl_allocator =
 
 blidxnode *blidxnode_create(uint64 key, uint16 blockNumber)
 {
-    blidxnode *p = scalable_malloc(sizeof(blidxnode));
+    blidxnode *p = _MALLOC(sizeof(blidxnode));
     p->m_key = key;
     p->m_blockNumber = blockNumber;
     return p;
@@ -50,7 +49,7 @@ blidxnode *blidxnode_create(uint64 key, uint16 blockNumber)
 
 void blidxnode_destroy(void *avl_item, void *avl_param)
 {
-    scalable_free(avl_item);
+    _FREE(avl_item);
 }
 
 int blockindex_cmp(const void *avl_a, const void *avl_b, void *avl_param)
@@ -82,7 +81,7 @@ void blman_realloc_blocks(blman *self)
     self->blockCount += 1;
 
     //realloc block array
-    void *pNewBlocks = scalable_aligned_realloc(self->blocks, self->blockCount * BLOCK_SIZE, g_DataFileMallocAlignment);
+    void *pNewBlocks = _ALIGNED_REALLOC(self->blocks, self->blockCount * BLOCK_SIZE, g_DataFileMallocAlignment);
     assert(pNewBlocks);
     
     //set new pointer
@@ -99,7 +98,7 @@ void blman_realloc_blocks(blman *self)
 void blman_dealloc_blocks(blman *self)
 {
     //dealloc blocks
-    scalable_aligned_free(self->blocks);
+    _ALIGNED_FREE(self->blocks);
     self->blocks = NULL;
 
     //set block count to 0
@@ -112,7 +111,7 @@ void blman_dealloc_blocks(blman *self)
 
 blman *blman_create(uint8 *blocks, uint16 blockCount)
 {
-    blman *p = scalable_malloc(sizeof(blman));
+    blman *p = _MALLOC(sizeof(blman));
     if(p == NULL)
         return NULL;
     
@@ -157,8 +156,8 @@ blman *blman_create(uint8 *blocks, uint16 blockCount)
 void blman_destroy(blman *self)
 {
     avl_destroy(self->blockIndex, &blidxnode_destroy);
-    scalable_aligned_free(self->blocks);
-    scalable_free(self);
+    _ALIGNED_FREE(self->blocks);
+    _FREE(self);
 }
 
 uint32 blman_write_record(blman *self, uint64 recordkey, const uint8 *record, uint16 recordsize)

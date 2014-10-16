@@ -401,7 +401,16 @@ void ClientSocket::SendPing()
     m_lastPing = UNIXTIME;
     
     //send ping
-    OutPacket(S_MSG_PING, sizeof(tickCount), &tickCount);
+    uint32 count = 0;
+    while(_OutPacket(S_MSG_PING, sizeof(tickCount), &tickCount) != OUTPACKET_RESULT_SUCCESS)
+    {
+        if(count > 100)
+        {
+            Log.Error(__FUNCTION__, "Unable to send S_MSG_PING.");
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
 }
 
 

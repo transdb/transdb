@@ -351,6 +351,7 @@ int main(int argc, const char * argv[])
 	Log.Notice(__FUNCTION__, "IndexFileMallocAlignment = %d", g_IndexFileMallocAlignment);
     
     //init intel tbb memory allocator soft limit
+#ifdef INTEL_SCALABLE_ALLOCATOR
     intptr_t softHeapLimit = static_cast<intptr_t>((static_cast<float>(g_cfg.MemoryLimit) * 1.10f));
     int ret = scalable_allocation_mode(TBBMALLOC_SET_SOFT_HEAP_LIMIT, softHeapLimit);
     if(ret != TBBMALLOC_OK)
@@ -364,6 +365,7 @@ int main(int argc, const char * argv[])
     {
         Log.Warning(__FUNCTION__, "TBBMALLOC_USE_HUGE_PAGES failed with return value: %d", ret);
     }
+#endif
     
     //start lib
     StartSharedLib();
