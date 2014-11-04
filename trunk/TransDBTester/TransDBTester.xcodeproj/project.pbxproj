@@ -106,6 +106,8 @@
 		8DFC6C48165CF8770084470D /* libtbbmalloc_debug.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DFC6C46165CF8770084470D /* libtbbmalloc_debug.dylib */; };
 		8DFC6C49165CF97A0084470D /* libtbb_debug.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8DFC6C45165CF8770084470D /* libtbb_debug.dylib */; };
 		8DFC6C4A165CF97A0084470D /* libtbbmalloc_debug.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8DFC6C46165CF8770084470D /* libtbbmalloc_debug.dylib */; };
+		8DFE2A731A091FB100CA5A98 /* socketpair.c in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE2A711A091FB100CA5A98 /* socketpair.c */; };
+		8DFE2A741A091FB100CA5A98 /* socketpair.h in Headers */ = {isa = PBXBuildFile; fileRef = 8DFE2A721A091FB100CA5A98 /* socketpair.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -225,6 +227,8 @@
 		8DE823A915EF593800F74908 /* Launcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Launcher.h; path = ../../src/tester/Launcher.h; sourceTree = "<group>"; };
 		8DFC6C45165CF8770084470D /* libtbb_debug.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libtbb_debug.dylib; path = ../tbb/lib/libtbb_debug.dylib; sourceTree = "<group>"; };
 		8DFC6C46165CF8770084470D /* libtbbmalloc_debug.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libtbbmalloc_debug.dylib; path = ../tbb/lib/libtbbmalloc_debug.dylib; sourceTree = "<group>"; };
+		8DFE2A711A091FB100CA5A98 /* socketpair.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = socketpair.c; sourceTree = "<group>"; };
+		8DFE2A721A091FB100CA5A98 /* socketpair.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = socketpair.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -251,6 +255,7 @@
 		8D2580EA19D40C3A00E8FD15 /* clib */ = {
 			isa = PBXGroup;
 			children = (
+				8DFE2A701A091FB100CA5A98 /* Network */,
 				8D2580EB19D40C3A00E8FD15 /* base64 */,
 				8D2580EE19D40C3A00E8FD15 /* Buffers */,
 				8D2580F119D40C3A00E8FD15 /* CCommon.c */,
@@ -510,6 +515,15 @@
 			path = TransDBTester;
 			sourceTree = "<group>";
 		};
+		8DFE2A701A091FB100CA5A98 /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				8DFE2A711A091FB100CA5A98 /* socketpair.c */,
+				8DFE2A721A091FB100CA5A98 /* socketpair.h */,
+			);
+			path = Network;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -543,6 +557,7 @@
 				8D922D2B1935F1FF004EDA29 /* inftrees.h in Headers */,
 				8D922D211935F1FF004EDA29 /* deflate.h in Headers */,
 				8DE8238415EF54B800F74908 /* ByteBuffer.h in Headers */,
+				8DFE2A741A091FB100CA5A98 /* socketpair.h in Headers */,
 				8D922D271935F1FF004EDA29 /* inffixed.h in Headers */,
 				8D2580FF19D40C3A00E8FD15 /* base64.h in Headers */,
 				8D922D291935F1FF004EDA29 /* inflate.h in Headers */,
@@ -674,6 +689,7 @@
 				8DDEFCB119E6D2FC00367411 /* SocketMgrIOCP.cpp in Sources */,
 				8DE8239215EF54B800F74908 /* ThreadPool.cpp in Sources */,
 				8D25810219D40C3A00E8FD15 /* CCommon.c in Sources */,
+				8DFE2A731A091FB100CA5A98 /* socketpair.c in Sources */,
 				8D25810619D40C3A00E8FD15 /* CVector.c in Sources */,
 				8D922D2E1935F1FF004EDA29 /* uncompr.c in Sources */,
 				8D2580FE19D40C3A00E8FD15 /* base64.c in Sources */,
@@ -706,7 +722,7 @@
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					CONFIG_USE_KQUEUE,
+					CONFIG_USE_SELECT,
 					"DEBUG=1",
 					"$(inherited)",
 				);
