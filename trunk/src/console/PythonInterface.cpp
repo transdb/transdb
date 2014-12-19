@@ -280,7 +280,7 @@ bool PythonInterface::run()
     
     bool reloadModule = false;
     //parameters
-    static const char *pFunctionProto = "(sii)";
+    static const char *pFunctionProto = "(sisi)";
    
     while(m_threadRunning)
     {
@@ -387,6 +387,7 @@ bool PythonInterface::run()
                                                               (char*)pFunctionProto,
                                                               g_cfg.ListenHost,
                                                               g_cfg.ListenPort,
+                                                              g_cfg.WebSocketHost,
                                                               g_cfg.WebSocketPort);
             
             //set init

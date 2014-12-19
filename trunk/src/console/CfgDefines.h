@@ -38,6 +38,7 @@ typedef struct _ConfigDefines
     //PublicSocket
     char    ListenHost[32];
     int     ListenPort;
+    char    WebSocketHost[32];
     int     WebSocketPort;
     uint32  SocketReadBufferSize;
     uint32  SocketWriteBufferSize;
