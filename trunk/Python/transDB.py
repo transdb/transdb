@@ -224,6 +224,7 @@ def socket_run(rcv_queue, send_queue, stop_event, addr, port):
                 #create socket + connect
                 if socketConnected == False:
                     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                     s.connect((addr, port))
                     socketConnected = True
             except socket.error as e:
