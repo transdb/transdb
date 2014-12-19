@@ -22,7 +22,7 @@
 		<key>141d2eb5-4d50-5b48-94a8-3209c207636d</key>
 		<string>../../../..</string>
 		<key>89b511ab-9c3f-d142-8dbd-1a3b8e1c1a46++505</key>
-		<string>../../../..trunk/src/shared/</string>
+		<string>../../../..trunk/src/shared</string>
 	</dict>
 	<key>IDESourceControlProjectRepositoryRootDictionary</key>
 	<dict>
