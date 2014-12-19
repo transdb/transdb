@@ -268,7 +268,6 @@ class TransDBHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         body = dict((k, v if len(v)>1 else v[0]) for k, v in urlparse.parse_qs(self.rfile.read(content_len)).iteritems())
         self.do_REQ(body)
 
-
     #do not delete
     def log_message(self, format, *args):
         return
@@ -292,7 +291,7 @@ class LoadTransDB:
         self.httpdThread = None
         self.stopEvent = threading.Event()
 
-    def run(self, transDBListenHost, transDBListenPort, webServiceListenPort):
+    def run(self, transDBListenHost, transDBListenPort, webServiceListenHost, webServiceListenPort):
         try:
             #start client socket thread - windows ip connect fix
             trandbSocketConnectIP = "127.0.0.1"
@@ -305,7 +304,7 @@ class LoadTransDB:
             self.transdbThread.start()
             
             #start HTTP interface thread
-            self.httpdThread = threading.Thread(target=http_socket_run, args=[self.stopEvent, transDBListenHost, webServiceListenPort])
+            self.httpdThread = threading.Thread(target=http_socket_run, args=[self.stopEvent, webServiceListenHost, webServiceListenPort])
             self.httpdThread.start()
     
             #loop until shutdown

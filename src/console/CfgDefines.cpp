@@ -40,6 +40,7 @@ void init_config_default_values(ConfigDefines *self)
     //PublicSocket
     strncpy(self->ListenHost, "0.0.0.0", sizeof(self->ListenHost));
     self->ListenPort                = 5555;
+    strncpy(self->WebSocketHost, "0.0.0.0", sizeof(self->WebSocketHost));
     self->WebSocketPort             = 8888;
     self->SocketReadBufferSize      = 32;
     self->SocketWriteBufferSize     = 32;
@@ -185,6 +186,8 @@ void LoadConfig()
     GET_CONFIG_INT_VALUE(&status, "Memory", "IndexBlockCache", &indexBlockCacheSize);
     GET_CONFIG_STRING_VALUE(&status, "PublicSocket", "Host", g_cfg.ListenHost, sizeof(g_cfg.ListenHost));
     GET_CONFIG_INT_VALUE(&status, "PublicSocket", "Port", &g_cfg.ListenPort);
+    GET_CONFIG_STRING_VALUE(&status, "PublicSocket", "WebSocketHost", g_cfg.WebSocketHost, sizeof(g_cfg.WebSocketHost));
+    GET_CONFIG_INT_VALUE(&status, "PublicSocket", "WebSocketPort", &g_cfg.WebSocketPort);
     GET_CONFIG_INT_VALUE(&status, "PublicSocket", "ReadBufferSize", &readBufferSize);
     GET_CONFIG_INT_VALUE(&status, "PublicSocket", "WriteBufferSize", &writeBufferSize);
     GET_CONFIG_INT_VALUE(&status, "PublicSocket", "PingTimeout", &g_cfg.PingTimeout);
