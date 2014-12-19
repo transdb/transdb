@@ -987,6 +987,7 @@
 					"$(LOCAL_LIBRARY_DIR)/Frameworks/Python.framework/Versions/2.7/lib",
 				);
 				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx10.9;
 				USER_HEADER_SEARCH_PATHS = ../tbb/include;
 			};
 			name = Debug;
@@ -1011,6 +1012,7 @@
 					"\"$(SRCROOT)/../tbb/lib\"",
 					"$(LOCAL_LIBRARY_DIR)/Frameworks/Python.framework/Versions/2.7/lib",
 				);
+				SDKROOT = macosx10.9;
 				USER_HEADER_SEARCH_PATHS = ../tbb/include;
 			};
 			name = Release;
